@@ -1,8 +1,8 @@
-# Pull Request
-
 ## Description
 <!-- Briefly describe what this PR does and why. -->
 
+## Ticket URL
+<!-- Planner Ticket URL -->
 
 ## Type of Change
 - [ ] Bug fix
@@ -10,10 +10,12 @@
 - [ ] Refactor
 - [ ] Docs
 
+## Scope of Change:
+- [ ] Frontend
+- [ ] Backend
+- [ ] Infrastructure
+- [ ] Data
+- [ ] DevOps
+
 ## Testing
 <!-- How did you verify your changes? -->
-
-## Checklist
-- [ ] Code follows project style
-- [ ] Tests added / updated
-- [ ] All tests pass
