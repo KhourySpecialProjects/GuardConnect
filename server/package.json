@@ -6,11 +6,16 @@
   "main": "index.ts",
   "scripts": {
     "dev": "npx tsx watch src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@trpc/client": "^11.6.0",
+    "@trpc/server": "^11.6.0"
   }
 }
