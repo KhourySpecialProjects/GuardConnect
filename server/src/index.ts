@@ -2,10 +2,10 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import cors from "cors";
 import express from "express";
 import { connectRedis } from "./data/db/redis.js";
+import { connectPostgres } from "./data/db/sql.js";
 import { appRouter } from "./trpc/app_router.js";
 import log from "./utils/logger.js";
 import { registerTrpcUiRoute } from "./utils/trpc-ui.js";
-import { connectPostgres } from "./data/db/sql.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
