@@ -54,6 +54,24 @@ cd ../web && npm install
 
 2. Start development servers:
 ```bash
+0. Install node and docker
+
+1. Clone and install dependencies:
+```bash
+git clone <repository-url>
+cd CommNG/server && npm install
+cd ../web && npm install
+```
+
+2. Setup backend databases
+```bash
+cd CommNG/
+cp .env.example .env # and populate this file with credentials
+docker compose up -d # starts docker containers for redis
+```
+
+3. Start development servers:
+```bash
 # Backend
 cd server && npm run dev
 
@@ -61,10 +79,15 @@ cd server && npm run dev
 cd web && npm run dev
 ```
 
-3. Access:
+4. Access:
 - Frontend: http://localhost:3000
 - API: http://localhost:3000/api/trpc
 - tRPC UI: http://localhost:3000/trpc-ui
+
+5. Troubleshooting
+```bash
+docker compose down -v # deleting docker containers (only when something goes wrong, otherwise just stop it in the Docker Desktop UI)
+```
 
 ## Development
 
