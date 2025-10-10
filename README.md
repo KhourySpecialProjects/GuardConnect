@@ -56,7 +56,7 @@ cd ../web && npm install
 2. Setup backend databases
 ```bash
 cd CommNG/
-cp .example.env .env # and populate this file with credentials
+cp .env.example .env # and populate this file with credentials
 docker compose up -d # starts docker containers for redis
 ```
 
