@@ -42,7 +42,7 @@ export const users = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [uniqueIndex("ux_users_email").on(table.email)]
+  (table) => [uniqueIndex("ux_users_email").on(table.email)],
 );
 
 // ATTRIBUTES
@@ -63,7 +63,7 @@ export const channels = pgTable(
       .notNull(),
     metadata: jsonb("metadata"),
   },
-  (table) => [uniqueIndex("ux_channels_name").on(table.name)]
+  (table) => [uniqueIndex("ux_channels_name").on(table.name)],
 );
 
 // USER <-> ATTRIBUTES
@@ -82,7 +82,7 @@ export const userAttributes = pgTable(
     sql`PRIMARY KEY (${table.userId.name}, ${table.attrId.name})`,
     index("ix_user_attributes_user_id").on(table.userId),
     index("ix_user_attributes_attr_id").on(table.attrId),
-  ]
+  ],
 );
 
 // CHANNEL <-> REQUIRED ATTRIBUTES
@@ -100,7 +100,7 @@ export const channelAttributes = pgTable(
     sql`PRIMARY KEY (${table.channelId.name}, ${table.attrId.name})`,
     index("ix_channel_attributes_channel_id").on(table.channelId),
     index("ix_channel_attributes_attr_id").on(table.attrId),
-  ]
+  ],
 );
 
 // SUBSCRIPTIONS
@@ -124,7 +124,7 @@ export const channelSubscriptions = pgTable(
   (table) => [
     index("ix_channel_subscriptions_user_id").on(table.userId),
     index("ix_channel_subscriptions_channel_id").on(table.channelId),
-  ]
+  ],
 );
 
 // MESSAGES
@@ -135,8 +135,9 @@ export const messages = pgTable(
     channelId: integer("channel_id")
       .references(() => channels.channelId, { onDelete: "cascade" })
       .notNull(),
-    senderId: integer("sender_id")
-      .references(() => users.userId, { onDelete: "set null" }),
+    senderId: integer("sender_id").references(() => users.userId, {
+      onDelete: "set null",
+    }),
     message: text("message"),
     attachmentUrl: text("attachment_url"),
     createdAt: timestamp("created_at", { withTimezone: false })
@@ -146,7 +147,7 @@ export const messages = pgTable(
   (table) => [
     index("ix_messages_channel_id").on(table.channelId),
     index("ix_messages_sender_id").on(table.senderId),
-  ]
+  ],
 );
 
 // MENTORS
@@ -167,16 +168,14 @@ export const mentors = pgTable(
     // CHECK (years_of_service IS NULL OR years_of_service >= 0)
     sql`CONSTRAINT ck_mentors_years_of_service CHECK (${table.yearsOfService.name} IS NULL OR ${table.yearsOfService.name} >= 0)`,
     index("ix_mentors_user_id").on(table.userId),
-  ]
+  ],
 );
 
 // MENTORSHIP REQUESTS
 export const mentorMatchingRequests = pgTable(
   "mentor_matching_requests",
   {
-    requestId: integer("request_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity(),
+    requestId: integer("request_id").primaryKey().generatedAlwaysAsIdentity(),
     userId: integer("user_id")
       .references(() => users.userId, { onDelete: "cascade" })
       .notNull(),
@@ -185,7 +184,7 @@ export const mentorMatchingRequests = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [index("ix_mentor_matching_requests_user_id").on(table.userId)]
+  (table) => [index("ix_mentor_matching_requests_user_id").on(table.userId)],
 );
 
 // MENTORSHIP MATCHES
@@ -193,7 +192,9 @@ export const mentorshipMatches = pgTable(
   "mentorship_matches",
   {
     matchId: integer("match_id").primaryKey().generatedAlwaysAsIdentity(),
-    requestorUserId: integer("requestor_user_id").references(() => users.userId),
+    requestorUserId: integer("requestor_user_id").references(
+      () => users.userId,
+    ),
     mentorUserId: integer("mentor_user_id").references(() => users.userId),
     matchedAt: timestamp("matched_at", { withTimezone: false })
       .defaultNow()
@@ -202,14 +203,12 @@ export const mentorshipMatches = pgTable(
   (table) => [
     uniqueIndex("ux_mentorship_matches_pair").on(
       table.requestorUserId,
-      table.mentorUserId
+      table.mentorUserId,
     ),
     index("ix_mentorship_matches_requestor_user_id").on(table.requestorUserId),
     index("ix_mentorship_matches_mentor_user_id").on(table.mentorUserId),
-  ]
+  ],
 );
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
-
-

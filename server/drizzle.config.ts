@@ -5,5 +5,3 @@ export default defineConfig({
   schema: "./src/data/db/schema",
   out: "./src/data/db/migrations",
 });
-
-
