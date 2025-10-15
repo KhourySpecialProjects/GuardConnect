@@ -1,3 +1,5 @@
+"use client";
+
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import type { AppRouter } from "../../../server/src/trpc/app_router";
 
