@@ -1,6 +1,6 @@
 import { UserRepository } from "../data/repository/user-repo.js";
-import { Cache } from "../utils/cache.js";
 import { BadRequestError } from "../types/errors.js";
+import { Cache } from "../utils/cache.js";
 
 export class UserService {
   private usersRepo: UserRepository;
