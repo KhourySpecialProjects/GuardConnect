@@ -37,6 +37,14 @@ export class PolicyEngine {
    * @returns `true` or `false`
    */
   async validate(userId: number, roleKey: string) {
+    if (roleKey.length === 0 || userId < 1) {
+      return false;
+    }
+    const roleId = await this.authRepository.getRoleId(roleKey);
+    if (roleId === -1) {
+      return false;
+    }
+
     const redisResult = await redisClient.sIsMember(
       `role:${roleKey}:users`,
       `${userId}`,
@@ -47,7 +55,9 @@ export class PolicyEngine {
 
     const rolesForUser = await this.authRepository.getRolesForUser(userId);
     const roleSet = new Set(rolesForUser);
+
     return (
+      roleSet.has("global:admin") ||
       roleSet.has(roleKey) ||
       roleSet.has(`${roleKey.substring(0, roleKey.lastIndexOf(":"))}:admin`)
     );

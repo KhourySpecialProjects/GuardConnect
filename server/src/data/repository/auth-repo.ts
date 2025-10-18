@@ -1,4 +1,5 @@
 import { count, eq } from "drizzle-orm";
+import { Cache } from "../../utils/cache.js";
 import log from "../../utils/logger.js";
 import { roles, userRoles, users } from "../db/schema/index.js";
 import { db } from "../db/sql.js";
@@ -13,6 +14,7 @@ export class AuthRepository {
     return rows.map((row) => row.userId);
   }
 
+  @Cache((userId: number) => `roles:${userId}`, 3600)
   async getRolesForUser(userId: number) {
     const rows = await db
       .selectDistinct({
@@ -32,6 +34,7 @@ export class AuthRepository {
     return roleData.map((r) => r.roleKey);
   }
 
+  @Cache((roleKey: string) => `role:id:${roleKey}`, 3600)
   async getRoleId(roleKey: string) {
     const roleData = await db
       .selectDistinct({
