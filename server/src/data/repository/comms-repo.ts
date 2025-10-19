@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import { channels, messages } from "../db/schema/index.js";
 import { db } from "../db/sql.js";
@@ -53,5 +53,60 @@ export class CommsRepository {
     }
 
     return created;
+  }
+
+  async getMessageById(message_id: number) {
+    const [message] = await db
+      .select({
+        messageId: messages.messageId,
+        channelId: messages.channelId,
+        senderId: messages.senderId,
+        message: messages.message,
+        attachmentUrl: messages.attachmentUrl,
+        createdAt: messages.createdAt,
+      })
+      .from(messages)
+      .where(eq(messages.messageId, message_id))
+      .limit(1);
+
+    if (!message) {
+      throw new NotFoundError("Message not found");
+    }
+
+    return message;
+  }
+
+  async updateMessage(
+    message_id: number,
+    channel_id: number,
+    content: string,
+    attachment_url?: string,
+  ) {
+    const [updated] = await db
+      .update(messages)
+      .set({
+        message: content,
+        attachmentUrl: attachment_url ?? null,
+      })
+      .where(
+        and(
+          eq(messages.messageId, message_id),
+          eq(messages.channelId, channel_id),
+        ),
+      )
+      .returning({
+        messageId: messages.messageId,
+        channelId: messages.channelId,
+        senderId: messages.senderId,
+        message: messages.message,
+        attachmentUrl: messages.attachmentUrl,
+        createdAt: messages.createdAt,
+      });
+
+    if (!updated) {
+      throw new ConflictError("Message update failed!");
+    }
+
+    return updated;
   }
 }

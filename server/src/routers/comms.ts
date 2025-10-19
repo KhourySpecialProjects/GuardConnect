@@ -1,7 +1,7 @@
 import { CommsService } from "../service/comms-service.js";
 import { policyEngine } from "../service/policy-engine.js";
 import { procedure, router } from "../trpc/trpc.js";
-import { postPostSchema } from "../types/comms-types.js";
+import { editPostSchema, postPostSchema } from "../types/comms-types.js";
 import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
 import log from "../utils/logger.js";
 
@@ -37,7 +37,7 @@ const createPost = procedure
       );
     }
 
-    const createdPost = commsService.createMessage(
+    const createdPost = await commsService.createMessage(
       userId,
       input.channelId,
       input.content,
@@ -47,7 +47,42 @@ const createPost = procedure
     return createdPost;
   });
 
+/**
+ * editPost
+ * Allows an authenticated user to edit a previously posted message if they authored it.
+ */
+const editPost = procedure
+  .input(editPostSchema)
+  .mutation(async ({ ctx, input }) => {
+    const userId = ctx.userId ?? ctx.user?.userId ?? null;
+    if (!userId) {
+      throw new UnauthorizedError("Sign in required");
+    }
+
+    const canPost = await policyEngine.validate(
+      userId,
+      `channel:${input.channelId}:post`,
+    );
+
+    if (!canPost) {
+      throw new ForbiddenError(
+        "You do not have permission to edit posts in this channel",
+      );
+    }
+
+    const updatedPost = await commsService.editMessage(
+      userId,
+      input.channelId,
+      input.messageId,
+      input.content,
+      input.attachmentUrl,
+    );
+
+    return updatedPost;
+  });
+
 export const commsRouter = router({
   ping,
   createPost,
+  editPost,
 });
