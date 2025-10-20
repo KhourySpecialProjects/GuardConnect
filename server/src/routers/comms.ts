@@ -2,10 +2,10 @@ import { userDevices } from "../data/db/schema/index.js";
 import { db } from "../data/db/sql.js";
 import { CommsService } from "../service/comms-service.js";
 import { policyEngine } from "../service/policy-engine.js";
+import { withErrorHandling } from "../trpc/error_handler.js";
 import { procedure, router } from "../trpc/trpc.js";
 import { postPostSchema, registerDeviceSchema } from "../types/comms-types.js";
 import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
-import { withErrorHandling } from "../trpc/error_handler.js";
 import log from "../utils/logger.js";
 
 const commsService = new CommsService();
