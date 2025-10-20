@@ -1,11 +1,11 @@
-import { z } from "zod";
 import { userDevices } from "../data/db/schema/index.js";
 import { db } from "../data/db/sql.js";
 import { CommsService } from "../service/comms-service.js";
 import { policyEngine } from "../service/policy-engine.js";
 import { procedure, router } from "../trpc/trpc.js";
-import { postPostSchema } from "../types/comms-types.js";
+import { postPostSchema, registerDeviceSchema } from "../types/comms-types.js";
 import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
+import { withErrorHandling } from "../trpc/error_handler.js";
 import log from "../utils/logger.js";
 
 const commsService = new CommsService();
@@ -16,25 +16,24 @@ const ping = procedure.query(() => {
 });
 
 const registerDevice = procedure
-  .input(
-    z.object({
-      deviceType: z.string(),
-      deviceToken: z.string(),
+  .input(registerDeviceSchema)
+  .mutation(({ input }) =>
+    withErrorHandling("registerDevice", async () => {
+      log.debug({ deviceType: input.deviceType }, "registerDevice");
+
+      const [device] = await db
+        .insert(userDevices)
+        .values({
+          userId: 1, // TODO: get from auth context
+          deviceType: input.deviceType,
+          deviceToken: input.deviceToken,
+        })
+        .returning();
+
+      return device;
     }),
-  )
-  .mutation(async ({ input }) => {
-    log.debug("registerDevice", { deviceType: input.deviceType });
+  );
 
-    const [device] = await db
-      .insert(userDevices)
-      .values({
-        userId: 1, // TODO: get from auth context
-        deviceType: input.deviceType,
-        deviceToken: input.deviceToken,
-      })
-      .returning();
-
-    return device;
 /**
  * createPost
  * Allows an authenticated user to post a message in a channel if they have write permissions.
