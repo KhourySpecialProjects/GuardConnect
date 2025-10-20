@@ -10,6 +10,16 @@ type MockMessage = {
   createdAt: Date;
 };
 
+type MockSubscription = {
+  subscriptionId: number;
+  userId: number;
+  channelId: number;
+  permission: "read" | "write" | "both";
+  notificationsEnabled: boolean;
+};
+
+type MockSubscriptionSummary = MockSubscription & { channelName: string };
+
 const mem: {
   users: {
     user_id: number;
@@ -18,12 +28,13 @@ const mem: {
     password: string;
   }[];
   channels: { channel_id: number; name: string }[];
-  channelSubscriptions: {
+  channelSubscriptions: Array<{
     id: number;
     user_id: number;
     channel_id: number;
     permission: "read" | "write" | "both";
-  }[];
+    notifications_enabled: boolean;
+  }>;
   roles: {
     role_id: number;
     namespace: string;
@@ -68,7 +79,13 @@ function addSubscription(
   channel_id: number,
   permission: "read" | "write" | "both",
 ) {
-  const s = { id: ++mem._ids.sub, user_id, channel_id, permission };
+  const s = {
+    id: ++mem._ids.sub,
+    user_id,
+    channel_id,
+    permission,
+    notifications_enabled: false,
+  };
   mem.channelSubscriptions.push(s);
   return s;
 }
@@ -129,6 +146,17 @@ vi.mock("../src/trpc/app_router.js", () => {
         content: string;
         attachmentUrl?: string;
       }): Promise<MockMessage>;
+      createSubscription(input: {
+        channelId: number;
+        permission: "read" | "write" | "both";
+        notificationsEnabled: boolean;
+      }): Promise<MockSubscription>;
+      deleteSubscription(input: {
+        subscriptionId: number;
+      }): Promise<MockSubscription>;
+      getUserSubscriptions(input: {
+        userId?: number;
+      }): Promise<MockSubscriptionSummary[]>;
     };
   };
   type AppRouter = {
@@ -174,6 +202,7 @@ vi.mock("../src/trpc/app_router.js", () => {
             content: string;
           }): Promise<MockMessage> {
             if (!ctx?.user || !ctx.userId) throw new Error("UNAUTHORIZED");
+
             const ch = mem.channels.find(
               (c) => c.channel_id === input.channelId,
             );
@@ -194,6 +223,7 @@ vi.mock("../src/trpc/app_router.js", () => {
             mem.posts.push(post);
             return post;
           },
+
           async editPost(input: {
             channelId: number;
             messageId: number;
@@ -234,9 +264,10 @@ vi.mock("../src/trpc/app_router.js", () => {
               attachmentUrl: input.attachmentUrl ?? null,
               createdAt: post.createdAt,
             };
-            mem.posts[postIndex] = updated;
 
+            mem.posts[postIndex] = updated;
             return updated;
+          },
 
           // Subscription endpoints
           async createSubscription(input: {
@@ -254,7 +285,7 @@ vi.mock("../src/trpc/app_router.js", () => {
             );
             if (existing) throw new Error("CONFLICT");
 
-            const subscription = {
+            const createdSubscription: MockSubscription = {
               subscriptionId: ++mem._ids.sub,
               userId: uid,
               channelId: input.channelId,
@@ -263,14 +294,14 @@ vi.mock("../src/trpc/app_router.js", () => {
             };
 
             mem.channelSubscriptions.push({
-              id: subscription.subscriptionId,
-              user_id: subscription.userId,
-              channel_id: subscription.channelId,
-              permission: subscription.permission,
-              notifications_enabled: subscription.notificationsEnabled,
+              id: createdSubscription.subscriptionId,
+              user_id: createdSubscription.userId,
+              channel_id: createdSubscription.channelId,
+              permission: createdSubscription.permission,
+              notifications_enabled: createdSubscription.notificationsEnabled,
             });
 
-            return subscription;
+            return createdSubscription;
           },
 
           async deleteSubscription(input: { subscriptionId: number }) {
@@ -283,36 +314,43 @@ vi.mock("../src/trpc/app_router.js", () => {
 
             if (subscriptionIndex === -1) throw new Error("NOT_FOUND");
 
-            const deleted = mem.channelSubscriptions[subscriptionIndex];
-            mem.channelSubscriptions.splice(subscriptionIndex, 1);
+            const [deleted] = mem.channelSubscriptions.splice(
+              subscriptionIndex,
+              1,
+            );
+            if (!deleted) throw new Error("NOT_FOUND");
 
-            return {
+            const result: MockSubscription = {
               subscriptionId: deleted.id,
               userId: deleted.user_id,
               channelId: deleted.channel_id,
               permission: deleted.permission,
               notificationsEnabled: deleted.notifications_enabled,
             };
+            return result;
           },
 
           async getUserSubscriptions(_input: { userId?: number }) {
             if (!ctx?.user || !ctx.userId) throw new Error("UNAUTHORIZED");
 
             const uid = ctx.userId as number;
-            const userSubscriptions = mem.channelSubscriptions
-              .filter((s) => s.user_id === uid)
-              .map((s) => {
-                const channel = mem.channels.find(
-                  (c) => c.channel_id === s.channel_id,
-                );
-                return {
-                  subscriptionId: s.id,
-                  channelId: s.channel_id,
-                  permission: s.permission,
-                  notificationsEnabled: s.notifications_enabled,
-                  channelName: channel?.name || "Unknown Channel",
-                };
-              });
+            const userSubscriptions: MockSubscriptionSummary[] =
+              mem.channelSubscriptions
+                .filter((s) => s.user_id === uid)
+                .map((s) => {
+                  const channel = mem.channels.find(
+                    (c) => c.channel_id === s.channel_id,
+                  );
+
+                  return {
+                    subscriptionId: s.id,
+                    channelId: s.channel_id,
+                    permission: s.permission,
+                    notificationsEnabled: s.notifications_enabled,
+                    userId: uid,
+                    channelName: channel?.name || "Unknown Channel",
+                  };
+                });
 
             return userSubscriptions;
           },
@@ -630,6 +668,10 @@ describe("commsRouter subscription endpoints", () => {
         notificationsEnabled: true,
       });
 
+      if (!subscription) {
+        throw new Error("Expected subscription to be defined");
+      }
+
       expect(subscription).toBeDefined();
       expect(subscription.userId).toBe(authedUserId);
       expect(subscription.channelId).toBe(testChannel.channel_id);
@@ -685,6 +727,9 @@ describe("commsRouter subscription endpoints", () => {
         permission: "write",
         notificationsEnabled: true,
       });
+      if (!subscription) {
+        throw new Error("Expected subscription to be defined");
+      }
       const subscriptionId = subscription.subscriptionId;
 
       // Delete the subscription
@@ -735,6 +780,9 @@ describe("commsRouter subscription endpoints", () => {
       expect(subscriptions.length).toBeGreaterThan(0);
 
       const subscription = subscriptions[0];
+      if (!subscription) {
+        throw new Error("Expected a subscription to be returned");
+      }
       expect(subscription).toHaveProperty("subscriptionId");
       expect(subscription).toHaveProperty("channelId");
       expect(subscription).toHaveProperty("permission");
