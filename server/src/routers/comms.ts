@@ -3,8 +3,11 @@ import { CommsService } from "../service/comms-service.js";
 import { policyEngine } from "../service/policy-engine.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { procedure, router } from "../trpc/trpc.js";
-import { editPostSchema, postPostSchema } from "../types/comms-types.js";
-import { postPostSchema, registerDeviceSchema } from "../types/comms-types.js";
+import {
+  editPostSchema,
+  postPostSchema,
+  registerDeviceSchema,
+} from "../types/comms-types.js";
 import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
 import log from "../utils/logger.js";
 

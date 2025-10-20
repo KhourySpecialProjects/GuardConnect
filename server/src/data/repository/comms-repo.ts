@@ -108,6 +108,7 @@ export class CommsRepository {
     }
 
     return updated;
+  }
   async registerDevice(
     userId: number,
     deviceType: string,

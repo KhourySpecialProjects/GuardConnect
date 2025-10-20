@@ -210,7 +210,12 @@ vi.mock("../src/trpc/app_router.js", () => {
             const uid = ctx.userId as number;
             ensureCanPost(uid, input.channelId);
 
-            const post = mem.posts.find((p) => p.messageId === input.messageId);
+            const postIndex = mem.posts.findIndex(
+              (p) => p.messageId === input.messageId,
+            );
+            if (postIndex === -1) throw new Error("NOT_FOUND");
+
+            const post = mem.posts[postIndex];
             if (!post) throw new Error("NOT_FOUND");
 
             if (post.channelId !== input.channelId) {
@@ -221,17 +226,16 @@ vi.mock("../src/trpc/app_router.js", () => {
               throw new Error("FORBIDDEN");
             }
 
-            post.message = input.content;
-            post.attachmentUrl = input.attachmentUrl ?? null;
-
             const updated: MockMessage = {
               messageId: post.messageId,
               channelId: post.channelId,
               senderId: post.senderId,
-              message: post.message,
-              attachmentUrl: post.attachmentUrl,
+              message: input.content,
+              attachmentUrl: input.attachmentUrl ?? null,
               createdAt: post.createdAt,
             };
+            mem.posts[postIndex] = updated;
+
             return updated;
           },
         },
