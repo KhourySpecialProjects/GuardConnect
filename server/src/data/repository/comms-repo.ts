@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
-import { channels, messages } from "../db/schema/index.js";
+import { channels, messages, userDevices } from "../db/schema/index.js";
 import { db } from "../db/sql.js";
 
 export type UserPermissionsResult = {
@@ -53,5 +53,22 @@ export class CommsRepository {
     }
 
     return created;
+  }
+
+  async registerDevice(
+    userId: number,
+    deviceType: string,
+    deviceToken: string,
+  ) {
+    const [device] = await db
+      .insert(userDevices)
+      .values({
+        userId,
+        deviceType,
+        deviceToken,
+      })
+      .returning();
+
+    return device;
   }
 }

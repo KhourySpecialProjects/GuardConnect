@@ -1,5 +1,4 @@
-import { userDevices } from "../data/db/schema/index.js";
-import { db } from "../data/db/sql.js";
+import { CommsRepository } from "../data/repository/comms-repo.js";
 import { CommsService } from "../service/comms-service.js";
 import { policyEngine } from "../service/policy-engine.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
@@ -9,6 +8,7 @@ import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
 import log from "../utils/logger.js";
 
 const commsService = new CommsService();
+const commsRepo = new CommsRepository();
 
 const ping = procedure.query(() => {
   log.debug("ping");
@@ -21,16 +21,11 @@ const registerDevice = procedure
     withErrorHandling("registerDevice", async () => {
       log.debug({ deviceType: input.deviceType }, "registerDevice");
 
-      const [device] = await db
-        .insert(userDevices)
-        .values({
-          userId: 1, // TODO: get from auth context
-          deviceType: input.deviceType,
-          deviceToken: input.deviceToken,
-        })
-        .returning();
-
-      return device;
+      return await commsRepo.registerDevice(
+        1, // TODO: get from auth context
+        input.deviceType,
+        input.deviceToken,
+      );
     }),
   );
 
