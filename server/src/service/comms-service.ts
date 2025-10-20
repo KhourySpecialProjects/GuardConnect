@@ -97,8 +97,6 @@ export class CommsService {
       throw new BadRequestError("Cannot have decimal points in User ID");
     }
 
-    await this.getChannelById(channel_id);
-
     const existingMessage = await this.commsRepo.getMessageById(message_id);
 
     if (existingMessage.channelId !== channel_id) {
