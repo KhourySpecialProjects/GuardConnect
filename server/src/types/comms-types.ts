@@ -12,3 +12,9 @@ export const editPostSchema = z.object({
   content: z.string().min(1, "Post content cannot be empty"),
   attachmentUrl: z.string().url().optional(),
 });
+export const registerDeviceSchema = z.object({
+  deviceType: z.string(),
+  deviceToken: z.string(),
+});
+
+export type RegisterDeviceInput = z.infer<typeof registerDeviceSchema>;
