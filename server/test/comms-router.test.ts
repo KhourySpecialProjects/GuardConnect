@@ -71,6 +71,12 @@ const mem: {
 };
 mem._ids = { user: 0, channel: 0, sub: 0, role: 0, userRole: 0, post: 0 };
 
+let uniqueCounter = 0;
+function uniqueName(prefix: string) {
+  uniqueCounter += 1;
+  return `${prefix}-${uniqueCounter}`;
+}
+
 function createUser(name: string, email: string, password: string) {
   const u = { user_id: ++mem._ids.user, name, email, password };
   mem.users.push(u);
@@ -935,7 +941,7 @@ describe("commsRouter subscription endpoints", () => {
 
     it("creates subscription successfully", async () => {
       // Use a fresh channel for this test
-      const testChannel = createChannel(`test-channel-${Date.now()}`);
+      const testChannel = createChannel(uniqueName("test-channel"));
       const caller = appRouter.createCaller({
         user: ctxUser(authedUserId),
         userId: authedUserId,
@@ -959,7 +965,7 @@ describe("commsRouter subscription endpoints", () => {
 
     it("throws CONFLICT for duplicate subscription", async () => {
       // Use a fresh channel for this test
-      const testChannel = createChannel(`test-channel-${Date.now()}`);
+      const testChannel = createChannel(uniqueName("test-channel"));
       const caller = appRouter.createCaller({
         user: ctxUser(authedUserId),
         userId: authedUserId,
@@ -993,7 +999,7 @@ describe("commsRouter subscription endpoints", () => {
 
     it("creates and deletes subscription successfully", async () => {
       // Use a fresh channel for this test
-      const testChannel = createChannel(`test-channel-${Date.now()}`);
+      const testChannel = createChannel(uniqueName("test-channel"));
       const caller = appRouter.createCaller({
         user: ctxUser(authedUserId),
         userId: authedUserId,
@@ -1038,7 +1044,7 @@ describe("commsRouter subscription endpoints", () => {
 
     it("returns user's subscriptions", async () => {
       // Use a fresh channel for this test
-      const testChannel = createChannel(`test-channel-${Date.now()}`);
+      const testChannel = createChannel(uniqueName("test-channel"));
       const caller = appRouter.createCaller({
         user: ctxUser(authedUserId),
         userId: authedUserId,
@@ -1135,7 +1141,7 @@ describe("commsRouter.createChannel", () => {
         user: ctxUser(authedUserId),
         userId: authedUserId,
       });
-      const channelName = `test-channel-${Date.now()}`;
+      const channelName = uniqueName("test-channel");
       const channel = await caller.comms.createChannel({
         name: channelName,
         metadata: { description: "Test channel", type: "public" },
@@ -1160,7 +1166,7 @@ describe("commsRouter.createChannel", () => {
         user: ctxUser(authedUserId),
         userId: authedUserId,
       });
-      const channelName = `simple-channel-${Date.now()}`;
+      const channelName = uniqueName("simple-channel");
       const channel = await caller.comms.createChannel({
         name: channelName,
       });
@@ -1175,7 +1181,7 @@ describe("commsRouter.createChannel", () => {
     });
 
     it("throws CONFLICT for duplicate channel name", async () => {
-      const channelName = `duplicate-test-${Date.now()}`;
+      const channelName = uniqueName("duplicate-test");
       const caller = appRouter.createCaller({
         user: ctxUser(authedUserId),
         userId: authedUserId,
