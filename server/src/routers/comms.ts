@@ -5,6 +5,9 @@ import { withErrorHandling } from "../trpc/error_handler.js";
 import { procedure, router } from "../trpc/trpc.js";
 import {
   editPostSchema,
+  createSubscriptionSchema,
+  deleteSubscriptionSchema,
+  getUserSubscriptionsSchema,
   postPostSchema,
   registerDeviceSchema,
 } from "../types/comms-types.js";
@@ -101,10 +104,69 @@ const editPost = procedure
 
     return updatedPost;
   });
+// Channel subscription endpoints
+const createSubscription = procedure
+  .input(createSubscriptionSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("createSubscription", async () => {
+      const userId = ctx.userId ?? ctx.user?.userId ?? null;
+      if (!userId) {
+        throw new UnauthorizedError("Sign in required");
+      }
+
+      log.debug(
+        { userId, channelId: input.channelId },
+        "Creating subscription",
+      );
+
+      return await commsRepo.createSubscription(
+        userId,
+        input.channelId,
+        input.permission,
+        input.notificationsEnabled,
+      );
+    }),
+  );
+
+const deleteSubscription = procedure
+  .input(deleteSubscriptionSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("deleteSubscription", async () => {
+      const userId = ctx.userId ?? ctx.user?.userId ?? null;
+      if (!userId) {
+        throw new UnauthorizedError("Sign in required");
+      }
+
+      log.debug(
+        { userId, subscriptionId: input.subscriptionId },
+        "Deleting subscription",
+      );
+
+      return await commsRepo.deleteSubscription(input.subscriptionId, userId);
+    }),
+  );
+
+const getUserSubscriptions = procedure
+  .input(getUserSubscriptionsSchema)
+  .query(({ ctx, input }) =>
+    withErrorHandling("getUserSubscriptions", async () => {
+      const userId = ctx.userId ?? ctx.user?.userId ?? input.userId ?? null;
+      if (!userId) {
+        throw new UnauthorizedError("Sign in required");
+      }
+
+      log.debug({ userId }, "Getting user subscriptions");
+
+      return await commsRepo.getUserSubscriptions(userId);
+    }),
+  );
 
 export const commsRouter = router({
   ping,
   registerDevice,
   createPost,
   editPost,
+  createSubscription,
+  deleteSubscription,
+  getUserSubscriptions,
 });
