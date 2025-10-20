@@ -1,16 +1,33 @@
+import { CommsRepository } from "../data/repository/comms-repo.js";
 import { CommsService } from "../service/comms-service.js";
 import { policyEngine } from "../service/policy-engine.js";
+import { withErrorHandling } from "../trpc/error_handler.js";
 import { procedure, router } from "../trpc/trpc.js";
-import { postPostSchema } from "../types/comms-types.js";
+import { postPostSchema, registerDeviceSchema } from "../types/comms-types.js";
 import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
 import log from "../utils/logger.js";
 
 const commsService = new CommsService();
+const commsRepo = new CommsRepository();
 
 const ping = procedure.query(() => {
   log.debug("ping");
   return "pong from comms";
 });
+
+const registerDevice = procedure
+  .input(registerDeviceSchema)
+  .mutation(({ input }) =>
+    withErrorHandling("registerDevice", async () => {
+      log.debug({ deviceType: input.deviceType }, "registerDevice");
+
+      return await commsRepo.registerDevice(
+        1, // TODO: get from auth context
+        input.deviceType,
+        input.deviceToken,
+      );
+    }),
+  );
 
 /**
  * createPost
@@ -49,5 +66,6 @@ const createPost = procedure
 
 export const commsRouter = router({
   ping,
+  registerDevice,
   createPost,
 });
