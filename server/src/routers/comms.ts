@@ -4,6 +4,7 @@ import { policyEngine } from "../service/policy-engine.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { procedure, router } from "../trpc/trpc.js";
 import {
+  createChannelSchema,
   createSubscriptionSchema,
   deleteSubscriptionSchema,
   editPostSchema,
@@ -70,6 +71,22 @@ const createPost = procedure
 
     return createdPost;
   });
+
+// Channel creation endpoint
+const createChannel = procedure
+  .input(createChannelSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("createChannel", async () => {
+      const userId = ctx.userId ?? ctx.user?.userId ?? null;
+      if (!userId) {
+        throw new UnauthorizedError("Sign in required");
+      }
+
+      log.debug({ userId, channelName: input.name }, "Creating channel");
+
+      return await commsRepo.createChannel(input.name, input.metadata);
+    }),
+  );
 
 /**
  * editPost
@@ -165,6 +182,7 @@ export const commsRouter = router({
   ping,
   registerDevice,
   createPost,
+  createChannel,
   editPost,
   createSubscription,
   deleteSubscription,

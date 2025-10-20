@@ -38,3 +38,14 @@ export type DeleteSubscriptionInput = z.infer<typeof deleteSubscriptionSchema>;
 export type GetUserSubscriptionsInput = z.infer<
   typeof getUserSubscriptionsSchema
 >;
+
+// Channel creation schema
+export const createChannelSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Channel name cannot be empty")
+    .max(100, "Channel name too long"),
+  metadata: z.record(z.unknown()).optional(), // Optional JSON metadata
+});
+
+export type CreateChannelInput = z.infer<typeof createChannelSchema>;
