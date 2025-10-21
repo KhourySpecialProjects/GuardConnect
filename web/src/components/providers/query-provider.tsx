@@ -34,7 +34,11 @@ export function QueryProvider({ children }: PropsWithChildren) {
   const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
-      links: [httpBatchLink({ url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/trpc` })],
+      links: [
+        httpBatchLink({
+          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/trpc`,
+        }),
+      ],
     }),
   );
   return (
