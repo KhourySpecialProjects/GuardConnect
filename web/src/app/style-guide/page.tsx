@@ -1,3 +1,5 @@
+import { iconCatalog } from "@/components/icons";
+
 const typographyScale = [
   {
     name: "Title",
@@ -40,7 +42,7 @@ const palette = [
     token: "primary",
     hex: "#283396",
     swatchClass: "bg-primary border border-primary/60",
-    textClass: "text-background",
+    textClass: "text-secondary",
     usage: "Brand accents, primary buttons, links.",
   },
   {
@@ -48,7 +50,7 @@ const palette = [
     token: "secondary",
     hex: "#222121",
     swatchClass: "bg-secondary border border-secondary/60",
-    textClass: "text-background",
+    textClass: "text-secondary",
     usage: "High-contrast text and iconography.",
   },
   {
@@ -74,7 +76,7 @@ export default function StyleGuidePage() {
     <div className="min-h-screen bg-background pb-16 pt-12 text-secondary">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-4 sm:px-6 lg:px-8">
         <header className="space-y-3 text-center lg:text-left">
-          <p className="text-sm uppercase tracking-[0.2em] text-primary">
+          <p className="text-lg uppercase tracking-[0.2em] text-primary">
             CommNG Design System
           </p>
           <h1 className="text-title text-secondary">Style Guide</h1>
@@ -133,9 +135,7 @@ export default function StyleGuidePage() {
                       className={`h-14 w-14 shrink-0 rounded-xl ${swatchClass}`}
                     />
                     <div className="flex flex-1 flex-col">
-                      <span
-                        className={`text-subheader text-secondary ${textClass}`}
-                      >
+                      <span className={`text-subheader ${textClass}`}>
                         {name}
                       </span>
                       <span className="text-xs uppercase tracking-[0.2em] text-neutral">
@@ -152,6 +152,34 @@ export default function StyleGuidePage() {
             </div>
           </section>
         </div>
+
+        <section className="space-y-6">
+          <h2 className="text-header text-secondary">Icons</h2>
+          <p className="text-subheader text-secondary/80">
+            @heroicons icons mapped to our Figma set. Import them from
+            <code className="mx-2 rounded bg-neutral/30 px-2 py-0.5 text-xs text-secondary">
+              @/components/icons
+            </code>
+            and render them as needed.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {iconCatalog.map(({ name, icon: Icon, usage, token }) => (
+              <div
+                key={token}
+                className="flex flex-col justify-between rounded-2xl border border-neutral/50 bg-white/80 p-5 shadow-sm backdrop-blur-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-subheader text-secondary">{name}</span>
+                  <Icon className="h-8 w-8 text-accent" />
+                </div>
+                <p className="mt-3 text-body text-secondary/70">{usage}</p>
+                <code className="mt-4 inline-block rounded bg-neutral/30 px-2 py-1 text-xs text-secondary">
+                  {token}
+                </code>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
