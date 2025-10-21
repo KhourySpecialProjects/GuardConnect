@@ -45,7 +45,7 @@ export class FileRepository {
     });
   }
 
-  @Cache((fileId) => `file:${fileId}:data`, 60*60*12)
+  @Cache((fileId) => `file:${fileId}:data`, 60 * 60 * 12)
   public async getFile(fileId: string): Promise<FileRecord> {
     const [file] = await db
       .select({
