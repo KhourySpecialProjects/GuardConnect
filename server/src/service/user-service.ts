@@ -1,4 +1,4 @@
-import { UserRepository } from "../data/repository/user-repo.js";
+import type { UserRepository } from "../data/repository/user-repo.js";
 import { BadRequestError } from "../types/errors.js";
 import { Cache } from "../utils/cache.js";
 

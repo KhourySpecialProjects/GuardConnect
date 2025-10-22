@@ -1,4 +1,4 @@
-import { ReportRepository } from "../data/repository/reports-repo.js";
+import type { ReportRepository } from "../data/repository/reports-repo.js";
 
 export class ReportService {
   private reportsRepo: ReportRepository;

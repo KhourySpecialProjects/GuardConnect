@@ -1,4 +1,4 @@
-import { CommsRepository } from "../data/repository/comms-repo.js";
+import type { CommsRepository } from "../data/repository/comms-repo.js";
 import { BadRequestError, ForbiddenError } from "../types/errors.js";
 import { policyEngine } from "./policy-engine.js";
 
