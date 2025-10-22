@@ -1,28 +1,28 @@
-import { iconCatalog } from "@/components/icons";
+import { iconCatalog } from "@/app/style-guide/icons";
 
 const typographyScale = [
   {
     name: "Title",
-    className: "text-title",
+    className: "text-title font-semibold",
     description:
       "Primary page titles. Semibold on desktop (48px) and mobile (32px).",
     sample: "The quick brown fox jumps over the lazy dog.",
   },
   {
     name: "Header",
-    className: "text-header",
+    className: "text-header font-semibold",
     description: "Section headers, cards, and key UI labels.",
     sample: "Heading level content stays strong and clear.",
   },
   {
     name: "Subheader",
-    className: "text-subheader",
+    className: "text-subheader font-semibold",
     description: "Form labels, button text, and secondary headings.",
     sample: "Supporting copy that balances emphasis and clarity.",
   },
   {
     name: "Body",
-    className: "text-body",
+    className: "text-body font-normal",
     description: "Long-form content and body copy.",
     sample: "Body text ensures comfortable reading across breakpoints.",
   },
@@ -91,7 +91,8 @@ export default function StyleGuidePage() {
           <section className="space-y-6">
             <h2 className="text-header text-secondary">Typography</h2>
             <p className="text-subheader text-secondary/80">
-              All type styles use Open Sans via `text-*` utility classes.
+              All type styles use Open Sans via `text-*` utilities paired with
+              weight helpers.
             </p>
             <div className="space-y-6">
               {typographyScale.map(
@@ -158,7 +159,7 @@ export default function StyleGuidePage() {
           <p className="text-subheader text-secondary/80">
             @heroicons icons mapped to our Figma set. Import them from
             <code className="mx-2 rounded bg-neutral/30 px-2 py-0.5 text-xs text-secondary">
-              @/components/icons
+              @/app/style-guide/icons
             </code>
             and render them as needed.
           </p>
