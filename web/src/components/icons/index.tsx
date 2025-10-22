@@ -19,6 +19,12 @@ import {
   UserPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import {
+  Megaphone,
+  MessageSquareWarning,
+  User,
+  Users,
+} from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -91,6 +97,10 @@ export const icons = {
   toggleOn: ToggleOnIcon,
   message: ChatBubbleBottomCenterTextIcon,
   ellipsis: EllipsisVerticalIcon,
+  communications: Megaphone,
+  mentorship: Users,
+  reports: MessageSquareWarning,
+  user: User,
 } satisfies Record<string, HeroIcon>;
 
 export type IconName = keyof typeof icons;
