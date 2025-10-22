@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NotFoundError } from "../../types/errors.js";
-import { users } from "../db/schema/auth.js";
+import { users } from "../db/schema.js";
 import { db } from "../db/sql.js";
 
 /**

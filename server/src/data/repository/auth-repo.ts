@@ -1,8 +1,7 @@
 import { count, eq } from "drizzle-orm";
 import { Cache } from "../../utils/cache.js";
 import log from "../../utils/logger.js";
-import { users } from "../db/schema/auth.js";
-import { roles, userRoles } from "../db/schema/index.js";
+import { roles, userRoles, users } from "../db/schema.js";
 import { db } from "../db/sql.js";
 
 export class AuthRepository {

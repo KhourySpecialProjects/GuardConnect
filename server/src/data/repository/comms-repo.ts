@@ -5,7 +5,7 @@ import {
   channels,
   messages,
   userDevices,
-} from "../db/schema/index.js";
+} from "../db/schema.js";
 import { db } from "../db/sql.js";
 
 export type UserPermissionsResult = {

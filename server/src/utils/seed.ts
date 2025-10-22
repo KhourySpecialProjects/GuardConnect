@@ -1,13 +1,14 @@
 import { randomUUID } from "crypto";
 import { eq, inArray, sql } from "drizzle-orm";
-import { type CreateUser, users } from "../data/db/schema/auth.js";
 import {
   channels,
   type NewRole,
+  type NewUser,
   // type NewUser,
   roles,
   userRoles,
-} from "../data/db/schema/index.js";
+  users,
+} from "../data/db/schema.js";
 import { db, shutdownPostgres } from "../data/db/sql.js";
 
 interface RoleDefinition
@@ -26,7 +27,7 @@ type ChannelSeed = {
   metadata: Record<string, unknown>;
 };
 
-async function upsertUsers(seedUsers: CreateUser[]) {
+async function upsertUsers(seedUsers: NewUser[]) {
   await db
     .insert(users)
     .values(seedUsers)
@@ -162,7 +163,7 @@ async function upsertUserRoles(
 }
 
 async function seed() {
-  const usersToSeed: CreateUser[] = [
+  const usersToSeed: NewUser[] = [
     {
       id: randomUUID(),
       name: "Alice Johnson",
