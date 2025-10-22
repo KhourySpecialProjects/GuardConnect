@@ -1,4 +1,4 @@
-import { iconCatalog } from "@/app/style-guide/icons";
+import { icons, type IconName } from "@/components/icons";
 
 const typographyScale = [
   {
@@ -68,6 +68,136 @@ const palette = [
     swatchClass: "bg-neutral border border-neutral/60",
     textClass: "text-secondary",
     usage: "Borders, dividers, disabled states.",
+  },
+];
+
+type IconDescriptor = {
+  name: string;
+  icon: (typeof icons)[IconName];
+  usage: string;
+  token: IconName;
+};
+
+const iconCatalog: IconDescriptor[] = [
+  {
+    name: "Search",
+    icon: icons.search,
+    usage: "Search inputs, top nav search, command palette triggers.",
+    token: "search",
+  },
+  {
+    name: "Edit",
+    icon: icons.edit,
+    usage: "Inline editing, form edit states, quick actions.",
+    token: "edit",
+  },
+  {
+    name: "Add",
+    icon: icons.add,
+    usage: "Primary create actions, add buttons, fab actions.",
+    token: "add",
+  },
+  {
+    name: "Add Alert",
+    icon: icons.addAlert,
+    usage: "Notifications, alert creation, subscriptions.",
+    token: "addAlert",
+  },
+  {
+    name: "Settings",
+    icon: icons.settings,
+    usage: "Preferences, configuration panels, gear menus.",
+    token: "settings",
+  },
+  {
+    name: "Person Add",
+    icon: icons.personAdd,
+    usage: "User invites, share modals, participant management.",
+    token: "personAdd",
+  },
+  {
+    name: "Ellipsis",
+    icon: icons.ellipsis,
+    usage: "Overflow menus, loading states, more indicator.",
+    token: "ellipsis",
+  },
+  {
+    name: "Arrow Left",
+    icon: icons.arrowLeft,
+    usage: "Back navigation, pagination, carousels.",
+    token: "arrowLeft",
+  },
+  {
+    name: "Arrow Right",
+    icon: icons.arrowRight,
+    usage: "Forward navigation, pagination, carousels.",
+    token: "arrowRight",
+  },
+  {
+    name: "Announce",
+    icon: icons.announce,
+    usage: "Broadcast messages, campaign updates, banners.",
+    token: "announce",
+  },
+  {
+    name: "Forum",
+    icon: icons.forum,
+    usage: "Discussion threads, chat experiences, forums.",
+    token: "forum",
+  },
+  {
+    name: "Menu",
+    icon: icons.menu,
+    usage: "Hamburger menu, overflow actions, navigation drawers.",
+    token: "menu",
+  },
+  {
+    name: "Trash",
+    icon: icons.trash,
+    usage: "Delete actions, archive flows, destructive confirmations.",
+    token: "trash",
+  },
+  {
+    name: "Message",
+    icon: icons.message,
+    usage: "Messaging, comments, timeline items.",
+    token: "message",
+  },
+  {
+    name: "Clear",
+    icon: icons.clear,
+    usage: "Dismiss actions, modal close, input clear buttons.",
+    token: "clear",
+  },
+  {
+    name: "Arrow Down",
+    icon: icons.arrowDown,
+    usage: "Dropdown menus, collapsible content, sorting.",
+    token: "arrowDown",
+  },
+  {
+    name: "Done",
+    icon: icons.done,
+    usage: "Completion states, success confirmations, checklists.",
+    token: "done",
+  },
+  {
+    name: "Lock",
+    icon: icons.lock,
+    usage: "Security, permissions, protected resources.",
+    token: "lock",
+  },
+  {
+    name: "Toggle Off",
+    icon: icons.toggleOff,
+    usage: "Forms and settings toggle - inactive state.",
+    token: "toggleOff",
+  },
+  {
+    name: "Toggle On",
+    icon: icons.toggleOn,
+    usage: "Forms and settings toggle - active state.",
+    token: "toggleOn",
   },
 ];
 
@@ -159,7 +289,7 @@ export default function StyleGuidePage() {
           <p className="text-subheader text-secondary/80">
             @heroicons icons mapped to our Figma set. Import them from
             <code className="mx-2 rounded bg-neutral/30 px-2 py-0.5 text-xs text-secondary">
-              @/app/style-guide/icons
+              @/components/icons
             </code>
             and render them as needed.
           </p>
