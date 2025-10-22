@@ -1,200 +1,137 @@
-import type { Readable } from "node:stream";
-import type { FileInfo } from "busboy";
-import busboy from "busboy";
-import express, { type Request, type Response } from "express";
-import { FileRepository } from "../data/repository/file-repo.js";
+import { TRPCError } from "@trpc/server";
 import { FileService } from "../service/file-service.js";
 import { policyEngine } from "../service/policy-engine.js";
+import { procedure, router } from "../trpc/trpc.js";
+import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
+import type { FileDownloadPayload } from "../types/file-types.js";
+import {
+  getFileInputSchema,
+  uploadForChannelInputSchema,
+  uploadForUserInputSchema,
+} from "../types/file-types.js";
 import log from "../utils/logger.js";
 
-const fileRouter = express.Router();
-const MAX_BYTES = 10 * 1024 * 1024;
+const fileService = new FileService();
 
-const fileRepo = new FileRepository();
-const fileEngine = new FileService(fileRepo);
+const uploadForUser = procedure
+  .input(uploadForUserInputSchema)
+  .meta({
+    requiresAuth: true,
+    description: "Upload a user-specific file (profile picture, etc.)",
+  })
+  .mutation(async ({ ctx, input }) => {
+    // replace with auth middleware later -----------------\
+    const userId = ctx.userId;
+    if (!userId) {
+      throw new UnauthorizedError("Sign In required");
+    }
+    // replace with auth middleware later -----------------/
 
-async function getUserFromReq(_req: Request) {
-  // const auth = req.headers.authorization?.split(" ")[1];
-  // if (!auth) return null;
-  return { userId: 1 };
-}
-
-function sendResponse(
-  res: Response,
-  responded: { value: boolean },
-  status: number,
-  data: object,
-) {
-  if (!responded.value) {
-    responded.value = true;
-    res.status(status).json(data);
-  }
-}
-
-type UploadHandler = (input: {
-  filename: string;
-  mimeType: string;
-  stream: Readable;
-}) => Promise<string>;
-
-async function handleFileUpload(
-  req: Request,
-  res: Response,
-  handler: UploadHandler,
-) {
-  return new Promise<void>((resolve) => {
-    const responded = { value: false };
-    let sawFile = false;
-
-    const bb = busboy({
-      headers: req.headers,
-      limits: { fileSize: MAX_BYTES },
-    });
-
-    let cleaned = false;
-    const cleanup = () => {
-      if (cleaned) return;
-      cleaned = true;
-      req.unpipe(bb);
-      bb.removeAllListeners();
-      req.resume();
-      resolve();
-    };
-
-    bb.on("file", (_field: string, fileStream: Readable, info: FileInfo) => {
-      if (responded.value) {
-        fileStream.resume();
-        return;
-      }
-
-      sawFile = true;
-      const { filename, mimeType } = info;
-
-      fileStream.on("limit", () => {
-        sendResponse(res, responded, 413, {
-          error: "File too large (max 10MB)",
-        });
-        log.warn("File upload failed: file too large");
-        fileStream.destroy();
-        cleanup();
+    const { file, contentType } = input;
+    const stream = await fileService.fileLikeToReadable(file);
+    try {
+      const fileId = await fileService.storeFileFromStream(
+        userId,
+        file.name,
+        stream,
+        { contentType: contentType ?? "application/octet-stream" },
+      );
+      return { fileId };
+    } catch (err) {
+      log.error(err, "File upload failed");
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to store file",
       });
-
-      handler({ filename, mimeType, stream: fileStream })
-        .then((fileId) => {
-          sendResponse(res, responded, 201, { fileId });
-          cleanup();
-        })
-        .catch((err) => {
-          sendResponse(res, responded, 500, {
-            error: "Upload failed",
-            details: err.message,
-          });
-          log.error(err, "File upload failed");
-          cleanup();
-        });
-    });
-
-    bb.on("error", () => {
-      sendResponse(res, responded, 500, { error: "Upload parsing error" });
-      cleanup();
-    });
-
-    bb.on("finish", () => {
-      if (!sawFile) {
-        sendResponse(res, responded, 400, { error: "No file uploaded" });
-      }
-      cleanup();
-    });
-
-    req.pipe(bb);
+    }
   });
-}
 
-fileRouter.post("/user", async (req: Request, res: Response) => {
-  const user = await getUserFromReq(req);
-  if (!user?.userId) return res.status(401).json({ error: "Unauthorized" });
+const uploadForChannel = procedure
+  .input(uploadForChannelInputSchema)
+  .meta({
+    requiresAuth: true,
+    description:
+      "Upload a channel-specific file (post attachment, cover photo, etc.)",
+  })
+  .mutation(async ({ ctx, input }) => {
+    // replace with auth middleware later -----------------\
+    const userId = ctx.userId; 
+    if (!userId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Sign in required",
+      });
+    }
+    // replace with auth middleware later -----------------/
 
-  await handleFileUpload(req, res, async ({ filename, mimeType, stream }) => {
-    return fileEngine.storeFileFromStream(user.userId, filename, stream, {
-      contentType: mimeType,
-    });
-  });
-});
+    const { file, channelId, action, contentType } = input;
 
-fileRouter.post("/channel", async (req: Request, res: Response) => {
-  const user = await getUserFromReq(req);
-  if (!user?.userId) return res.status(401).json({ error: "Unauthorized" });
-
-  const channelId = req.query.channelId as string | undefined;
-  const action = req.query.action as "write" | "admin" | undefined;
-
-  if (!channelId) {
-    return res
-      .status(400)
-      .json({ error: "channelId query parameter is required" });
-  }
-
-  if (!action || (action !== "write" && action !== "admin")) {
-    return res
-      .status(400)
-      .json({ error: "action query parameter must be write or admin" });
-  }
-
-  const allowed = await policyEngine.validate(
-    user.userId,
-    `channel:${channelId}:${action}`,
-  );
-
-  if (!allowed) {
-    return res.status(403).json({
-      error: `No ${action} permission for channel ${channelId}`,
-    });
-  }
-
-  await handleFileUpload(req, res, async ({ filename, mimeType, stream }) => {
-    return fileEngine.storeFileFromStream(user.userId, filename, stream, {
-      contentType: mimeType,
-    });
-  });
-});
-
-fileRouter.get("/:fileId", async (req: Request, res: Response) => {
-  const { fileId } = req.params;
-
-  if (!fileId) {
-    return res.status(400).json({ error: "File ID is required" });
-  }
-  log.info(`GET api/files/${fileId}`);
-  try {
-    const fileData = await fileEngine.getFileStream(fileId);
-
-    if (!fileData) {
-      return res.status(404).json({ error: "File not found" });
+    const allowed = await policyEngine.validate(
+      userId,
+      `channel:${channelId}:${action}`,
+    );
+    if (!allowed) {
+      throw new ForbiddenError(
+        `No ${action} permission for channel ${channelId}`,
+      );
     }
 
-    const { stream, fileName, contentType } = fileData;
+    const stream = await fileService.fileLikeToReadable(file);
+    const resolvedContentType =
+      contentType ?? file.type ?? "application/octet-stream";
+    try {
+      const fileId = await fileService.storeFileFromStream(
+        userId,
+        file.name,
+        stream,
+        { contentType: resolvedContentType },
+      );
+      return { fileId };
+    } catch (err) {
+      log.error(err, "Channel file upload failed");
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to store file",
+      });
+    }
+  });
 
-    // Set headers for file download
-    res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
-    res.setHeader("Content-Type", contentType ?? "application/octet-stream");
-
-    // Pipe the stream to response (non-blocking, efficient)
-    stream.pipe(res);
-
-    // Handle stream errors
-    stream.on("error", (err) => {
-      log.error(err, "Error streaming file");
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Failed to stream file" });
+const getFile = procedure
+  .input(getFileInputSchema)
+  .meta({ requiresAuth: true, description: "Get a file from its UUID" })
+  .query(async ({ input }) => {
+    try {
+      const fileData = await fileService.getFileStream(input.fileId);
+      if (!fileData) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "File not found" });
       }
-    });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    log.error(err, "File retrieval failed");
-    res
-      .status(500)
-      .json({ error: "Failed to retrieve file", details: message });
-  }
-});
 
-export default fileRouter;
+      const chunks: Buffer[] = [];
+      await new Promise<void>((resolve, reject) => {
+        fileData.stream.on("data", (chunk) =>
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)),
+        );
+        fileData.stream.on("end", resolve);
+        fileData.stream.on("error", reject);
+      });
+
+      const payload: FileDownloadPayload = {
+        fileName: fileData.fileName,
+        contentType: fileData.contentType ?? "application/octet-stream",
+        data: Buffer.concat(chunks).toString("base64"),
+      };
+      return payload;
+    } catch (err) {
+      log.error(err, "File retrieval failed");
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to retrieve file",
+      });
+    }
+  });
+
+export const filesRouter = router({
+  uploadForUser,
+  uploadForChannel,
+  getFile,
+});

@@ -1,9 +1,7 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
-import type { Readable } from "node:stream";
-import {
-  type FileRecord,
-  FileRepository,
-} from "../data/repository/file-repo.js";
+import { Readable } from "node:stream";
+import { FileRepository } from "../data/repository/file-repo.js";
 import { FileSystemStorageAdapter } from "../storage/filesystem-adapter.js";
 import { S3Adapter } from "../storage/s3-adapter.js";
 import type {
@@ -11,13 +9,19 @@ import type {
   StorageAdapter,
 } from "../storage/storage-adapter.js";
 import { NotFoundError } from "../types/errors.js";
+import {
+  type FileLike,
+  type FileMetadata,
+  type FileStreamNullable,
+  fileMetadataSchema,
+} from "../types/file-types.js";
 import log from "../utils/logger.js";
 
 export class FileService {
   private fileRepository: FileRepository;
   private adapter: StorageAdapter;
 
-  constructor(fileRepository: FileRepository, adapter?: StorageAdapter) {
+  constructor(fileRepository?: FileRepository, adapter?: StorageAdapter) {
     this.fileRepository = fileRepository ?? new FileRepository();
     const backend = (process.env.STORAGE_BACKEND ?? "fs").toLowerCase();
     this.adapter =
@@ -32,7 +36,7 @@ export class FileService {
     opts?: FileInputStreamOptions,
   ): Promise<string> {
     const safeOriginalName = this.normaliseOriginalName(originalFileName);
-    const fileId = await this.fileRepository.generateFileId();
+    const fileId = randomUUID();
     const extension = this.resolveExtension(
       safeOriginalName,
       opts?.contentType,
@@ -49,39 +53,37 @@ export class FileService {
       opts,
     );
 
+    const metadata = fileMetadataSchema.parse({
+      contentType: opts?.contentType ?? null,
+      storedName: storageName,
+      uploadedBy: userId,
+      uploadedAt: new Date().toISOString(),
+    });
+
     await this.fileRepository.insertFile({
       fileId,
       fileName: safeOriginalName,
       location: relativePath,
-      metadata: {
-        contentType: opts?.contentType ?? null,
-        uploadedBy: userId,
-        storedName: storageName,
-        uploadedAt: new Date().toISOString(),
-      },
+      metadata,
     });
 
     return fileId;
   }
 
-  public async getFileStream(fileId: string): Promise<{
-    stream: Readable;
-    fileName: string;
-    contentType?: string;
-  } | null> {
+  public async getFileStream(fileId: string): Promise<FileStreamNullable> {
     try {
       const fileData = await this.fileRepository.getFile(fileId);
       const stream = await this.adapter.getStream(fileData.location);
-      const metadata = this.normaliseMetadata(fileData);
+      const metadata = this.normaliseMetadata(fileData.metadata);
       const downloadName = this.resolveDownloadName(
         fileData.fileName,
-        metadata.storedName ?? fileData.location,
+        metadata?.storedName ?? fileData.location,
       );
 
       return {
         stream,
         fileName: downloadName,
-        contentType: metadata.contentType ?? undefined,
+        contentType: metadata?.contentType ?? undefined,
       };
     } catch (err) {
       if (err instanceof NotFoundError) {
@@ -89,6 +91,14 @@ export class FileService {
       }
       throw err;
     }
+  }
+
+  public async fileLikeToReadable(file: FileLike): Promise<Readable> {
+    if (typeof Readable.fromWeb === "function") {
+      return Readable.fromWeb(file.stream());
+    }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    return Readable.from([buffer]);
   }
 
   private normaliseOriginalName(fileName: string): string {
@@ -138,30 +148,16 @@ export class FileService {
     return trimmedPreferred;
   }
 
-  private normaliseMetadata(file: FileRecord): {
-    contentType: string | null;
-    storedName: string | null;
-    uploadedBy: number | null;
-  } {
-    const metadata = file.metadata ?? {};
-    if (typeof metadata !== "object" || Array.isArray(metadata)) {
-      return { contentType: null, storedName: null, uploadedBy: null };
+  private normaliseMetadata(
+    metadata: FileMetadata | null,
+  ): FileMetadata | null {
+    if (!metadata) {
+      return null;
     }
-
-    const tryString = (value: unknown): string | null =>
-      typeof value === "string" && value.trim().length > 0
-        ? value.trim()
-        : null;
-
-    const tryNumber = (value: unknown): number | null =>
-      typeof value === "number" && Number.isFinite(value) ? value : null;
-
-    const bag = metadata as Record<string, unknown>;
-
-    return {
-      contentType: tryString(bag.contentType ?? null),
-      storedName: tryString(bag.storedName ?? null),
-      uploadedBy: tryNumber(bag.uploadedBy ?? null),
-    };
+    const parsed = fileMetadataSchema.safeParse(metadata);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data;
   }
 }

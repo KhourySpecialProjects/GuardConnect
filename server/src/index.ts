@@ -3,7 +3,6 @@ import cors from "cors";
 import express from "express";
 import { connectRedis } from "./data/db/redis.js";
 import { connectPostgres } from "./data/db/sql.js";
-import fileRouter from "./routers/files.js";
 import { policyEngine } from "./service/policy-engine.js";
 import { appRouter } from "./trpc/app_router.js";
 import log from "./utils/logger.js";
@@ -19,7 +18,6 @@ app.use(
     router: appRouter,
   }),
 );
-app.use("/api/files/", fileRouter);
 
 await connectPostgres();
 await connectRedis();
