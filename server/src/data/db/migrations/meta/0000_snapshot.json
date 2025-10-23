@@ -94,12 +94,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -195,12 +191,8 @@
           "name": "channel_subscriptions_user_id_user_id_fk",
           "tableFrom": "channel_subscriptions",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -208,12 +200,8 @@
           "name": "channel_subscriptions_channel_id_channels_channel_id_fk",
           "tableFrom": "channel_subscriptions",
           "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "channel_id"
-          ],
+          "columnsFrom": ["channel_id"],
+          "columnsTo": ["channel_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -432,12 +420,8 @@
           "name": "mentees_user_id_user_id_fk",
           "tableFrom": "mentees",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -511,12 +495,8 @@
           "name": "mentor_matching_requests_user_id_user_id_fk",
           "tableFrom": "mentor_matching_requests",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -609,12 +589,8 @@
           "name": "mentors_user_id_user_id_fk",
           "tableFrom": "mentors",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -724,12 +700,8 @@
           "name": "mentorship_matches_requestor_user_id_user_id_fk",
           "tableFrom": "mentorship_matches",
           "tableTo": "user",
-          "columnsFrom": [
-            "requestor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["requestor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -737,12 +709,8 @@
           "name": "mentorship_matches_mentor_user_id_user_id_fk",
           "tableFrom": "mentorship_matches",
           "tableTo": "user",
-          "columnsFrom": [
-            "mentor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["mentor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -885,12 +853,8 @@
           "name": "message_blasts_sender_id_user_id_fk",
           "tableFrom": "message_blasts",
           "tableTo": "user",
-          "columnsFrom": [
-            "sender_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["sender_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -991,12 +955,8 @@
           "name": "messages_channel_id_channels_channel_id_fk",
           "tableFrom": "messages",
           "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "channel_id"
-          ],
+          "columnsFrom": ["channel_id"],
+          "columnsTo": ["channel_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1004,12 +964,8 @@
           "name": "messages_sender_id_user_id_fk",
           "tableFrom": "messages",
           "tableTo": "user",
-          "columnsFrom": [
-            "sender_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["sender_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1157,12 +1113,8 @@
           "name": "roles_channel_id_channels_channel_id_fk",
           "tableFrom": "roles",
           "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "channel_id"
-          ],
+          "columnsFrom": ["channel_id"],
+          "columnsTo": ["channel_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1233,12 +1185,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1248,9 +1196,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -1348,12 +1294,8 @@
           "name": "user_devices_user_id_user_id_fk",
           "tableFrom": "user_devices",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1443,12 +1385,8 @@
           "name": "user_roles_user_id_user_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1456,12 +1394,8 @@
           "name": "user_roles_role_id_roles_role_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "roles",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "role_id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["role_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1469,12 +1403,8 @@
           "name": "user_roles_assigned_by_user_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "user",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1482,10 +1412,7 @@
       "compositePrimaryKeys": {
         "pk_user_roles": {
           "name": "pk_user_roles",
-          "columns": [
-            "user_id",
-            "role_id"
-          ]
+          "columns": ["user_id", "role_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1589,12 +1516,8 @@
           "name": "user_image_files_file_id_fk",
           "tableFrom": "user",
           "tableTo": "files",
-          "columnsFrom": [
-            "image"
-          ],
-          "columnsTo": [
-            "file_id"
-          ],
+          "columnsFrom": ["image"],
+          "columnsTo": ["file_id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1604,9 +1527,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1669,49 +1590,27 @@
     "public.mentee_status_enum": {
       "name": "mentee_status_enum",
       "schema": "public",
-      "values": [
-        "active",
-        "inactive",
-        "matched"
-      ]
+      "values": ["active", "inactive", "matched"]
     },
     "public.mentor_status_enum": {
       "name": "mentor_status_enum",
       "schema": "public",
-      "values": [
-        "requested",
-        "approved",
-        "active"
-      ]
+      "values": ["requested", "approved", "active"]
     },
     "public.message_blast_status_enum": {
       "name": "message_blast_status_enum",
       "schema": "public",
-      "values": [
-        "draft",
-        "scheduled",
-        "sent",
-        "failed"
-      ]
+      "values": ["draft", "scheduled", "sent", "failed"]
     },
     "public.permission_enum": {
       "name": "permission_enum",
       "schema": "public",
-      "values": [
-        "read",
-        "write",
-        "both"
-      ]
+      "values": ["read", "write", "both"]
     },
     "public.role_namespace_enum": {
       "name": "role_namespace_enum",
       "schema": "public",
-      "values": [
-        "global",
-        "channel",
-        "mentor",
-        "feature"
-      ]
+      "values": ["global", "channel", "mentor", "feature"]
     }
   },
   "schemas": {},

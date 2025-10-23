@@ -1,22 +1,37 @@
-# 📊 Mock Data Summary:
+# Auth test:
 
-👥 Users with password auth:
-  • test@example.com / password (basic read access)
-  • admin@example.com / password (admin access to both channels)
+1. In Postman, call this:
 
-👤 Additional users:
-  • alice@example.com (Operations admin)
-  • brandon@example.com (mentee)
-  • chloe@example.com (mentor)
+url: http://localhost:3000/api/auth/sign-in/email
+body: {
+  "email": "user@example.com",
+  "password": "password"
+}
 
-📢 Channels:
-  • Operations (ID: 1)
-  • Mentorship (ID: 2)
+this will return something along the lines of:
+```json
+{
+    "redirect": false,
+    "token": "sdaldmaslkdmlkasmdlk",
+    "user": {
+        "id": "dasdnklasndlkasnl",
+        "email": "user@example.com",
+        "name": "John Doe",
+        "image": null,
+        "emailVerified": false,
+        "createdAt": "2025-10-23T20:51:10.091Z",
+        "updatedAt": "2025-10-23T20:51:10.091Z"
+    }
+}
+```
 
-🔑 Sample roles:
-  • channel:1:admin - Operations admin access
-  • channel:1:read - Operations read access
-  • channel:1:insert - Operations write access
-  • channel:2:read - Mentorship read access
-  • mentor - Mentor role
-  • mentee - Mentee role
+2. Add the `token` to the headers of postman in the following way:
+Key: `Cookie`
+Value: `better-auth.session=sdaldmaslkdmlkasmdlk`
+
+Also, Postman will auto store another token better-auth.session-key, you need both for this to work. TRPC UI breaks when using auth tokens, so I have removed trpcui
+
+3. Call the trpc endpoint as such:
+GET http://localhost:3000/api/trpc/user.getUserData?input={"user_id":"GANyQUd1PuKzCcEF7CIii4DMaMDCWSyn"}
+
+make sure to pass input json as a query param: `?input={data:"replace_me"}`

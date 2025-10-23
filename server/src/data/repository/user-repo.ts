@@ -19,7 +19,7 @@ export class UserRepository {
         branch: users.branch,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
-        image: users.image
+        image: users.image,
       })
       .from(users)
       .where(eq(users.id, user_id));
