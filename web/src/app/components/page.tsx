@@ -1,5 +1,7 @@
+import { icons } from "@/components/icons";
 import ListView from "@/components/list-view";
 import Navigation from "@/components/navigation";
+import { useEffect, useState } from "react";
 
 const Components = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
