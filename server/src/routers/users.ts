@@ -12,8 +12,9 @@ const getUserData = protectedProcedure
     description: "Returns the public-facing data for a given user",
   })
   .query(({ input }) =>
-    withErrorHandling("getUserData", () =>
-      userService.getUserData(input.user_id),
+    withErrorHandling("getUserData", () => {
+      return userService.getUserData(input.user_id);
+    }
     ),
   );
 

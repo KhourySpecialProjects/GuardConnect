@@ -7,6 +7,4 @@
 # DS_Store
 **/.DS_Store
 
-server/src/data/db/migrations/meta/
-
 storage/
