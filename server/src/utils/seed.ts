@@ -1,27 +1,12 @@
-import { randomBytes, randomUUID, scrypt } from "node:crypto";
-import { promisify } from "node:util";
 import { inArray, sql } from "drizzle-orm";
 import {
-  account,
   channels,
+  messages,
   type NewRole,
-  type NewUser,
   roles,
   userRoles,
-  users,
 } from "../data/db/schema.js";
 import { db, shutdownPostgres } from "../data/db/sql.js";
-
-const scryptAsync = promisify(scrypt);
-
-/**
- * Hash a password using scrypt (compatible with Better Auth's password hashing)
- */
-async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString("hex");
-  const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${salt}:${derivedKey.toString("hex")}`;
-}
 
 interface RoleDefinition
   extends Omit<NewRole, "roleId" | "createdAt" | "updatedAt"> {
@@ -29,9 +14,9 @@ interface RoleDefinition
 }
 
 interface RoleAssignment {
-  userEmail: string;
+  userId: string;
   roleKey: string;
-  assignedByEmail?: string;
+  assignedByUserId?: string | null;
 }
 
 type ChannelSeed = {
@@ -39,47 +24,39 @@ type ChannelSeed = {
   metadata: Record<string, unknown>;
 };
 
-async function cleanupExistingData(userIds: string[]) {
-  // Delete users (cascade will handle related records like sessions, accounts, user_roles, etc.)
-  await db.delete(users).where(inArray(users.id, userIds));
-  console.log(
-    `🗑️  Deleted ${userIds.length} existing users and their related data`,
-  );
+async function clearExistingSeedData() {
+  await db.delete(userRoles);
+  await db.delete(roles);
+  await db.delete(messages);
+  await db.delete(channels);
+  console.log("🧹 Cleared existing channel, role, and message data");
 }
 
-async function _upsertUsers(seedUsers: NewUser[]) {
-  // First, check which users already exist by ID or email and clean them up
-  const existingUsersByIdOrEmail = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(
-      sql`${users.id} IN (${sql.join(
-        seedUsers.map((u) => sql`${u.id}`),
-        sql`, `,
-      )}) OR ${users.email} IN (${sql.join(
-        seedUsers.map((u) => sql`${u.email}`),
-        sql`, `,
-      )})`,
-    );
+async function assignRoles(
+  assignments: RoleAssignment[],
+  roleMap: Map<string, number>,
+) {
+  for (const assignment of assignments) {
+    const roleId = roleMap.get(assignment.roleKey);
+    if (roleId === undefined) {
+      throw new Error(`Missing seeded role for ${assignment.roleKey}`);
+    }
 
-  if (existingUsersByIdOrEmail.length > 0) {
-    await cleanupExistingData(existingUsersByIdOrEmail.map((u) => u.id));
+    await db
+      .insert(userRoles)
+      .values({
+        userId: assignment.userId,
+        roleId,
+        assignedBy: assignment.assignedByUserId ?? null,
+      })
+      .onConflictDoUpdate({
+        target: [userRoles.userId, userRoles.roleId],
+        set: {
+          assignedAt: sql`now()`,
+          assignedBy: assignment.assignedByUserId ?? null,
+        },
+      });
   }
-
-  // Now insert fresh data
-  await db.insert(users).values(seedUsers);
-
-  const userRows = await db
-    .select({ userId: users.id, email: users.email })
-    .from(users)
-    .where(
-      inArray(
-        users.email,
-        seedUsers.map((u) => u.email),
-      ),
-    );
-
-  return new Map(userRows.map((row) => [row.email, row.userId]));
 }
 
 async function upsertChannels(seedChannels: ChannelSeed[]) {
@@ -155,70 +132,49 @@ async function upsertRoles(seedRoles: RoleDefinition[]) {
   return new Map(roleRows.map((row) => [row.roleKey, row.roleId]));
 }
 
-async function _upsertUserRoles(
-  assignments: RoleAssignment[],
-  userMap: Map<string, string>,
-  roleMap: Map<string, number>,
-) {
-  for (const assignment of assignments) {
-    const userId = userMap.get(assignment.userEmail);
-    if (userId === undefined) {
-      throw new Error(`Missing seeded user for ${assignment.userEmail}`);
-    }
+async function seedMessages(channelMap: Map<string, number>, userId: string) {
+  const channelIds = Array.from(channelMap.values());
 
-    const roleId = roleMap.get(assignment.roleKey);
-    if (roleId === undefined) {
-      throw new Error(`Missing seeded role for ${assignment.roleKey}`);
-    }
-
-    const assignedBy = assignment.assignedByEmail
-      ? (userMap.get(assignment.assignedByEmail) ?? null)
-      : null;
-
-    await db
-      .insert(userRoles)
-      .values({
-        userId,
-        roleId,
-        assignedBy,
-      })
-      .onConflictDoUpdate({
-        target: [userRoles.userId, userRoles.roleId],
-        set: {
-          assignedAt: sql`now()`,
-          assignedBy,
-        },
-      });
+  if (channelIds.length > 0) {
+    await db.delete(messages).where(inArray(messages.channelId, channelIds));
   }
-}
 
-async function _createPasswordAccounts(
-  credentials: Array<{ userId: string; email: string; password: string }>,
-  userMap: Map<string, string>,
-) {
-  for (const { email, password } of credentials) {
-    const userId = userMap.get(email);
-    if (userId === undefined) {
-      throw new Error(`Missing seeded user for ${email}`);
+  const messageSeeds = [
+    {
+      channelName: "Operations",
+      message: "Shift change briefing posted for review.",
+    },
+    {
+      channelName: "Operations",
+      message: "Logistics update: supply convoy ETA 14:30Z.",
+    },
+    {
+      channelName: "Mentorship",
+      message: "Welcome new mentees! Introduce yourselves in this thread.",
+    },
+    {
+      channelName: "Mentorship",
+      message: "Reminder: mentor sync tomorrow at 0900 in the ready room.",
+    },
+  ];
+
+  for (const seed of messageSeeds) {
+    const channelId = channelMap.get(seed.channelName);
+    if (channelId === undefined) {
+      throw new Error(`Missing channel ID for ${seed.channelName}`);
     }
 
-    // Hash the password using scrypt
-    const hashedPassword = await hashPassword(password);
-
-    await db
-      .insert(account)
-      .values({
-        id: randomUUID(),
-        accountId: email,
-        providerId: "credential",
-        userId,
-        password: hashedPassword,
-      })
-      .onConflictDoNothing();
+    await db.insert(messages).values({
+      channelId,
+      senderId: userId,
+      message: seed.message,
+    });
   }
 }
 
 async function seed() {
+  await clearExistingSeedData();
+
   const channelsToSeed: ChannelSeed[] = [
     {
       name: "Operations",
@@ -297,7 +253,28 @@ async function seed() {
     },
   ];
 
-  const _roleMap = await upsertRoles(rolesToSeed);
+  const roleMap = await upsertRoles(rolesToSeed);
+
+  const regularUserId = "GANyQUd1PuKzCcEF7CIii4DMaMDCWSyn";
+
+  const assignments: RoleAssignment[] = [
+    {
+      userId: regularUserId,
+      roleKey: `channel:${opsChannelId}:read`,
+    },
+    {
+      userId: regularUserId,
+      roleKey: `channel:${opsChannelId}:insert`,
+    },
+    {
+      userId: regularUserId,
+      roleKey: `channel:${mentorshipChannelId}:read`,
+    },
+  ];
+
+  await assignRoles(assignments, roleMap);
+
+  await seedMessages(channelMap, regularUserId);
 
   // Print summary of seeded data
   console.log("\n📊 Mock Data Summary:");
@@ -313,6 +290,13 @@ async function seed() {
   );
   console.log("  • mentor - Mentor role");
   console.log("  • mentee - Mentee role\n");
+  console.log("👤 Role assignments:");
+  for (const assignment of assignments) {
+    console.log(`  • ${assignment.userId} -> ${assignment.roleKey}`);
+  }
+  console.log("\n💬 Seeded messages:");
+  console.log("  • 2 in Operations");
+  console.log("  • 2 in Mentorship\n");
 }
 
 seed()
