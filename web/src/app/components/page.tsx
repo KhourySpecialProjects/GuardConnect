@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { icons } from "@/components/icons";
 import Navigation from "@/components/navigation";
+import LinkedCard from "@/components/linked-card";
 
 const Components = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -42,7 +43,7 @@ const Components = () => {
         </button>
 
         <header className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="w-full flex flex-col items-start gap-3">
             <div>
               <h1 className="text-header font-semibold text-secondary">
                 Component Library
@@ -50,6 +51,12 @@ const Components = () => {
               <p className="text-sm text-secondary/70">
                 Responsive shells and interaction samples
               </p>
+            </div>
+            <div className="w-full flex flex-col gap-2">
+              <LinkedCard
+                href="https://example.com"
+                content="How to Mentor Effectively: 5 Tips for Success"
+              />
             </div>
           </div>
         </header>
