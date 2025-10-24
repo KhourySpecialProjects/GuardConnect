@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { SelectableButton } from "@/components/buttons";
+import DropdownSelect from "@/components/dropdown-select";
 import { icons } from "@/components/icons";
 import LinkedCard from "@/components/linked-card";
 import ListView from "@/components/list-view";
@@ -27,6 +28,8 @@ const Components = () => {
       document.body.style.overflow = "";
     };
   }, [mobileNavOpen]);
+
+  const [selectedDropdownValue, setSelectedDropdownValue] = useState("");
 
   return (
     <>
@@ -58,10 +61,26 @@ const Components = () => {
           <section className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-subheader font-semibold text-secondary">
-                Button Component
+                Button
               </h2>
             </div>
             <SelectableButton text="Button" />
+          </section>
+
+          <section className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
+                Dropdown Select
+              </h2>
+            </div>
+            <DropdownSelect
+              options={[
+                { label: "Option 1", value: "option1" },
+                { label: "Option 2", value: "option2" },
+              ]}
+              value={selectedDropdownValue}
+              onChange={setSelectedDropdownValue}
+            />
           </section>
 
           <section className="space-y-6">
