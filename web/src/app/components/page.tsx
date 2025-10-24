@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { SelectableButton } from "@/components/buttons";
+import { DropdownButtons } from "@/components/dropdown";
 import { icons } from "@/components/icons";
 import LinkedCard from "@/components/linked-card";
 import ListView from "@/components/list-view";
@@ -15,11 +16,8 @@ const Components = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setMobileNavOpen(false);
-      }
+      if (window.innerWidth >= 1024) setMobileNavOpen(false);
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -37,6 +35,7 @@ const Components = () => {
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
       />
+
       <main className="min-h-screen bg-background px-4 pb-16 pt-20 sm:px-6 lg:pl-[21rem] lg:pr-12 lg:pt-16">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
           <div className="flex justify-start lg:hidden">
@@ -49,6 +48,7 @@ const Components = () => {
               <MenuIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
+
           <header className="space-y-2">
             <p className="text-sm uppercase tracking-[0.25em] text-primary">
               Components Gallery
@@ -97,12 +97,12 @@ const Components = () => {
               <h2 className="text-subheader font-semibold text-secondary">
                 Reaction Bubble
               </h2>
-              <Reaction
-                emoji="👍"
-                count={0}
-                onClick={() => console.log("Liked!")}
-              />
             </div>
+            <Reaction
+              emoji="👍"
+              count={0}
+              onClick={() => console.log("Liked!")}
+            />
           </section>
 
           <section className="space-y-6">
@@ -112,6 +112,15 @@ const Components = () => {
               </h2>
             </div>
             <ListView />
+          </section>
+
+          <section className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
+                Dropdown Menu
+              </h2>
+            </div>
+            <DropdownButtons />
           </section>
 
           <section className="space-y-6">
