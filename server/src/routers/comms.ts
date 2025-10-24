@@ -5,6 +5,7 @@ import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
 import {
   createChannelSchema,
+  getChannelMembersSchema,
   createSubscriptionSchema,
   deletePostSchema,
   deleteSubscriptionSchema,
@@ -64,19 +65,6 @@ const createPost = protectedProcedure
     return createdPost;
   });
 
-// Channel creation endpoint
-const createChannel = protectedProcedure
-  .input(createChannelSchema)
-  .mutation(({ ctx, input }) =>
-    withErrorHandling("createChannel", async () => {
-      const userId = ctx.auth.user.id;
-
-      log.debug({ userId, channelName: input.name }, "Creating channel");
-
-      return await commsRepo.createChannel(input.name, input.metadata);
-    }),
-  );
-
 /**
  * editPost
  * Allows an authenticated user to edit a previously posted message if they authored it.
@@ -124,6 +112,27 @@ const deletePost = protectedProcedure
     );
 
     return deletedPost;
+  });
+
+// Channel creation endpoint
+const createChannel = protectedProcedure
+  .input(createChannelSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("createChannel", async () => {
+      const userId = ctx.auth.user.id;
+
+      log.debug({ userId, channelName: input.name }, "Creating channel");
+
+      return await commsRepo.createChannel(input.name, input.metadata);
+    }),
+  );
+
+// Channel members endpoint
+const getChannelMembers = protectedProcedure
+  .input(getChannelMembersSchema)
+  .query(({ input }) => async () => {
+    log.debug("getChannelMembers");
+    return await commsRepo.getChannelMembers(input.channelId);
   });
 
 // Channel subscription endpoints
@@ -175,9 +184,10 @@ const getUserSubscriptions = protectedProcedure.query(({ ctx }) =>
 export const commsRouter = router({
   registerDevice,
   createPost,
-  createChannel,
   editPost,
   deletePost,
+  createChannel,
+  getChannelMembers,
   createSubscription,
   deleteSubscription,
   getUserSubscriptions,
