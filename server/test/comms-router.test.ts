@@ -456,7 +456,9 @@ vi.mock("../src/trpc/app_router.js", () => {
           async getChannelMembers(input: { channelId: number }) {
             if (!ctx?.auth) throw new Error("UNAUTHORIZED");
 
-            const ch = mem.channels.find((c) => c.channel_id === input.channelId);
+            const ch = mem.channels.find(
+              (c) => c.channel_id === input.channelId,
+            );
             if (!ch) throw new Error("NOT_FOUND");
 
             const members = mem.channelSubscriptions
@@ -1106,9 +1108,9 @@ describe("commsRouter.getChannelMembers", () => {
 
   it("throws UNAUTHORIZED if no user in context", async () => {
     const caller = appRouter.createCaller({ auth: null });
-    await expect(
-      caller.comms.getChannelMembers({ channelId }),
-    ).rejects.toThrow(/UNAUTHORIZED/i);
+    await expect(caller.comms.getChannelMembers({ channelId })).rejects.toThrow(
+      /UNAUTHORIZED/i,
+    );
   });
 
   it("throws NOT_FOUND for missing channel", async () => {
@@ -1120,13 +1122,15 @@ describe("commsRouter.getChannelMembers", () => {
 
   it("returns members list for a valid channel", async () => {
     const caller = appRouter.createCaller(createContext(memberA));
-  const members: any = await (caller as any).comms.getChannelMembers({ channelId });
+    const members: any = await (caller as any).comms.getChannelMembers({
+      channelId,
+    });
 
-  expect(Array.isArray(members)).toBe(true);
-  expect(members.length).toBeGreaterThanOrEqual(2);
+    expect(Array.isArray(members)).toBe(true);
+    expect(members.length).toBeGreaterThanOrEqual(2);
 
-  const a = members.find((m: any) => m.userId === memberA);
-  const b = members.find((m: any) => m.userId === memberB);
+    const a = members.find((m: any) => m.userId === memberA);
+    const b = members.find((m: any) => m.userId === memberB);
 
     expect(a).toBeDefined();
     expect(a?.permission).toBe("write");

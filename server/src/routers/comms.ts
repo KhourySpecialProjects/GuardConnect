@@ -5,11 +5,11 @@ import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
 import {
   createChannelSchema,
-  getChannelMembersSchema,
   createSubscriptionSchema,
   deletePostSchema,
   deleteSubscriptionSchema,
   editPostSchema,
+  getChannelMembersSchema,
   postPostSchema,
   registerDeviceSchema,
 } from "../types/comms-types.js";

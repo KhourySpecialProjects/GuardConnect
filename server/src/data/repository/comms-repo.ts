@@ -3,11 +3,11 @@ import { ConflictError, NotFoundError } from "../../types/errors.js";
 import {
   channelSubscriptions,
   channels,
-  roles, 
-  users,
-  userRoles,
   messages,
+  roles,
   userDevices,
+  userRoles,
+  users,
 } from "../db/schema.js";
 import { db } from "../db/sql.js";
 
@@ -42,7 +42,7 @@ export class CommsRepository {
         clearanceLevel: users.clearanceLevel,
         department: users.department,
         roleKey: roles.roleKey,
-        action: roles.action
+        action: roles.action,
       })
       .from(userRoles) // start from userRoles table because it has info abt both users and roles
       .innerJoin(users, eq(userRoles.userId, users.id)) // join to get user details
@@ -50,8 +50,8 @@ export class CommsRepository {
       .where(
         and(
           eq(roles.channelId, channel_id), // find for the specific channel
-          eq(roles.namespace, 'channel') // only channel roles
-        )
+          eq(roles.namespace, "channel"), // only channel roles
+        ),
       );
 
     return members;
