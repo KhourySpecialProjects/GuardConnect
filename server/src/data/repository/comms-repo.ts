@@ -36,7 +36,7 @@ export class CommsRepository {
   async getChannelMembers(channel_id: number) {
     const [members] = await db
       .select({
-        userId: users.userId,
+        userId: users.id,
         name: users.name,
         email: users.email,
         clearanceLevel: users.clearanceLevel,
@@ -45,7 +45,7 @@ export class CommsRepository {
         action: roles.action
       })
       .from(userRoles) // start from userRoles table because it has info abt both users and roles
-      .innerJoin(users, eq(userRoles.userId, users.userId)) // join to get user details
+      .innerJoin(users, eq(userRoles.userId, users.id)) // join to get user details
       .innerJoin(roles, eq(userRoles.roleId, roles.roleId)) // join to get role details
       .where(
         and(

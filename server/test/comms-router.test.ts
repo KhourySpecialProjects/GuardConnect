@@ -452,6 +452,29 @@ vi.mock("../src/trpc/app_router.js", () => {
             return userSubscriptions;
           },
 
+          // Channel members endpoint
+          async getChannelMembers(input: { channelId: number }) {
+            if (!ctx?.auth) throw new Error("UNAUTHORIZED");
+
+            const ch = mem.channels.find((c) => c.channel_id === input.channelId);
+            if (!ch) throw new Error("NOT_FOUND");
+
+            const members = mem.channelSubscriptions
+              .filter((s) => s.channel_id === input.channelId)
+              .map((s) => {
+                const user = mem.users.find((u) => u.user_id === s.user_id);
+                return {
+                  userId: s.user_id,
+                  name: user?.name || "Unknown",
+                  email: user?.email || "unknown@example.com",
+                  permission: s.permission,
+                  notificationsEnabled: s.notifications_enabled,
+                };
+              });
+
+            return members;
+          },
+
           // Channel creation endpoint
           async createChannel(input: {
             name: string;
@@ -1050,6 +1073,65 @@ describe("commsRouter subscription endpoints", () => {
       expect(Array.isArray(subscriptions)).toBe(true);
       expect(subscriptions.length).toBe(0);
     });
+  });
+});
+
+// Channel Members Tests
+describe("commsRouter.getChannelMembers", () => {
+  let channelId: number;
+  let memberA: string;
+  let memberB: string;
+
+  beforeAll(() => {
+    const u1 = createUser(
+      "Member A",
+      `member-a-${Date.now()}@example.com`,
+      "pwd",
+    );
+    memberA = u1.user_id;
+
+    const u2 = createUser(
+      "Member B",
+      `member-b-${Date.now()}@example.com`,
+      "pwd",
+    );
+    memberB = u2.user_id;
+
+    const ch = createChannel(`members-channel-${Date.now()}`);
+    channelId = ch.channel_id;
+
+    addSubscription(memberA, channelId, "write");
+    addSubscription(memberB, channelId, "read");
+  });
+
+  it("throws UNAUTHORIZED if no user in context", async () => {
+    const caller = appRouter.createCaller({ auth: null });
+    await expect(
+      caller.comms.getChannelMembers({ channelId }),
+    ).rejects.toThrow(/UNAUTHORIZED/i);
+  });
+
+  it("throws NOT_FOUND for missing channel", async () => {
+    const caller = appRouter.createCaller(createContext(memberA));
+    await expect(
+      caller.comms.getChannelMembers({ channelId: 9999999 }),
+    ).rejects.toThrow(/NOT_FOUND/i);
+  });
+
+  it("returns members list for a valid channel", async () => {
+    const caller = appRouter.createCaller(createContext(memberA));
+  const members: any = await (caller as any).comms.getChannelMembers({ channelId });
+
+  expect(Array.isArray(members)).toBe(true);
+  expect(members.length).toBeGreaterThanOrEqual(2);
+
+  const a = members.find((m: any) => m.userId === memberA);
+  const b = members.find((m: any) => m.userId === memberB);
+
+    expect(a).toBeDefined();
+    expect(a?.permission).toBe("write");
+    expect(b).toBeDefined();
+    expect(b?.permission).toBe("read");
   });
 });
 
