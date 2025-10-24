@@ -35,6 +35,7 @@ const Components = () => {
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
       />
+
       <main className="min-h-screen bg-background px-4 pb-16 pt-20 sm:px-6 lg:pl-[21rem] lg:pr-12 lg:pt-16">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
           <div className="flex justify-start lg:hidden">
@@ -96,12 +97,12 @@ const Components = () => {
               <h2 className="text-subheader font-semibold text-secondary">
                 Reaction Bubble
               </h2>
-              <Reaction
-                emoji="👍"
-                count={0}
-                onClick={() => console.log("Liked!")}
-              />
             </div>
+            <Reaction
+              emoji="👍"
+              count={0}
+              onClick={() => console.log("Liked!")}
+            />
           </section>
 
           <section className="space-y-6">
@@ -120,7 +121,11 @@ const Components = () => {
               </h2>
             </div>
             <DropdownButtons />
+          </section>
 
+          <section className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
                 Reports Table View
               </h2>
               <p className="text-sm text-secondary/70">
