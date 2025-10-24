@@ -5,6 +5,7 @@ import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
 import {
   createChannelSchema,
+  getChannelMessagesSchema,
   createSubscriptionSchema,
   deletePostSchema,
   deleteSubscriptionSchema,
@@ -76,6 +77,31 @@ const createChannel = protectedProcedure
       return await commsRepo.createChannel(input.name, input.metadata);
     }),
   );
+
+/**
+ * getChannelMessages
+ * Retrieves messages from a specific channel.
+ */
+const getChannelMessages = protectedProcedure
+  .input(getChannelMessagesSchema)
+  .query(async ({ ctx, input }) => {
+    const userId = ctx.auth.user.id;
+
+    const isInChannel = await policyEngine.validate(
+      userId,
+      `channel:${input.channelId}:read`,
+    );
+
+    if (!isInChannel) {
+      throw new ForbiddenError(
+        "You do not have permission to get messages in this channel",
+      );
+    }
+
+    log.debug({ userId, channelId: input.channelId }, "Getting channel messages");
+
+    return await commsRepo.getChannelMessages(input.channelId);
+  });
 
 /**
  * editPost

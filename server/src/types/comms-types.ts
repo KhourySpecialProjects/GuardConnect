@@ -48,3 +48,12 @@ export const createChannelSchema = z.object({
 });
 
 export type CreateChannelInput = z.infer<typeof createChannelSchema>;
+
+// Get channel messages schema
+export const getChannelMessagesSchema = z.object({
+  channelId: z.coerce.number().int().positive()
+});
+
+export type GetChannelMessagesInput = z.infer<
+  typeof getChannelMessagesSchema
+>;
