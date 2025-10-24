@@ -5,12 +5,12 @@ import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
 import {
   createChannelSchema,
-  getChannelMessagesSchema,
   createSubscriptionSchema,
   deletePostSchema,
   deleteSubscriptionSchema,
   editPostSchema,
   getChannelMembersSchema,
+  getChannelMessagesSchema,
   postPostSchema,
   registerDeviceSchema,
 } from "../types/comms-types.js";
@@ -98,7 +98,10 @@ const getChannelMessages = protectedProcedure
       );
     }
 
-    log.debug({ userId, channelId: input.channelId }, "Getting channel messages");
+    log.debug(
+      { userId, channelId: input.channelId },
+      "Getting channel messages",
+    );
 
     return await commsRepo.getChannelMessages(input.channelId);
   });
