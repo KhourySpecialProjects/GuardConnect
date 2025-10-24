@@ -1,43 +1,60 @@
 "use client";
 
-import { useState } from "react";
-import { icons } from "@/components/icons";
+import { forwardRef, useState } from "react";
+import { type IconName, icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function SelectableButton({
-  text,
-  icon,
-  className,
-  onClick,
-}: {
+type SelectableButtonProps = {
   text?: string;
-  icon?: keyof typeof icons;
+  icon?: IconName;
   className?: string;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
-  const [selected, setSelected] = useState(false);
-  const Icon = icon ? icons[icon] : null;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  selectable?: boolean;
+  defaultSelected?: boolean;
+};
 
-  function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
-    setSelected(!selected);
-    onClick?.(e);
-  }
+export const SelectableButton = forwardRef<
+  HTMLButtonElement,
+  SelectableButtonProps
+>(
+  (
+    {
+      text,
+      icon,
+      className,
+      onClick,
+      selectable = true,
+      defaultSelected = false,
+    },
+    ref,
+  ) => {
+    const [selected, setSelected] = useState(defaultSelected);
+    const Icon = icon ? icons[icon] : null;
 
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className={cn(
-        "flex items-center gap-2 rounded-xl px-4 py-2 text-subheader font-semibold transition-all duration-200",
-        "border",
-        "bg-white text-primary border-neutral hover:bg-primary hover:text-background",
-        selected && "border-primary text-primary",
-        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
-        className,
-      )}
-    >
-      {Icon && <Icon className="h-5 w-5 shrink-0 text-inherit" />}
-      {text}
-    </button>
-  );
-}
+    function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+      if (selectable) setSelected((s) => !s);
+      onClick?.(e);
+    }
+
+    return (
+      <Button
+        ref={ref}
+        type="button"
+        variant="outline"
+        onClick={handleClick}
+        aria-pressed={selected}
+        data-selected={selected}
+        className={cn(
+          "gap-2",
+          "data-[selected=true]:border-primary data-[selected=true]:ring-1 data-[selected=true]:ring-primary",
+          className,
+        )}
+      >
+        {Icon && <Icon className="h-5 w-5" />}
+        {text}
+      </Button>
+    );
+  },
+);
+SelectableButton.displayName = "SelectableButton";
