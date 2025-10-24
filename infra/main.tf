@@ -25,9 +25,30 @@ data "aws_db_subnet_group" "default" {
   name = "default-vpc-059af42cd1884a8cc"
 }
 
-data "aws_security_group" "default" {
-  vpc_id = data.aws_vpc.default.id
-  name   = "default"
+resource "aws_security_group" "dev_db_public" {
+  name        = "dev-db-comm-ng-public"
+  description = "Allow public PostgreSQL access"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "PostgreSQL from anywhere"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "dev-db-comm-ng-public"
+    Environment = "dev"
+  }
 }
 
 # ------------------------------------------------------------
@@ -50,7 +71,7 @@ resource "aws_db_instance" "dev_db_comm_ng" {
 
   # Network
   publicly_accessible    = true
-  vpc_security_group_ids = [data.aws_security_group.default.id]
+  vpc_security_group_ids = [aws_security_group.dev_db_public.id]
   db_subnet_group_name   = data.aws_db_subnet_group.default.name
 
   # Availability
