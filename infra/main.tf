@@ -25,6 +25,31 @@ data "aws_db_subnet_group" "default" {
   name = "default-vpc-059af42cd1884a8cc"
 }
 
+data "aws_subnets" "default_vpc" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+data "aws_subnets" "default_vpc_supported_az" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+
+  filter {
+    name   = "availability-zone"
+    values = [
+      "us-east-1a",
+      "us-east-1b",
+      "us-east-1c",
+      "us-east-1d",
+      "us-east-1f"
+    ]
+  }
+}
+
 resource "aws_security_group" "dev_db_public" {
   name        = "dev-db-comm-ng-public"
   description = "Allow public PostgreSQL access"
@@ -47,6 +72,32 @@ resource "aws_security_group" "dev_db_public" {
 
   tags = {
     Name        = "dev-db-comm-ng-public"
+    Environment = "dev"
+  }
+}
+
+resource "aws_security_group" "dev_cache_public" {
+  name        = "dev-comm-ng-cache-valkey-redis"
+  description = "Allow public Valkey/Redis access"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+  description = "Valkey/Redis from anywhere"
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "dev-comm-ng-cache-valkey-redis"
     Environment = "dev"
   }
 }
@@ -92,6 +143,34 @@ resource "aws_db_instance" "dev_db_comm_ng" {
   # Tags
   tags = {
     Name        = "dev-db-comm-ng"
+    Environment = "dev"
+  }
+}
+
+# ------------------------------------------------------------
+# ElastiCache Valkey (Serverless)
+# ------------------------------------------------------------
+resource "aws_elasticache_serverless_cache" "dev_cache_valkey" {
+  name                  = "dev-comm-ng-valkey-redis"
+  description           = "Dev Valkey/Redis serverless cache"
+  engine                = "valkey"
+  major_engine_version  = "8"
+  security_group_ids    = [aws_security_group.dev_cache_public.id]
+  subnet_ids            = slice(data.aws_subnets.default_vpc_supported_az.ids, 0, 2) # Supported AZs only; AWS requires between 2 and 3 subnets
+
+  cache_usage_limits {
+    data_storage {
+      unit    = "GB"
+      maximum = 2
+    }
+
+    ecpu_per_second {
+      maximum = 1000
+    }
+  }
+
+  tags = {
+    Name        = "dev-comm-ng-valkey-redis"
     Environment = "dev"
   }
 }
