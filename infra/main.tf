@@ -78,6 +78,7 @@ resource "aws_security_group" "dev_db_public" {
   tags = {
     Name        = "dev-db-comm-ng-public"
     Environment = "dev"
+    Project     = "comm_ng"
   }
 }
 
@@ -104,6 +105,7 @@ resource "aws_security_group" "dev_cache_public" {
   tags = {
     Name        = "dev-comm-ng-cache-valkey-redis"
     Environment = "dev"
+    Project     = "comm_ng"
   }
 }
 
@@ -149,6 +151,7 @@ resource "aws_db_instance" "dev_db_comm_ng" {
   tags = {
     Name        = "dev-db-comm-ng"
     Environment = "dev"
+    Project     = "comm_ng"
   }
 }
 
@@ -178,6 +181,7 @@ resource "aws_elasticache_serverless_cache" "dev_cache_valkey" {
   tags = {
     Name        = "dev-comm-ng-valkey-redis"
     Environment = "dev"
+    Project     = "comm_ng"
   }
 }
 
@@ -197,6 +201,7 @@ resource "aws_secretsmanager_secret" "cache_auth" {
   tags = {
     Name        = "dev-comm-ng-cache-auth"
     Environment = "dev"
+    Project     = "comm_ng"
   }
 }
 
@@ -215,6 +220,7 @@ resource "aws_elasticache_user" "valkey_default" {
   tags = {
     Name        = "dev-comm-ng-cache-user"
     Environment = "dev"
+    Project     = "comm_ng"
   }
 }
 
@@ -226,6 +232,7 @@ resource "aws_elasticache_user_group" "valkey_default" {
   tags = {
     Name        = "dev-comm-ng-cache-user-group"
     Environment = "dev"
+    Project     = "comm_ng"
   }
 }
 
