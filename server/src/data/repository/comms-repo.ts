@@ -1,4 +1,4 @@
-import { and, count, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, or, sql } from "drizzle-orm";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import {
   channelSubscriptions,
@@ -333,18 +333,38 @@ export class CommsRepository {
       >();
     }
 
-    const reactionRows = await db
-      .select({
-        messageId: messageReactions.messageId,
-        emoji: messageReactions.emoji,
-        count: count(messageReactions.emoji).as("count"),
-        reactedByCurrentUser: sql<boolean>`
-          bool_or(${messageReactions.userId} = ${currentUserId})
-        `.as("reactedByCurrentUser"),
-      })
-      .from(messageReactions)
-      .where(inArray(messageReactions.messageId, messageIds))
-      .groupBy(messageReactions.messageId, messageReactions.emoji);
+    const valuesList = sql.join(
+      messageIds.map((id) => sql`${id}`),
+      sql`, `,
+    );
+
+    const reactionRows = await db.execute<{
+      message_id: number;
+      reactions: Array<{
+        emoji: string;
+        count: number;
+        reactedByCurrentUser: boolean;
+      }> | null;
+    }>(sql`
+      with message_list(message_id) as (
+        values ${valuesList}
+      )
+      select ml.message_id,
+        coalesce(
+          json_agg(
+            json_build_object(
+              'emoji', mr.emoji,
+              'count', count(mr.emoji),
+              'reactedByCurrentUser', bool_or(mr.user_id = ${currentUserId})
+            )
+            order by count(mr.emoji) desc, mr.emoji asc
+          ),
+          '[]'::json
+        ) as reactions
+      from message_list ml
+      left join ${messageReactions} mr on mr.message_id = ml.message_id
+      group by ml.message_id
+    `);
 
     const result = new Map<
       number,
@@ -355,23 +375,16 @@ export class CommsRepository {
       }[]
     >();
 
-    for (const row of reactionRows) {
-      const reactionsForMessage = result.get(row.messageId) ?? [];
-      reactionsForMessage.push({
-        emoji: row.emoji,
-        count: Number(row.count),
-        reactedByCurrentUser: row.reactedByCurrentUser,
-      });
-      result.set(row.messageId, reactionsForMessage);
-    }
-
-    for (const [_messageId, reactions] of result.entries()) {
-      reactions.sort((a, b) => {
-        if (b.count !== a.count) {
-          return b.count - a.count;
-        }
-        return a.emoji.localeCompare(b.emoji);
-      });
+    for (const row of reactionRows.rows) {
+      const reactionsArray = Array.isArray(row.reactions) ? row.reactions : [];
+      result.set(
+        row.message_id,
+        reactionsArray.map((reaction) => ({
+          emoji: reaction.emoji,
+          count: Number(reaction.count),
+          reactedByCurrentUser: Boolean(reaction.reactedByCurrentUser),
+        })),
+      );
     }
 
     for (const messageId of messageIds) {
