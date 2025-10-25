@@ -9,6 +9,7 @@ import ListView from "@/components/list-view";
 import Navigation from "@/components/navigation";
 import PostedCard from "@/components/posted-card";
 import Reaction from "@/components/reaction-bubble";
+import SearchBar from "@/components/search-bar";
 import { ReportsTable } from "@/components/table-view";
 
 const Components = () => {
@@ -167,6 +168,15 @@ const Components = () => {
               </p>
             </div>
             <ReportsTable isAdmin />
+          </section>
+
+          <section className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
+                Search Bar
+              </h2>
+            </div>
+            <SearchBar />
           </section>
         </div>
       </main>
