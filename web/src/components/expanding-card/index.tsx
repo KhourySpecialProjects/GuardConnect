@@ -4,7 +4,7 @@ import { useCollapse } from "react-collapsed";
 import { icons } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 
-type CollapsibleCardProps = {
+type CollapsibleCard = {
   name: string;
   rank: string;
   job: string;
@@ -28,7 +28,7 @@ export default function CollapsibleCard({
   location,
   information,
   contact,
-}: CollapsibleCardProps) {
+}: CollapsibleCard) {
   const { getCollapseProps, getToggleProps, isExpanded } = useCollapse();
   const ArrowRight = icons.arrowRight;
 

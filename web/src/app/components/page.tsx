@@ -11,6 +11,7 @@ import ListView from "@/components/list-view";
 import Navigation from "@/components/navigation";
 import PostedCard from "@/components/posted-card";
 import Reaction from "@/components/reaction-bubble";
+import CollapsibleCard from "@/components/expanding-card";
 import { AddReaction } from "@/components/reaction-bubble/add-reaction";
 import { ReportsTable } from "@/components/table-view";
 import { TextInput } from "@/components/text-input";
