@@ -116,7 +116,7 @@ export function MultiSelect({
                 key={option.value}
                 htmlFor={optionId}
                 className={cn(
-                  "group flex w-full items-center gap-4 rounded-lg border border-transparent bg-background px-3 py-3 text-left transition focus-within:outline-none focus-within:ring-[3px] focus-within:ring-ring/50",
+                  "group flex w-full items-center gap-4 rounded-lg border border-transparent bg-background px-3 py-3 text-left transition",
                   "hover:bg-primary/5",
                   isDisabled
                     ? "cursor-not-allowed opacity-60"
