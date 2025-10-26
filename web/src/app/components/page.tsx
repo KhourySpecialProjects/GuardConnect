@@ -66,7 +66,8 @@ const Components = () => {
     };
   }, [mobileNavOpen]);
 
-  const [selectedDropdownValue, setSelectedDropdownValue] = useState("");
+  const [selectedDropdownValue, setSelectedDropdownValue] =
+    useState<string>("");
   const [selectedChipOptions, setSelectedChipOptions] = useState<string[]>([]);
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
 
