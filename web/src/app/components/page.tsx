@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { SelectableButton } from "@/components/buttons";
 import ChannelCard from "@/components/channel-card";
+import ChipSelect from "@/components/chip-select";
 import { DropdownButtons } from "@/components/dropdown";
 import DropdownSelect from "@/components/dropdown-select";
 import CollapsibleCard from "@/components/expanding-card";
@@ -14,7 +15,6 @@ import PostedCard from "@/components/posted-card";
 import Reaction from "@/components/reaction-bubble";
 import { AddReaction } from "@/components/reaction-bubble/add-reaction";
 import { ReportsTable } from "@/components/table-view";
-import ChipSelect from "@/components/chip-select";
 import TextInput from "@/components/text-input";
 
 const Components = () => {
