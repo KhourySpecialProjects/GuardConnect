@@ -7,7 +7,7 @@ interface ChannelCardProps {
   title: string;
   description: string;
   iconName: IconName;
-  href?: string;
+  href: string;
 }
 
 const ChannelCard: React.FC<ChannelCardProps> = ({
@@ -15,7 +15,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
   title,
   description,
   iconName,
-  href = "http://localhost:3000/communications/1",
+  href,
 }) => {
   const Icon = icons[iconName];
 
@@ -27,6 +27,8 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
             src={imageSrc}
             alt={title}
             className="w-full h-full object-cover"
+            width={300}
+            height={200}
           />
         ) : (
           <span className="text-secondary/50 text-body">Image Placeholder</span>
@@ -39,11 +41,11 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
       >
         <div className="flex items-center gap-2 mb-1">
           {Icon && <Icon className="w-5 h-5 text-accent" />}
-          <h3 className="text-subheader text-[#F7F7F7] font-semibold">
+          <h3 className="text-subheader text-background font-semibold">
             {title}
           </h3>
         </div>
-        <p className="text-body text-[#F7F7F7]/80">{description}</p>
+        <p className="text-body text-background/80">{description}</p>
       </Link>
     </div>
   );

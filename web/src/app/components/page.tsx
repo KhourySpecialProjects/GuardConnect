@@ -183,7 +183,7 @@ const Components = () => {
               title="Events"
               description="Central hub for external event opportunities."
               iconName="message"
-              imageSrc="https://via.placeholder.com/300x200"
+              href="http://localhost:3000/communications/1"
             />
           </section>
         </div>
