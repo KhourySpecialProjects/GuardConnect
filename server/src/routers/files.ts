@@ -12,11 +12,19 @@ import {
   uploadForUserInputSchema,
 } from "../types/file-types.js";
 import log from "../utils/logger.js";
+import { S3StorageAdapter } from "../storage/s3-adapter.js";
 
-const fileService = new FileService(
-  new FileRepository(),
-  new FileSystemStorageAdapter(),
-);
+// Choose adapter based on environment. If S3_BUCKET_NAME is set, use S3 adapter;
+// otherwise fall back to filesystem for local/dev.
+const adapter = process.env.S3_BUCKET_NAME
+  ? new S3StorageAdapter({
+      bucket: process.env.S3_BUCKET_NAME!,
+      region: process.env.AWS_REGION,
+      publicBaseUrl: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com`,
+    })
+  : new FileSystemStorageAdapter();
+
+const fileService = new FileService(new FileRepository(), adapter);
 
 const uploadForUser = protectedProcedure
   .input(uploadForUserInputSchema)
@@ -28,16 +36,34 @@ const uploadForUser = protectedProcedure
     const userId = ctx.auth.user.id;
 
     const { file, contentType } = input;
-    const stream = await fileService.fileLikeToReadable(file);
-    try {
-      const fileId = await fileService.storeFileFromStream(
-        userId,
-        file.name,
-        stream,
-        { contentType: contentType ?? "application/octet-stream" },
-      );
-      return { fileId };
-    } catch (err) {
+      // If using S3 and presigned uploads are enabled, return an upload URL rather
+      // than consuming the file stream on the server.
+      if (process.env.S3_BUCKET_NAME && process.env.USE_PRESIGNED_UPLOADS === "true") {
+        const originalName = file?.name ?? "file";
+        try {
+          const { fileId, uploadUrl } = await fileService.createPresignedUpload(
+            userId,
+            originalName,
+            { contentType: contentType ?? "application/octet-stream" },
+            Number(process.env.PRESIGN_EXPIRY_SECONDS) || undefined,
+          );
+          return { fileId, uploadUrl };
+        } catch (err) {
+          log.error(err, "Presigned upload creation failed");
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create upload URL" });
+        }
+      }
+
+      const stream = await fileService.fileLikeToReadable(file);
+      try {
+        const fileId = await fileService.storeFileFromStream(
+          userId,
+          file.name,
+          stream,
+          { contentType: contentType ?? "application/octet-stream" },
+        );
+        return { fileId };
+      } catch (err) {
       log.error(err, "File upload failed");
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -71,6 +97,23 @@ const uploadForChannel = protectedProcedure
     const stream = await fileService.fileLikeToReadable(file);
     const resolvedContentType =
       contentType ?? file.type ?? "application/octet-stream";
+    // If S3 presigned flow is enabled, create presigned upload and return it.
+    if (process.env.S3_BUCKET_NAME && process.env.USE_PRESIGNED_UPLOADS === "true") {
+      const originalName = file?.name ?? "file";
+      try {
+        const { fileId, uploadUrl } = await fileService.createPresignedUpload(
+          userId,
+          originalName,
+          { contentType: resolvedContentType },
+          Number(process.env.PRESIGN_EXPIRY_SECONDS) || undefined,
+        );
+        return { fileId, uploadUrl };
+      } catch (err) {
+        log.error(err, "Presigned upload creation failed");
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create upload URL" });
+      }
+    }
+
     try {
       const fileId = await fileService.storeFileFromStream(
         userId,
@@ -98,20 +141,22 @@ const getFile = procedure
         throw new TRPCError({ code: "NOT_FOUND", message: "File not found" });
       }
 
-      const buffer = await new Promise<Buffer>((resolve, reject) => {
-        const chunks: Buffer[] = [];
-        fileData.stream.on("data", (chunk) =>
-          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)),
-        );
-        fileData.stream.on("end", () => resolve(Buffer.concat(chunks)));
-        fileData.stream.on("error", reject);
-      });
+      // If the stored location is already a public URL (S3) use it directly.
+      // Otherwise, ask the adapter to produce a URL for the stored location.
+      let url: string;
+      const location = fileData.location;
+      if (typeof location === "string" && (location.startsWith("http://") || location.startsWith("https://"))) {
+        url = location;
+      } else {
+        url = await fileService.adapter.getUrl(location);
+      }
 
       const payload: FileDownloadPayload = {
         fileName: fileData.fileName,
         contentType: fileData.contentType ?? "application/octet-stream",
-        data: buffer.toString("base64"),
+        data: url,
       };
+
       return payload;
     } catch (err) {
       log.error(err, "File retrieval failed");
@@ -121,6 +166,7 @@ const getFile = procedure
       });
     }
   });
+
 
 export const filesRouter = router({
   uploadForUser,

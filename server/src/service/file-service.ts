@@ -17,11 +17,59 @@ import log from "../utils/logger.js";
 
 export class FileService {
   private fileRepository: FileRepository;
-  private adapter: StorageAdapter;
+  public adapter: StorageAdapter;
 
   constructor(fileRepository: FileRepository, adapter: StorageAdapter) {
     this.fileRepository = fileRepository;
     this.adapter = adapter;
+  }
+
+  /**
+   * Create a DB record and return a presigned upload URL which the client
+   * can PUT to directly. Requires the adapter to implement
+   * `generatePresignedUploadUrl` (S3 adapter does).
+   */
+  public async createPresignedUpload(
+    userId: string,
+    originalFileName: string,
+    opts?: FileInputStreamOptions,
+    expiresSeconds?: number,
+  ): Promise<{ fileId: string; uploadUrl: string }> {
+    const safeOriginalName = this.normaliseOriginalName(originalFileName);
+    const fileId = randomUUID();
+    const extension = this.resolveExtension(safeOriginalName, opts?.contentType);
+    const storageName = extension ? `${fileId}${extension}` : fileId;
+
+    const metadata = fileMetadataSchema.parse({
+      contentType: opts?.contentType ?? null,
+      storedName: storageName,
+      uploadedBy: userId,
+      uploadedAt: new Date().toISOString(),
+    });
+
+    // Persist the file record with the object key as location. The adapter's
+    // getUrl() will produce a signed GET url when needed.
+    await this.fileRepository.insertFile({
+      fileId,
+      fileName: safeOriginalName,
+      location: storageName,
+      metadata,
+    });
+
+    // Ask adapter for a presigned PUT URL
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyAdapter: any = this.adapter;
+    if (typeof anyAdapter.generatePresignedUploadUrl !== "function") {
+      throw new Error("Adapter does not support presigned upload URLs");
+    }
+
+    const uploadUrl = await anyAdapter.generatePresignedUploadUrl(
+      storageName,
+      expiresSeconds ?? 900,
+      opts?.contentType,
+    );
+
+    return { fileId, uploadUrl };
   }
 
   public async storeFileFromStream(
@@ -68,17 +116,29 @@ export class FileService {
   public async getFileStream(fileId: string): Promise<FileStreamNullable> {
     try {
       const fileData = await this.fileRepository.getFile(fileId);
-      const stream = await this.adapter.getStream(fileData.location);
       const metadata = this.normaliseMetadata(fileData.metadata);
       const downloadName = this.resolveDownloadName(
         fileData.fileName,
         metadata?.storedName ?? fileData.location,
       );
 
+      const location = fileData.location;
+
+      // If the stored location is already a public URL (S3), don't attempt to stream
+      const isUrl =
+        typeof location === "string" &&
+        (location.startsWith("http://") || location.startsWith("https://"));
+
+      let stream: Readable | undefined;
+      if (!isUrl) {
+        stream = await this.adapter.getStream(location);
+      }
+
       return {
         stream,
         fileName: downloadName,
         contentType: metadata?.contentType ?? undefined,
+        location,
       };
     } catch (err) {
       if (err instanceof NotFoundError) {

@@ -129,8 +129,14 @@ export type FileDownloadPayload = {
   data: string;
 };
 
-export type FileStreamNullable = {
-  stream: Readable;
-  fileName: string;
-  contentType?: string;
-} | null;
+
+export const fileStreamSchema = z.object({
+  // stream is not validated at runtime, but kept for type completeness
+  stream: z.any().optional(),
+  fileName: z.string(),
+  contentType: z.string().optional(),
+  location: z.string(),
+});
+
+export type FileStream = z.infer<typeof fileStreamSchema>;
+export type FileStreamNullable = FileStream | null;
