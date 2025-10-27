@@ -1,7 +1,6 @@
-import { z } from "zod";
-import { procedure, router } from "../trpc/trpc.js";
 import { MentorRepository } from "../data/repository/mentor-repo.js";
 import { MatchingService } from "../service/matching-service.js";
+import { procedure, router } from "../trpc/trpc.js";
 import { createMentorInputSchema } from "../types/mentor-types.js";
 import log from "../utils/logger.js";
 
@@ -12,7 +11,7 @@ const createMentor = procedure
   .input(createMentorInputSchema)
   .mutation(async ({ input }) => {
     log.debug("createMentor", { userId: input.userId });
-    
+
     const mentor = await mentorRepo.createMentor(
       input.userId,
       input.mentorshipPreferences,
@@ -25,11 +24,13 @@ const createMentor = procedure
     // Trigger matching process
     try {
       await matchingService.triggerMatchingForNewMentor(input.userId);
-      log.info("Matching process triggered successfully for new mentor", { mentorId: mentor.mentorId });
-    } catch (error) {
-      log.error("Failed to trigger matching process for new mentor", { 
+      log.info("Matching process triggered successfully for new mentor", {
         mentorId: mentor.mentorId,
-        error: error instanceof Error ? error.message : String(error)
+      });
+    } catch (error) {
+      log.error("Failed to trigger matching process for new mentor", {
+        mentorId: mentor.mentorId,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
 

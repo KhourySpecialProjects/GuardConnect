@@ -32,6 +32,6 @@ export type CreateMentorOutput = {
   mentorshipPreferences?: string | null;
   rank?: string | null;
   yearsOfService?: number | null;
-  eligibilityData?: Record<string, any> | null;
+  eligibilityData?: Record<string, unknown> | null;
   status: "requested" | "approved" | "active";
 };

@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { ConflictError, NotFoundError } from "../../types/errors.js";
+import { ConflictError } from "../../types/errors.js";
 import type { CreateMentorOutput } from "../../types/mentor-types.js";
 import { mentors } from "../db/schema.js";
 import { db } from "../db/sql.js";
@@ -13,7 +13,7 @@ export class MentorRepository {
     mentorshipPreferences?: string,
     rank?: string,
     yearsOfService?: number,
-    eligibilityData?: Record<string, any>,
+    eligibilityData?: Record<string, unknown>,
     status: "requested" | "approved" | "active" = "requested",
   ): Promise<CreateMentorOutput> {
     // Check if mentor already exists for this user
