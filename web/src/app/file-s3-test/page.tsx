@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import Image from "next/image";
+import { useRef, useState } from "react";
 import { useTRPCClient } from "../../lib/trpc";
 
 /*
@@ -10,11 +11,11 @@ export default function FileS3TestPage() {
   const trpc = useTRPCClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setToken] = useState("");
+  const [_token, setToken] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileId, setFileId] = useState<string>("");
-  const [logs, setLogs] = useState<string[]>([]);
-  const [uploadUrl, setUploadUrl] = useState<string>("");
+  const [logs, setLogs] = useState<{ id: string; msg: string }[]>([]);
+  const [_uploadUrl, setUploadUrl] = useState<string>("");
   const [storedName, setStoredName] = useState<string>("");
   const [deleteStatus, setDeleteStatus] = useState<string>("");
   const [fileUrl, setFileUrl] = useState<string>("");
@@ -28,21 +29,25 @@ export default function FileS3TestPage() {
     addLog("Fetching file info from backend...");
     try {
       const resp = await trpc.files.getFile.query({ fileId });
-      if (resp && resp.data) {
+      if (resp?.data) {
         setFileUrl(resp.data);
         setFileType(resp.contentType || "");
-        addLog("Fetched file URL: " + resp.data);
+        addLog(`Fetched file URL: ${resp.data}`);
       } else {
-        addLog("Failed to fetch file info: " + JSON.stringify(resp));
+        addLog(`Failed to fetch file info: ${JSON.stringify(resp)}`);
       }
-    } catch (err) {
-      addLog("Display error: " + (err as any).toString());
+    } catch (err: unknown) {
+      addLog(`Display error: ${String(err)}`);
     }
   }
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Helper to add log
-  const addLog = (msg: string) => setLogs((prev) => [msg, ...prev]);
+  // Helper to add log (generate stable id so React keys are stable)
+  const addLog = (msg: string) =>
+    setLogs((prev) => [
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, msg },
+      ...prev,
+    ]);
 
   // 1. Login and store cookie
   async function handleLogin(e: React.FormEvent) {
@@ -50,7 +55,7 @@ export default function FileS3TestPage() {
     addLog("Logging in...");
     try {
       const res = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + "/api/auth/sign-in/email",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/sign-in/email`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -60,14 +65,18 @@ export default function FileS3TestPage() {
       const data = await res.json();
       if (data.token) {
         setToken(data.token);
-        // Set cookie manually for fetch/trpc
-        document.cookie = `better-auth.session=${data.token}; path=/`;
+        // Prefer the Cookie Store API where available, fallback to document.cookie
+        await window.cookieStore.set({
+          name: "better-auth.session",
+          value: data.token,
+          path: "/",
+        });
         addLog("Login successful. Token stored.");
       } else {
-        addLog("Login failed: " + JSON.stringify(data));
+        addLog(`Login failed: ${JSON.stringify(data)}`);
       }
     } catch (err) {
-      addLog("Login error: " + (err as any).toString());
+      addLog(`Login error: ${String(err)}`);
     }
   }
 
@@ -86,11 +95,12 @@ export default function FileS3TestPage() {
         fileSize: file.size,
       };
       const resp = await trpc.files.createPresignedUpload.mutate(input);
-      if (resp && resp.uploadUrl && resp.fileId) {
+      if (resp?.uploadUrl && resp.fileId) {
         setFileId(resp.fileId);
         setUploadUrl(resp.uploadUrl);
         // store storedName returned by backend so we can confirm later
-        if ((resp as any).storedName) setStoredName((resp as any).storedName);
+        const _storedFromResp = (resp as { storedName?: string }).storedName;
+        if (_storedFromResp) setStoredName(_storedFromResp);
         addLog("Got presigned URL. Uploading to S3...");
         // Upload to S3
         const uploadRes = await fetch(resp.uploadUrl, {
@@ -105,27 +115,27 @@ export default function FileS3TestPage() {
             const confirmResp = await trpc.files.confirmUpload.mutate({
               fileId: resp.fileId,
               fileName: file.name,
-              storedName: (resp as any).storedName || storedName,
+              storedName: _storedFromResp || storedName,
               contentType: file.type,
             });
-            if (confirmResp && (confirmResp as any).ok) {
+            if (confirmResp && (confirmResp as { ok?: boolean }).ok) {
               addLog("Upload confirmed with backend.");
             } else {
               addLog(
-                "Upload confirmation failed: " + JSON.stringify(confirmResp),
+                `Upload confirmation failed: ${JSON.stringify(confirmResp)}`,
               );
             }
           } catch (err) {
-            addLog("Upload confirmation error: " + (err as any).toString());
+            addLog(`Upload confirmation error: ${String(err)}`);
           }
         } else {
-          addLog("S3 upload failed: " + uploadRes.statusText);
+          addLog(`S3 upload failed: ${uploadRes.statusText}`);
         }
       } else {
-        addLog("Failed to get presigned URL: " + JSON.stringify(resp));
+        addLog(`Failed to get presigned URL: ${JSON.stringify(resp)}`);
       }
     } catch (err) {
-      addLog("Upload error: " + (err as any).toString());
+      addLog(`Upload error: ${String(err)}`);
     }
   }
 
@@ -137,12 +147,11 @@ export default function FileS3TestPage() {
     }
     addLog("Deleting file via trpc...");
     try {
-      // @ts-ignore
       const resp = await trpc.files.deleteFile.mutate({ fileId });
       setDeleteStatus("Deleted");
-      addLog("File deleted: " + JSON.stringify(resp));
+      addLog(`File deleted: ${JSON.stringify(resp)}`);
     } catch (err) {
-      addLog("Delete error: " + (err as any).toString());
+      addLog(`Delete error: ${String(err)}`);
     }
   }
 
@@ -152,8 +161,9 @@ export default function FileS3TestPage() {
       {/* Login Form */}
       <form onSubmit={handleLogin} className="space-y-2 border p-4 rounded">
         <div>
-          <label>Email: </label>
+          <label htmlFor="email">Email:</label>
           <input
+            id="email"
             className="border px-2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -161,8 +171,9 @@ export default function FileS3TestPage() {
           />
         </div>
         <div>
-          <label>Password: </label>
+          <label htmlFor="password">Password:</label>
           <input
+            id="password"
             className="border px-2"
             type="password"
             value={password}
@@ -192,6 +203,7 @@ export default function FileS3TestPage() {
           )}
         </div>
         <button
+          type="button"
           className="bg-green-600 text-white px-4 py-1 rounded mt-2"
           onClick={handleUpload}
           disabled={!file}
@@ -202,6 +214,7 @@ export default function FileS3TestPage() {
       {/* Delete Button */}
       <div className="space-y-2 border p-4 rounded">
         <button
+          type="button"
           className="bg-red-600 text-white px-4 py-1 rounded"
           onClick={handleDelete}
           disabled={!fileId}
@@ -215,6 +228,7 @@ export default function FileS3TestPage() {
       {/* Display File Button and Preview */}
       <div className="space-y-2 border p-4 rounded">
         <button
+          type="button"
           className="bg-indigo-600 text-white px-4 py-1 rounded"
           onClick={handleDisplayFile}
           disabled={!fileId}
@@ -224,10 +238,13 @@ export default function FileS3TestPage() {
         {fileUrl && (
           <div className="mt-2">
             {fileType.startsWith("image/") ? (
-              <img
+              <Image
                 src={fileUrl}
                 alt="Uploaded file"
+                width={320}
+                height={240}
                 className="max-w-xs max-h-60 border"
+                unoptimized
               />
             ) : (
               <a
@@ -246,8 +263,8 @@ export default function FileS3TestPage() {
       <div className="border p-4 rounded bg-gray-100">
         <h2 className="font-semibold mb-2">Logs</h2>
         <ul className="text-xs space-y-1 max-h-60 overflow-y-auto">
-          {logs.map((log, i) => (
-            <li key={i}>{log}</li>
+          {logs.map((log) => (
+            <li key={log.id}>{log.msg}</li>
           ))}
         </ul>
       </div>
