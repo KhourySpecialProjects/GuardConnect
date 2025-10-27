@@ -22,6 +22,13 @@
       "when": 1761508184288,
       "tag": "0002_chunky_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1761586886573,
+      "tag": "0003_clever_punisher",
+      "breakpoints": true
     }
   ]
 }
