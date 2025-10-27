@@ -6,13 +6,14 @@ import type {
   FileInputStreamOptions,
   StorageAdapter,
 } from "../storage/storage-adapter.js";
-import { ForbiddenError, NotFoundError } from "../types/errors.js";
+import { ForbiddenError } from "../types/errors.js";
 import {
   type FileLike,
   type FileMetadata,
   type FileStreamNullable,
   fileMetadataSchema,
 } from "../types/file-types.js";
+import { ensureNOTUsingAws } from "../utils/aws.js";
 import log from "../utils/logger.js";
 
 export class FileService {
@@ -43,14 +44,6 @@ export class FileService {
       opts?.contentType,
     );
     const storageName = extension ? `${fileId}${extension}` : fileId;
-
-    // Note: do NOT persist the DB record here for presigned flow. The
-    // confirmation step should persist the record after the client has
-    // uploaded the file to S3.
-
-    // Ask adapter for a presigned PUT URL. Adapter implementations
-    // that don't support presigned uploads should throw a
-    // `ForbiddenError`.
     const uploadUrl = await this.adapter.generatePresignedUploadUrl(
       storageName,
       expiresSeconds ?? 900,
@@ -58,8 +51,7 @@ export class FileService {
     );
 
     // Return fileId, uploadUrl and storedName (storedName added to help
-    // the client confirm upload later). We keep the declared return type
-    // for compatibility but include storedName in the runtime object.
+    // the client confirm upload later)
     return { fileId, uploadUrl, storedName: storageName };
   }
 
@@ -74,24 +66,16 @@ export class FileService {
     storedName: string,
     opts?: FileInputStreamOptions,
   ): Promise<void> {
-    const parsedUserId =
-      typeof userId === "string"
-        ? parseInt(userId, 10)
-        : (userId as unknown as number);
-    const uploadedByValue =
-      Number.isFinite(parsedUserId) && parsedUserId > 0 ? parsedUserId : null;
-    const metadata = fileMetadataSchema.parse({
-      contentType: opts?.contentType ?? null,
-      storedName,
-      uploadedBy: uploadedByValue,
-      uploadedAt: new Date().toISOString(),
-    });
-
     await this.fileRepository.insertFile({
       fileId,
       fileName: this.normaliseOriginalName(originalFileName),
       location: storedName,
-      metadata,
+      metadata: {
+        contentType: opts?.contentType ?? null,
+        storedName,
+        uploadedBy: userId,
+        uploadedAt: new Date().toISOString(),
+      },
     });
   }
 
@@ -107,9 +91,10 @@ export class FileService {
       safeOriginalName,
       opts?.contentType,
     );
+    ensureNOTUsingAws("Not supported if using AWS");
     const storageName = extension ? `${fileId}${extension}` : fileId;
 
-    log.info(
+    log.debug(
       `Store file ${safeOriginalName} for user ${userId} as ${storageName} (${opts?.contentType ?? "unknown"})`,
     );
 
@@ -137,45 +122,33 @@ export class FileService {
   }
 
   public async getFileStream(fileId: string): Promise<FileStreamNullable> {
-    try {
-      const fileData = await this.fileRepository.getFile(fileId);
-      const metadata = this.normaliseMetadata(fileData.metadata);
-      const downloadName = this.resolveDownloadName(
-        fileData.fileName,
-        metadata?.storedName ?? fileData.location,
+    const fileData = await this.fileRepository.getFile(fileId);
+    const metadata = this.normaliseMetadata(fileData.metadata);
+    const downloadName = this.resolveDownloadName(
+      fileData.fileName,
+      metadata?.storedName ?? fileData.location,
+    );
+
+    const location = fileData.location;
+    // If the stored location is already a public URL (S3/public),
+    // streaming is not allowed via the server. Clients should request
+    // the URL instead. Throw Forbidden so callers can fallback to
+    // the URL-based flow.
+    const isUrl =
+      location.startsWith("http://") || location.startsWith("https://");
+
+    if (isUrl) {
+      throw new ForbiddenError(
+        "File is stored as a URL and cannot be streamed from the server. Use getFileUrl instead.",
       );
-
-      const location = fileData.location;
-      // If the stored location is already a public URL (S3/public),
-      // streaming is not allowed via the server. Clients should request
-      // the URL instead. Throw Forbidden so callers can fallback to
-      // the URL-based flow.
-      const isUrl =
-        location.startsWith("http://") || location.startsWith("https://");
-
-      if (isUrl) {
-        throw new ForbiddenError(
-          "File is stored as a URL and cannot be streamed from the server. Use getFileUrl instead.",
-        );
-      }
-
-      // For non-URL locations, delegate to adapter.getStream. Adapter
-      // implementations that don't support streaming (S3) should throw
-      // their own ForbiddenError.
-      const stream = await this.adapter.getStream(location as string);
-
-      return {
-        stream,
-        fileName: downloadName,
-        contentType: metadata?.contentType ?? undefined,
-        location,
-      };
-    } catch (err) {
-      if (err instanceof NotFoundError) {
-        return null;
-      }
-      throw err;
     }
+    const stream = await this.adapter.getStream(location);
+    return {
+      stream,
+      fileName: downloadName,
+      contentType: metadata?.contentType ?? undefined,
+      location,
+    };
   }
 
   /**

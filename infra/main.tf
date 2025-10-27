@@ -18,20 +18,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# Whether to create a bucket policy and public-access-block allowing public reads.
-# Default false because many orgs block public policies at account-level.
-variable "create_public_bucket_policy" {
-  type    = bool
-  default = false
-}
-
-# Whether to create IAM resources (users, policies, roles, access keys).
-# Default false to allow running Terraform with limited SSO permissions.
-variable "create_iam_resources" {
-  type    = bool
-  default = false
-}
-
 # ------------------------------------------------------------
 # Get default VPC and subnet group
 # ------------------------------------------------------------

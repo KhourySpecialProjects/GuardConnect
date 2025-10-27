@@ -108,7 +108,7 @@ export const fileMetadataSchema = z
       .trim()
       .min(1, "storedName cannot be empty")
       .nullable(),
-    uploadedBy: z.number().int().positive().nullable(),
+    uploadedBy: z.string().nullable(),
     uploadedAt: z.string().datetime().nullable().optional(),
   })
   .strict();

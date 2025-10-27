@@ -1,5 +1,3 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
@@ -24,12 +22,6 @@ app.use(
   }),
 );
 
-// Ensure JSON bodies are parsed before tRPC middleware. Some clients or proxies
-// may send a request body that would otherwise not be parsed; adding express.json
-// helps surface malformed or missing payloads early and avoids an empty method
-// being passed into tRPC which results in "No procedure found on path \"\"".
-app.use(express.json({ limit: "10mb" }));
-
 app.use("/api/auth", toNodeHandler(auth));
 
 app.use(
@@ -39,22 +31,6 @@ app.use(
     createContext,
   }),
 );
-
-// Serve the static docs site (so you can open http://localhost:3000/ and avoid
-// dealing with cross-origin requests). Place this after API mounts so that
-// /api/* routes are handled by Express/tRPC first.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const docsDir = path.resolve(__dirname, "..", "..", "docs");
-
-app.use(express.static(docsDir));
-
-// For any non-API GET request, serve the docs index.html so client-side apps
-// using HTML5 history routing will work.
-app.get("/", (req, res, next) => {
-  if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(docsDir, "index.html"));
-});
 
 await connectPostgres();
 await connectRedis();

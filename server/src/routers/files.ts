@@ -20,7 +20,7 @@ import log from "../utils/logger.js";
 if (
   !(process.env.S3_BUCKET_NAME && process.env.USE_PRESIGNED_UPLOADS === "true")
 ) {
-  throw new InternalServerError("Cannot proceed without AWS credentials");
+  throw new Error("Cannot proceed without AWS credentials");
 }
 
 const adapter = new S3StorageAdapter({
