@@ -1,9 +1,9 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import { auth } from "./auth.js";
 import { connectRedis } from "./data/db/redis.js";
 import { connectPostgres } from "./data/db/sql.js";
@@ -20,7 +20,7 @@ app.use(
     // Allow the request origin (works for same-origin serving and local dev).
     // We keep credentials: true to allow auth cookies.
     origin: true,
-    credentials: true,               // allow cookies/authorization headers
+    credentials: true, // allow cookies/authorization headers
   }),
 );
 
@@ -28,7 +28,7 @@ app.use(
 // may send a request body that would otherwise not be parsed; adding express.json
 // helps surface malformed or missing payloads early and avoids an empty method
 // being passed into tRPC which results in "No procedure found on path \"\"".
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 
 app.use("/api/auth", toNodeHandler(auth));
 

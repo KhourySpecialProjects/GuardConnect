@@ -6,7 +6,7 @@ import type {
   FileInputStreamOptions,
   StorageAdapter,
 } from "../storage/storage-adapter.js";
-import { NotFoundError } from "../types/errors.js";
+import { ForbiddenError, NotFoundError } from "../types/errors.js";
 import {
   type FileLike,
   type FileMetadata,
@@ -30,29 +30,28 @@ export class FileService {
    * `generatePresignedUploadUrl` (S3 adapter does).
    */
   public async createPresignedUpload(
-    userId: string,
+    _userId: string,
     originalFileName: string,
     opts?: FileInputStreamOptions,
     expiresSeconds?: number,
-    uploadedByOverride?: number,
-  ): Promise<{ fileId: string; uploadUrl: string }> {
+    _uploadedByOverride?: number,
+  ): Promise<{ fileId: string; uploadUrl: string; storedName: string }> {
     const safeOriginalName = this.normaliseOriginalName(originalFileName);
     const fileId = randomUUID();
-    const extension = this.resolveExtension(safeOriginalName, opts?.contentType);
+    const extension = this.resolveExtension(
+      safeOriginalName,
+      opts?.contentType,
+    );
     const storageName = extension ? `${fileId}${extension}` : fileId;
 
     // Note: do NOT persist the DB record here for presigned flow. The
     // confirmation step should persist the record after the client has
     // uploaded the file to S3.
 
-    // Ask adapter for a presigned PUT URL
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const anyAdapter: any = this.adapter;
-    if (typeof anyAdapter.generatePresignedUploadUrl !== "function") {
-      throw new Error("Adapter does not support presigned upload URLs");
-    }
-
-    const uploadUrl = await anyAdapter.generatePresignedUploadUrl(
+    // Ask adapter for a presigned PUT URL. Adapter implementations
+    // that don't support presigned uploads should throw a
+    // `ForbiddenError`.
+    const uploadUrl = await this.adapter.generatePresignedUploadUrl(
       storageName,
       expiresSeconds ?? 900,
       opts?.contentType,
@@ -61,10 +60,7 @@ export class FileService {
     // Return fileId, uploadUrl and storedName (storedName added to help
     // the client confirm upload later). We keep the declared return type
     // for compatibility but include storedName in the runtime object.
-    return { fileId, uploadUrl, storedName: storageName } as unknown as {
-      fileId: string;
-      uploadUrl: string;
-    };
+    return { fileId, uploadUrl, storedName: storageName };
   }
 
   /**
@@ -78,8 +74,12 @@ export class FileService {
     storedName: string,
     opts?: FileInputStreamOptions,
   ): Promise<void> {
-    const parsedUserId = typeof userId === "string" ? parseInt(userId, 10) : (userId as unknown as number);
-    const uploadedByValue = Number.isFinite(parsedUserId) && parsedUserId > 0 ? parsedUserId : null;
+    const parsedUserId =
+      typeof userId === "string"
+        ? parseInt(userId, 10)
+        : (userId as unknown as number);
+    const uploadedByValue =
+      Number.isFinite(parsedUserId) && parsedUserId > 0 ? parsedUserId : null;
     const metadata = fileMetadataSchema.parse({
       contentType: opts?.contentType ?? null,
       storedName,
@@ -146,45 +146,29 @@ export class FileService {
       );
 
       const location = fileData.location;
-
-      // If the stored location is already a public URL, return it as-is.
+      // If the stored location is already a public URL (S3/public),
+      // streaming is not allowed via the server. Clients should request
+      // the URL instead. Throw Forbidden so callers can fallback to
+      // the URL-based flow.
       const isUrl =
-        typeof location === "string" &&
-        (location.startsWith("http://") || location.startsWith("https://"));
+        location.startsWith("http://") || location.startsWith("https://");
 
-  let stream: Readable | undefined;
-  let returnedLocation: string = location as string;
-
-      if (!isUrl) {
-        // Prefer asking the adapter for a URL. Many adapters (S3) will
-        // provide a presigned GET URL instead of supporting direct
-        // streaming. If adapter.getUrl returns a valid http(s) URL, use
-        // that and do not attempt to stream. Otherwise fall back to
-        // adapter.getStream for adapters that support streaming.
-        try {
-          const url = await this.adapter.getUrl(location as string);
-          if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
-            returnedLocation = url;
-            stream = undefined;
-          } else {
-            // Adapter returned something that isn't an http URL; try streaming
-            stream = await this.adapter.getStream(location as string);
-          }
-        } catch (err) {
-          // If getUrl fails for any reason, attempt to stream. Note:
-          // S3 adapter's getStream intentionally throws ForbiddenError,
-          // so adapter.getUrl should succeed for S3. This catch ensures
-          // we still try streaming for adapters where getUrl isn't
-          // implemented or temporarily fails.
-          stream = await this.adapter.getStream(location as string);
-        }
+      if (isUrl) {
+        throw new ForbiddenError(
+          "File is stored as a URL and cannot be streamed from the server. Use getFileUrl instead.",
+        );
       }
+
+      // For non-URL locations, delegate to adapter.getStream. Adapter
+      // implementations that don't support streaming (S3) should throw
+      // their own ForbiddenError.
+      const stream = await this.adapter.getStream(location as string);
 
       return {
         stream,
         fileName: downloadName,
         contentType: metadata?.contentType ?? undefined,
-        location: returnedLocation,
+        location,
       };
     } catch (err) {
       if (err instanceof NotFoundError) {
@@ -192,6 +176,45 @@ export class FileService {
       }
       throw err;
     }
+  }
+
+  /**
+   * Return a downloadable URL for the given fileId. This will return the
+   * stored public URL directly if the DB record contains one, or ask the
+   * adapter to produce a URL (presigned GET) for stored locations.
+   */
+  public async getFileUrl(fileId: string): Promise<{
+    fileName: string;
+    contentType?: string;
+    url: string;
+    location: string;
+  }> {
+    const fileData = await this.fileRepository.getFile(fileId);
+    const metadata = this.normaliseMetadata(fileData.metadata);
+    const downloadName = this.resolveDownloadName(
+      fileData.fileName,
+      metadata?.storedName ?? fileData.location,
+    );
+
+    const location = fileData.location;
+
+    // If already a public URL, return it.
+    if (location.startsWith("http://") || location.startsWith("https://")) {
+      return {
+        fileName: downloadName,
+        contentType: metadata?.contentType ?? undefined,
+        url: location,
+        location,
+      };
+    }
+
+    const url = await this.adapter.getUrl(location);
+    return {
+      fileName: downloadName,
+      contentType: metadata?.contentType ?? undefined,
+      url,
+      location,
+    };
   }
 
   public async fileLikeToReadable(file: FileLike): Promise<Readable> {

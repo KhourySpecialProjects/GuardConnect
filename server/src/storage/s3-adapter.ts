@@ -1,14 +1,18 @@
-import { Readable } from "node:stream";
+import type { Readable } from "node:stream";
 import {
-  S3Client,
-  PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { StorageAdapter, type FileInputStreamOptions, type FilePath } from "./storage-adapter.js";
 import { ForbiddenError } from "../types/errors.js";
 import log from "../utils/logger.js";
+import {
+  type FileInputStreamOptions,
+  type FilePath,
+  StorageAdapter,
+} from "./storage-adapter.js";
 
 export class S3StorageAdapter extends StorageAdapter {
   private s3: S3Client;
@@ -20,14 +24,21 @@ export class S3StorageAdapter extends StorageAdapter {
    * @param opts.region - AWS region
    * @param opts.publicBaseUrl - public URL base of the bucket
    */
-  constructor(opts: { bucket: string; region?: string; publicBaseUrl: string }) {
+  constructor(opts: {
+    bucket: string;
+    region?: string;
+    publicBaseUrl: string;
+  }) {
     super();
     this.bucket = opts.bucket;
     this.publicBaseUrl = opts.publicBaseUrl;
     this.s3 = new S3Client({
       region: opts.region ?? process.env.AWS_REGION ?? "us-east-1",
     });
-    log.info({bucketName: this.bucket, base_url: this.publicBaseUrl},'Starting AWS S3 connection')
+    log.info(
+      { bucketName: this.bucket, base_url: this.publicBaseUrl },
+      "Starting AWS S3 connection",
+    );
   }
 
   public async storeStream(
@@ -54,7 +65,7 @@ export class S3StorageAdapter extends StorageAdapter {
     // Streaming directly from S3 is not allowed in this adapter. Clients
     // must use presigned GET URLs (getUrl) to retrieve file contents.
     throw new ForbiddenError(
-      "Direct streaming from S3 is not supported. Use getUrl() instead."
+      "Direct streaming from S3 is not supported. Use getUrl() instead.",
     );
   }
 
@@ -77,7 +88,11 @@ export class S3StorageAdapter extends StorageAdapter {
     return await this.generatePresignedGetUrl(path);
   }
 
-  public async generatePresignedUploadUrl(key: string, expiresSeconds = 900, contentType?: string): Promise<string> {
+  public async generatePresignedUploadUrl(
+    key: string,
+    expiresSeconds = 900,
+    contentType?: string,
+  ): Promise<string> {
     const cmd = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
@@ -86,7 +101,10 @@ export class S3StorageAdapter extends StorageAdapter {
     return await getSignedUrl(this.s3, cmd, { expiresIn: expiresSeconds });
   }
 
-  public async generatePresignedGetUrl(key: string, expiresSeconds = 3600): Promise<string> {
+  public async generatePresignedGetUrl(
+    key: string,
+    expiresSeconds = 3600,
+  ): Promise<string> {
     const cmd = new GetObjectCommand({
       Bucket: this.bucket,
       Key: key,

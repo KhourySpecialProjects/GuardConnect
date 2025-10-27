@@ -1,4 +1,3 @@
-import type { Readable } from "node:stream";
 import type { ReadableStream as ReadableStreamWeb } from "node:stream/web";
 import { z } from "zod";
 
@@ -129,7 +128,6 @@ export type FileDownloadPayload = {
   data: string;
 };
 
-
 export const fileStreamSchema = z.object({
   // stream is not validated at runtime, but kept for type completeness
   stream: z.any().optional(),
@@ -137,6 +135,21 @@ export const fileStreamSchema = z.object({
   contentType: z.string().optional(),
   location: z.string(),
 });
+
+export const createPresignedUploadInputSchema = z.object({
+  fileName: z.string().min(1),
+  contentType: z.string().optional(),
+  fileSize: z.number().optional(),
+});
+
+export const confirmUploadInputSchema = z.object({
+  fileId: z.string().min(1),
+  fileName: z.string().min(1),
+  storedName: z.string().min(1),
+  contentType: z.string().optional(),
+});
+
+export const deleteFileInputSchema = z.object({ fileId: z.string().min(1) });
 
 export type FileStream = z.infer<typeof fileStreamSchema>;
 export type FileStreamNullable = FileStream | null;

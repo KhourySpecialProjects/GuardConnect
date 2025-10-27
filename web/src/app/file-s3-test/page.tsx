@@ -27,7 +27,6 @@ export default function FileS3TestPage() {
     }
     addLog("Fetching file info from backend...");
     try {
-      // @ts-ignore
       const resp = await trpc.files.getFile.query({ fileId });
       if (resp && resp.data) {
         setFileUrl(resp.data);
@@ -50,11 +49,14 @@ export default function FileS3TestPage() {
     e.preventDefault();
     addLog("Logging in...");
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL + "/api/auth/sign-in/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_API_BASE_URL + "/api/auth/sign-in/email",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
       const data = await res.json();
       if (data.token) {
         setToken(data.token);
@@ -78,15 +80,17 @@ export default function FileS3TestPage() {
     addLog("Requesting presigned upload...");
     try {
       // Call trpc mutation for createPresignedUpload (metadata only)
-      const input = { fileName: file.name, contentType: file.type, fileSize: file.size };
-      // @ts-ignore
+      const input = {
+        fileName: file.name,
+        contentType: file.type,
+        fileSize: file.size,
+      };
       const resp = await trpc.files.createPresignedUpload.mutate(input);
       if (resp && resp.uploadUrl && resp.fileId) {
         setFileId(resp.fileId);
         setUploadUrl(resp.uploadUrl);
         // store storedName returned by backend so we can confirm later
-        // @ts-ignore
-        if (resp.storedName) setStoredName(resp.storedName);
+        if ((resp as any).storedName) setStoredName((resp as any).storedName);
         addLog("Got presigned URL. Uploading to S3...");
         // Upload to S3
         const uploadRes = await fetch(resp.uploadUrl, {
@@ -98,17 +102,18 @@ export default function FileS3TestPage() {
           addLog("File uploaded to S3 successfully. Confirming upload...");
           // Confirm upload via trpc (send file metadata so backend can persist)
           try {
-            // @ts-ignore
             const confirmResp = await trpc.files.confirmUpload.mutate({
               fileId: resp.fileId,
               fileName: file.name,
               storedName: (resp as any).storedName || storedName,
               contentType: file.type,
             });
-            if (confirmResp && confirmResp.ok) {
+            if (confirmResp && (confirmResp as any).ok) {
               addLog("Upload confirmed with backend.");
             } else {
-              addLog("Upload confirmation failed: " + JSON.stringify(confirmResp));
+              addLog(
+                "Upload confirmation failed: " + JSON.stringify(confirmResp),
+              );
             }
           } catch (err) {
             addLog("Upload confirmation error: " + (err as any).toString());
@@ -148,38 +153,91 @@ export default function FileS3TestPage() {
       <form onSubmit={handleLogin} className="space-y-2 border p-4 rounded">
         <div>
           <label>Email: </label>
-          <input className="border px-2" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input
+            className="border px-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
         <div>
           <label>Password: </label>
-          <input className="border px-2" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+          <input
+            className="border px-2"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
         </div>
-        <button className="bg-blue-500 text-white px-4 py-1 rounded" type="submit">Login</button>
+        <button
+          className="bg-blue-500 text-white px-4 py-1 rounded"
+          type="submit"
+        >
+          Login
+        </button>
       </form>
       {/* File Upload */}
       <div className="space-y-2 border p-4 rounded">
         <div className="flex items-center gap-4">
-          <input type="file" ref={fileInputRef} onChange={e => setFile(e.target.files?.[0] || null)} />
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
           {file && (
-            <span className="text-sm text-gray-700">Selected file: <span className="font-medium">{file.name}</span></span>
+            <span className="text-sm text-gray-700">
+              Selected file: <span className="font-medium">{file.name}</span>
+            </span>
           )}
         </div>
-        <button className="bg-green-600 text-white px-4 py-1 rounded mt-2" onClick={handleUpload} disabled={!file}>Upload</button>
+        <button
+          className="bg-green-600 text-white px-4 py-1 rounded mt-2"
+          onClick={handleUpload}
+          disabled={!file}
+        >
+          Upload
+        </button>
       </div>
       {/* Delete Button */}
       <div className="space-y-2 border p-4 rounded">
-        <button className="bg-red-600 text-white px-4 py-1 rounded" onClick={handleDelete} disabled={!fileId}>Delete File</button>
-        {deleteStatus && <div className="text-sm text-gray-600">{deleteStatus}</div>}
+        <button
+          className="bg-red-600 text-white px-4 py-1 rounded"
+          onClick={handleDelete}
+          disabled={!fileId}
+        >
+          Delete File
+        </button>
+        {deleteStatus && (
+          <div className="text-sm text-gray-600">{deleteStatus}</div>
+        )}
       </div>
       {/* Display File Button and Preview */}
       <div className="space-y-2 border p-4 rounded">
-        <button className="bg-indigo-600 text-white px-4 py-1 rounded" onClick={handleDisplayFile} disabled={!fileId}>Display File</button>
+        <button
+          className="bg-indigo-600 text-white px-4 py-1 rounded"
+          onClick={handleDisplayFile}
+          disabled={!fileId}
+        >
+          Display File
+        </button>
         {fileUrl && (
           <div className="mt-2">
             {fileType.startsWith("image/") ? (
-              <img src={fileUrl} alt="Uploaded file" className="max-w-xs max-h-60 border" />
+              <img
+                src={fileUrl}
+                alt="Uploaded file"
+                className="max-w-xs max-h-60 border"
+              />
             ) : (
-              <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">Download/View File</a>
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600"
+              >
+                Download/View File
+              </a>
             )}
           </div>
         )}
@@ -188,7 +246,9 @@ export default function FileS3TestPage() {
       <div className="border p-4 rounded bg-gray-100">
         <h2 className="font-semibold mb-2">Logs</h2>
         <ul className="text-xs space-y-1 max-h-60 overflow-y-auto">
-          {logs.map((log, i) => <li key={i}>{log}</li>)}
+          {logs.map((log, i) => (
+            <li key={i}>{log}</li>
+          ))}
         </ul>
       </div>
     </div>
