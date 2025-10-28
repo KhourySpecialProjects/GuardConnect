@@ -1,10 +1,10 @@
 /* Service Worker for handling push notifications */
 
-self.addEventListener("push", function (event) {
+self.addEventListener("push", (event) => {
   let data = {};
   try {
     if (event.data) data = event.data.json();
-  } catch (e) {
+  } catch (_e) {
     // ignore
   }
 
@@ -18,7 +18,7 @@ self.addEventListener("push", function (event) {
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-self.addEventListener("notificationclick", function (event) {
+self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = event.notification?.data?.url || "/";
   event.waitUntil(clients.openWindow(url));

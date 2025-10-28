@@ -63,10 +63,10 @@ export default function NotificationsPage() {
         keys: { p256dh: string; auth: string };
         topics: string[];
       } = {
-        endpoint: subscriptionJson.endpoint!,
+        endpoint: subscriptionJson.endpoint,
         keys: {
-          p256dh: subscriptionJson.keys!.p256dh,
-          auth: subscriptionJson.keys!.auth,
+          p256dh: subscriptionJson.keys?.p256dh,
+          auth: subscriptionJson.keys?.auth,
         },
         topics: ["general"],
       };
@@ -158,12 +158,14 @@ export default function NotificationsPage() {
         <div className="space-y-3">
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded"
+            type="button"
             onClick={handleSubscribe}
           >
             Subscribe for Push Notifications
           </button>
 
           <button
+            type="button"
             className="bg-indigo-600 text-white px-4 py-2 rounded ml-2"
             onClick={async () => {
               setStatus("Sending test notification...");
