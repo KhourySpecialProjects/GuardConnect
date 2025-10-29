@@ -350,7 +350,7 @@ const Components = () => {
               onChange={setSingleLineText}
               placeholder="Enter text..."
               showCharCount={false}
-              borderColor="#CDCDCD"
+              className="border-neutral"
               counterColor="#CDCDCD"
             />
           </section>
@@ -372,7 +372,7 @@ const Components = () => {
               rows={5}
               maxLength={500}
               showCharCount={true}
-              borderColor="text-primary"
+              className="border-primary"
               counterColor="text-primary"
             />
           </section>
