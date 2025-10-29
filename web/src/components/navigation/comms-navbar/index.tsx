@@ -1,15 +1,16 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DEMO_CHANNEL } from "@/lib/demo-channel";
 import { useTRPC } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 
-type Channel = {
+type Channel<T extends string = string> = {
   id: string;
   label: string;
-  href: string;
+  href: Route<`/communications/${T}`>;
   type: "all" | "channel";
 };
 
@@ -79,7 +80,7 @@ export const CommsNavBar = ({ className }: CommsNavBarProps = {}) => {
     ...(channelData.map((channel) => ({
       id: channel.channelId.toString(),
       label: channel.name,
-      href: `/communications/${channel.channelId}`,
+      href: `/communications/${channel.channelId}` as const,
       type: "channel" as const,
     })) ?? []),
   ];
