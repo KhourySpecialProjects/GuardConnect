@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { icons } from "@/components/icons";
+import { Card } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Card } from "@/components/ui/card";
-import { icons } from "@/components/icons";
 
 type CollapsibleCardProps = {
   name: string;
