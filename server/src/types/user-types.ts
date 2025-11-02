@@ -21,7 +21,7 @@ export const getUserDataInputSchema = z.object({
 export type GetUserDataInput = z.infer<typeof getUserDataInputSchema>;
 
 export const checkEmailExistsInputSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export type CheckEmailExistsInput = z.infer<typeof checkEmailExistsInputSchema>;
