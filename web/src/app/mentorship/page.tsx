@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import camaraderie from "../../../public/mentorship-images/camaraderie.jpg";
-import service_responsibility from "../../../public/mentorship-images/service_responsibility.jpg";
 import professional_growth from "../../../public/mentorship-images/professional_growth.jpg";
+import service_responsibility from "../../../public/mentorship-images/service_responsibility.jpg";
 
 const cards = [
   {
