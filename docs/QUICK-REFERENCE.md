@@ -66,8 +66,13 @@ docker push <ecr-url>:latest
 1. Go to **Actions** tab
 2. Select workflow (Deploy Server or Deploy Web)
 3. Click **Run workflow**
-4. Choose branch and environment
-5. Click **Run workflow**
+4. Enter branch name (e.g., `main` or `feature/my-feature`)
+5. Choose environment (dev/staging/production)
+6. Click **Run workflow**
+
+**Versioning:**
+- Main branch → Minor bump (1.0.0 → 1.1.0)
+- Other branches → Patch bump (1.0.0 → 1.0.1)
 
 ## Key Infrastructure Details
 

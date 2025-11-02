@@ -270,6 +270,50 @@ terraform apply -target=aws_ecs_service.server
 terraform graph | dot -Tpng > graph.png
 ```
 
+## Versioning Strategy
+
+The deployment workflows automatically manage application versions using semantic versioning:
+
+### Version Bumping Rules
+
+- **Main branch deployments**: Bump **minor** version
+  - Example: `1.0.5` → `1.1.0`
+  - Use for: Production releases, feature deployments
+  
+- **Non-main branch deployments**: Bump **patch** version
+  - Example: `1.0.5` → `1.0.6`
+  - Use for: Development deployments, bug fixes, testing
+
+### How It Works
+
+1. When you trigger a deployment, the workflow:
+   - Checks out your specified branch
+   - Runs `npm version minor` (main) or `npm version patch` (others)
+   - Updates `package.json` and `package-lock.json`
+   - Commits with message: `chore(server|web): bump version to X.Y.Z [skip ci]`
+   - Pushes the commit to your branch
+   - Continues with build and deployment
+
+2. The `[skip ci]` tag prevents the commit from triggering another workflow run
+
+3. Version is displayed in deployment summary
+
+### Manual Version Management
+
+If you need to bump major version or set a specific version:
+
+```bash
+# In server/ or web/ directory
+npm version major      # 1.0.0 → 2.0.0
+npm version 2.5.3      # Set to specific version
+
+git add package.json package-lock.json
+git commit -m "chore: bump version to X.Y.Z"
+git push
+```
+
+Then deploy normally - the workflow will bump from your new base version.
+
 ## GitHub Actions Setup
 
 ### Step 1: Create GitHub Secrets
@@ -321,15 +365,20 @@ Both workflows:
 2. **Deploy Server:**
    - Select **"Deploy Server to ECS"** workflow
    - Click **"Run workflow"**
-   - Select branch (usually `main` or `feature/ecs-deployment`)
+   - Enter branch to deploy from (e.g., `main`, `feature/ecs-deployment`)
    - Choose environment (`dev`, `staging`, or `production`)
    - Click **"Run workflow"**
+   - The workflow will automatically:
+     - Bump version (minor for `main`, patch for other branches)
+     - Commit and push the version change
+     - Build and deploy
 
 3. **Deploy Web:**
    - Select **"Deploy Web to ECS"** workflow
    - Click **"Run workflow"**
-   - Select branch and environment
+   - Enter branch and select environment
    - Click **"Run workflow"**
+   - Version will be automatically bumped and committed
 
 4. **Monitor Deployment:**
    - Click on the running workflow to see live logs
@@ -344,16 +393,21 @@ Both workflows:
 
 The GitHub Actions workflows perform:
 
-1. **Checkout code** - Gets latest code from your branch
-2. **Configure AWS** - Authenticates with AWS using secrets
-3. **Login to ECR** - Authenticates Docker with ECR
-4. **Build Docker image** - Builds your application container
-5. **Tag images** - Tags with commit SHA and `latest`
-6. **Push to ECR** - Uploads images to container registry
-7. **Download task definition** - Gets current ECS task config
-8. **Update task definition** - Inserts new image reference
-9. **Deploy to ECS** - Triggers rolling update
-10. **Wait for stability** - Ensures deployment succeeds
+1. **Checkout code** - Gets latest code from specified branch
+2. **Configure Git** - Sets up git credentials for version commits
+3. **Bump version** - Updates `package.json` version:
+   - **Main branch**: Minor version bump (1.0.0 → 1.1.0)
+   - **Other branches**: Patch version bump (1.0.0 → 1.0.1)
+4. **Commit & push** - Commits version change with `[skip ci]` to avoid loops
+5. **Configure AWS** - Authenticates with AWS using secrets
+6. **Login to ECR** - Authenticates Docker with ECR
+7. **Build Docker image** - Builds your application container
+8. **Tag images** - Tags with commit SHA and `latest`
+9. **Push to ECR** - Uploads images to container registry
+10. **Download task definition** - Gets current ECS task config
+11. **Update task definition** - Inserts new image reference
+12. **Deploy to ECS** - Triggers rolling update
+13. **Wait for stability** - Ensures deployment succeeds
 
 ### Rolling Updates
 
