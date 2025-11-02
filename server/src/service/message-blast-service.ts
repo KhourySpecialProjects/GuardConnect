@@ -1,6 +1,6 @@
 import type { MessageBlastRepository } from "../data/repository/message-blast-repo.js";
 import type { UserRepository } from "../data/repository/user-repo.js";
-import { InternalServerError, UnauthorizedError } from "../types/errors.js";
+import { ForbiddenError } from "../types/errors.js";
 import type { CreateMessageBlastInput } from "../types/message-blast-types.js";
 import log from "../utils/logger.js";
 import notificationService from "./notification-service.js";
@@ -19,15 +19,6 @@ export class MessageBlastService {
   }
 
   async createMessageBlast(input: CreateMessageBlastInput, userId: string) {
-    const permission = await policyEngine.validate(
-      userId,
-      `global:blast:create`,
-    );
-    if (!permission) {
-      throw new UnauthorizedError(
-        "Not enough permissions to send message blast",
-      );
-    }
     const result = await this.messageBlastRepository.createMessageBlast(
       userId,
       input.title,
@@ -35,9 +26,6 @@ export class MessageBlastService {
       input.targetAudience,
       input.validUntil,
     );
-    if (!result) {
-      throw new InternalServerError("Something went wrong");
-    }
     notificationService
       .sendTargetedNotifications(input.targetAudience || null, {
         title: input.title,

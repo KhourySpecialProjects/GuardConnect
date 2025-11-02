@@ -4,6 +4,7 @@ import { MessageBlastService } from "../service/message-blast-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
 import { createMessageBlastInputSchema } from "../types/message-blast-types.js";
+import { requirePermission } from "../utils/access_control.js";
 
 const messageBlastRepository = new MessageBlastRepository();
 const userRepository = new UserRepository();
@@ -14,6 +15,12 @@ const messageBlastService = new MessageBlastService(
 
 const createAndSendMessageBlast = protectedProcedure
   .input(createMessageBlastInputSchema)
+  .use(
+    requirePermission(
+      `global:blast:create`,
+      "Cannot create blasts. Not enough permission.",
+    ),
+  )
   .mutation(({ ctx, input }) =>
     withErrorHandling("sendMessageBlast", async () => {
       await messageBlastService.createMessageBlast(input, ctx.auth.user.id);
@@ -21,7 +28,7 @@ const createAndSendMessageBlast = protectedProcedure
   );
 
 const getActiveMessageBlastsForUser = protectedProcedure.query(({ ctx }) =>
-  withErrorHandling("sendMessageBlast", async () => {
+  withErrorHandling("getActiveMessageBlastsForUser", async () => {
     return await messageBlastService.getActiveBlastsForUser(ctx.auth.user.id);
   }),
 );

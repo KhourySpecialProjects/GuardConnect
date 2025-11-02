@@ -1,6 +1,7 @@
 import notificationService from "../service/notification-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
+import { UnauthorizedError } from "../types/errors.js";
 import {
   type NotificationPayload,
   subscribeInputSchema,
@@ -13,7 +14,7 @@ const subscribe = protectedProcedure
     return withErrorHandling("subscribeToNotifications", async () => {
       const userId = ctx.auth.user.id;
       if (!userId) {
-        throw new Error("Unauthorized");
+        throw new UnauthorizedError("Unauthorized");
       }
       await notificationService.subscribe(userId, input);
       return { success: true };
@@ -26,7 +27,7 @@ const testNotifications = protectedProcedure
     return withErrorHandling("testNotification", async () => {
       const userId = ctx.auth.user.id;
       if (!userId) {
-        throw new Error("Unauthorized");
+        throw new UnauthorizedError("Unauthorized");
       }
       const payload: NotificationPayload = {
         title: "Test Notification",
