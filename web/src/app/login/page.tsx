@@ -130,7 +130,7 @@ export default function Page() {
           <div className="border border-primary rounded-xl bg-white px-7 py-9 shadow-xl sm:px-10 sm:py-12">
             <div className="mb-6 text-left">
               <h2 className="text-xl font-semibold text-secondary">
-                Sign In or Create Account
+                {stage === "email" ? "Sign In or Create Account" : "Sign In"}
               </h2>
             </div>
 
