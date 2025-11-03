@@ -10,6 +10,12 @@ import CollapsibleCard from "@/components/expanding-card";
 import { icons } from "@/components/icons";
 import LinkedCard from "@/components/linked-card";
 import ListView from "@/components/list-view";
+import {
+  BroadcastModal,
+  CreatePostModal,
+  LeaveChannelModal,
+  RemoveMemberModal,
+} from "@/components/modal";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import Navigation from "@/components/navigation";
 import PostedCard from "@/components/posted-card";
@@ -23,12 +29,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import {
-  BroadcastModal,
-  CreatePostModal,
-  LeaveChannelModal,
-  RemoveMemberModal,
-} from "@/components/modal";
 
 const mentorQualityOptions: MultiSelectOption[] = [
   {
