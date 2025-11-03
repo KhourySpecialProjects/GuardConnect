@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { mentees, mentorMatchingRequests, mentors } from "../data/db/schema.js";
 import { db } from "../data/db/sql.js";
 import log from "../utils/logger.js";
@@ -15,32 +15,33 @@ export class MatchingService {
   async triggerMatchingForNewMentor(mentorUserId: string): Promise<void> {
     log.info("Triggering matching process for new mentor", { mentorUserId });
 
-    // Find all active mentees who could be matched
-    const activeMentees = await db
+    // Find a random subset of active mentees up to MAX_MATCH_REQUESTS
+    const selectedMentees = await db
       .select()
       .from(mentees)
-      .where(eq(mentees.status, "active"));
+      .where(eq(mentees.status, "active"))
+      .orderBy(sql`RANDOM()`)
+      .limit(MatchingService.MAX_MATCH_REQUESTS);
 
     log.info("Found active mentees for matching", {
-      count: activeMentees.length,
+      count: selectedMentees.length,
     });
 
-    // Pick a random subset of active mentees up to MAX_MATCH_REQUESTS
-    const selectedMentees = [...activeMentees]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, MatchingService.MAX_MATCH_REQUESTS);
-
     // For each selected mentee, create a matching request
+    const failedMenteeUserIds: string[] = [];
     for (const mentee of selectedMentees) {
       try {
         await this.createMatchingRequest(mentee.userId, mentorUserId);
       } catch (error) {
-        log.error("Failed to create matching request", {
-          menteeUserId: mentee.userId,
-          mentorUserId,
-          error: error instanceof Error ? error.message : String(error),
-        });
+        failedMenteeUserIds.push(mentee.userId);
       }
+    }
+
+    if (failedMenteeUserIds.length > 0) {
+      log.error("Failed to create matching requests", {
+        failedMenteeUserIds,
+        mentorUserId,
+      });
     }
   }
 
@@ -50,32 +51,33 @@ export class MatchingService {
   async triggerMatchingForNewMentee(menteeUserId: string): Promise<void> {
     log.info("Triggering matching process for new mentee", { menteeUserId });
 
-    // Find all approved/active mentors who could be matched
-    const availableMentors = await db
+    // Find a random subset of available mentors up to MAX_MATCH_REQUESTS
+    const selectedMentors = await db
       .select()
       .from(mentors)
-      .where(eq(mentors.status, "approved"));
+      .where(eq(mentors.status, "approved"))
+      .orderBy(sql`RANDOM()`)
+      .limit(MatchingService.MAX_MATCH_REQUESTS);
 
     log.info("Found available mentors for matching", {
-      count: availableMentors.length,
+      count: selectedMentors.length,
     });
 
-    // Pick a random subset of available mentors up to MAX_MATCH_REQUESTS
-    const selectedMentors = [...availableMentors]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, MatchingService.MAX_MATCH_REQUESTS);
-
     // For each selected mentor, create a matching request
+    const failedMentorUserIds: string[] = [];
     for (const mentor of selectedMentors) {
       try {
         await this.createMatchingRequest(menteeUserId, mentor.userId);
       } catch (error) {
-        log.error("Failed to create matching request", {
-          menteeUserId,
-          mentorUserId: mentor.userId,
-          error: error instanceof Error ? error.message : String(error),
-        });
+        failedMentorUserIds.push(mentor.userId);
       }
+    }
+
+    if (failedMentorUserIds.length > 0) {
+      log.error("Failed to create matching requests", {
+        menteeUserId,
+        failedMentorUserIds,
+      });
     }
   }
 
