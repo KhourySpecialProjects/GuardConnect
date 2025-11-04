@@ -57,9 +57,11 @@ export default function NewChannelPostPage({
   type CreatePostData = Parameters<
     NonNullable<CreatePostMutationOptions["onSuccess"]>
   >[0];
-  const createPost = useMutation<CreatePostData, CreatePostError, CreatePostVars>(
-    trpc.comms.createPost.mutationOptions(),
-  );
+  const createPost = useMutation<
+    CreatePostData,
+    CreatePostError,
+    CreatePostVars
+  >(trpc.comms.createPost.mutationOptions());
   const [multiLineText, setMultiLineText] = useState<string>("");
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);

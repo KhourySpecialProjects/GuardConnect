@@ -127,7 +127,7 @@ type ChannelViewProps = {
 export function ChannelView({ channelId }: ChannelViewProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  
+
   // Explicitly type mutation variables to ensure correct inference
   type ToggleReactionVars = {
     channelId: number;
@@ -144,13 +144,13 @@ export function ChannelView({ channelId }: ChannelViewProps) {
   type ToggleReactionData = Parameters<
     NonNullable<ToggleReactionMutationOptions["onSuccess"]>
   >[0];
-  
+
   const { mutate: mutateReaction } = useMutation<
     ToggleReactionData,
     ToggleReactionError,
     ToggleReactionVars
   >(trpc.comms.toggleMessageReaction.mutationOptions());
-  
+
   const parsedChannelId = parseChannelId(channelId);
 
   const channelListQuery = useQuery(trpc.comms.getAllChannels.queryOptions());
@@ -169,9 +169,7 @@ export function ChannelView({ channelId }: ChannelViewProps) {
 
   const channelList = channelListRaw;
 
-  const messages = Array.isArray(messagesQuery.data)
-    ? messagesQuery.data
-    : [];
+  const messages = Array.isArray(messagesQuery.data) ? messagesQuery.data : [];
 
   const [messagesState, setMessagesState] = useState<ChannelMessage[]>([]);
 
@@ -333,12 +331,14 @@ export function ChannelView({ channelId }: ChannelViewProps) {
                 message.id === data.messageId
                   ? {
                       ...message,
-                      reactions: data.reactions.map((reaction: MessageReaction) => ({
-                        emoji: reaction.emoji,
-                        count: reaction.count,
-                        reactedByCurrentUser:
-                          reaction.reactedByCurrentUser ?? false,
-                      })),
+                      reactions: data.reactions.map(
+                        (reaction: MessageReaction) => ({
+                          emoji: reaction.emoji,
+                          count: reaction.count,
+                          reactedByCurrentUser:
+                            reaction.reactedByCurrentUser ?? false,
+                        }),
+                      ),
                     }
                   : message,
               ),
