@@ -21,7 +21,10 @@ const buildRedisUrl = () => {
 
   // Construct URL with credentials
   if (password) {
-    return `redis://${username}:${password}@${host}:${port}`;
+    // URL-encode the username and password to handle special characters
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPassword = encodeURIComponent(password);
+    return `redis://${encodedUsername}:${encodedPassword}@${host}:${port}`;
   }
   return `redis://${host}:${port}`;
 };
