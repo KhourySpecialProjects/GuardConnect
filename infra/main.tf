@@ -597,8 +597,8 @@ resource "aws_lb_target_group" "server" {
     path                = "/health"
     port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 3
+    timeout             = 10
+    unhealthy_threshold = 5
   }
 
   deregistration_delay = 30
@@ -625,8 +625,8 @@ resource "aws_lb_target_group" "web" {
     path                = "/"
     port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 3
+    timeout             = 10
+    unhealthy_threshold = 5
   }
 
   deregistration_delay = 30
@@ -937,9 +937,9 @@ resource "aws_ecs_task_definition" "server" {
       healthCheck = {
         command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
         interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
+        timeout     = 10
+        retries     = 5
+        startPeriod = 300
       }
     }
   ])
