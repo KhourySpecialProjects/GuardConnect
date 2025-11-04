@@ -1,6 +1,7 @@
 "use client";
 import { Paperclip } from "lucide-react";
 import { useCallback, useState } from "react";
+import { DropdownMenuItemConfig, DropdownButtons } from "@/components/dropdown";
 import { icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -54,16 +55,30 @@ export const PostedCard = ({
         setDownloadError(
           error instanceof Error
             ? error.message
-            : "Unable to open this attachment.",
+            : "Unable to open this attachment."
         );
       } finally {
         setDownloadingId(null);
       }
     },
-    [trpcClient],
+    [trpcClient]
   );
 
   const attachmentItems = attachments ?? [];
+
+  const actionMenuItems: DropdownMenuItemConfig[] = [
+    {
+      icon: "edit",
+      label: "Edit",
+      onClick: () => console.log("Edit clicked"),
+      separator: true,
+    },
+    {
+      icon: "trash",
+      label: "Delete",
+      onClick: () => console.log("Delete clicked"),
+    },
+  ];
 
   return (
     <Card className="w-full p-4">
@@ -111,6 +126,7 @@ export const PostedCard = ({
               ) : null}
             </div>
           ) : null}
+          <DropdownButtons items={actionMenuItems} />
         </div>
       </div>
     </Card>
