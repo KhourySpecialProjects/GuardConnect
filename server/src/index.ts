@@ -33,8 +33,10 @@ app.use(
 );
 
 // Health check endpoint for ALB
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+app.get("/health", (_req, res) => {
+  res
+    .status(200)
+    .json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
 await connectPostgres();
