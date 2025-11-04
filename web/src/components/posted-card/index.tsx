@@ -5,7 +5,10 @@ import { Paperclip } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { DropdownMenuItemConfig, DropdownButtons } from "@/components/dropdown";
 import { icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/modal";
 import { useTRPC } from "@/lib/trpc";
 
 type AttachmentDescriptor = {
@@ -43,15 +46,45 @@ export const PostedCard = ({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const deletePost = useMutation(trpc.comms.deletePost.mutationOptions());
-
   const channelMessagesQueryKey = useMemo<QueryKey>(() => {
     return trpc.comms.getChannelMessages.queryKey({
       channelId: channelId,
     }) as unknown as QueryKey;
   }, [channelId, trpc]);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editContent, setEditContent] = useState(content);
+  const [editError, setEditError] = useState<string | null>(null);
+  const editPost = useMutation(trpc.comms.editPost.mutationOptions());
+
+  const handleEditPost = useCallback(
+    async (newContent: string) => {
+      setEditError(null);
+
+      editPost.mutate(
+        {
+          channelId: channelId,
+          messageId: postId,
+          content: newContent,
+        },
+        {
+          onSuccess: async () => {
+            await queryClient.invalidateQueries({
+              queryKey: channelMessagesQueryKey,
+            });
+            setIsEditModalOpen(false);
+          },
+          onError: (error) => {
+            setEditError(error.message);
+          },
+        }
+      );
+    },
+    [channelId, postId, editPost, queryClient, channelMessagesQueryKey]
+  );
+
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deletePost = useMutation(trpc.comms.deletePost.mutationOptions());
 
   const handleDeletePost = useCallback(() => {
     setDeleteError(null);
@@ -75,12 +108,18 @@ export const PostedCard = ({
   }, [postId, channelId, deletePost, queryClient, channelMessagesQueryKey]);
 
   const attachmentItems = attachments ?? [];
+  const maxLength = 5000;
+  const characterCount = editContent.length;
 
   const actionMenuItems: DropdownMenuItemConfig[] = [
     {
       icon: "edit",
       label: "Edit",
-      onClick: () => console.log("Edit clicked"),
+      onClick: () => {
+        setEditContent(content);
+        setEditError(null);
+        setIsEditModalOpen(true);
+      },
       separator: true,
     },
     {
@@ -90,48 +129,123 @@ export const PostedCard = ({
     },
   ];
 
-  return (
-    <Card className="w-full p-4">
-      <div className="flex items-center gap-4 px-6 py-4">
-        <Avatar />
-        <div className="flex flex-col gap-2 px-4 py-0 w-full">
-          <div className="text-secondary text-subheader font-semibold">
-            {name}
-            <div className="text-secondary text-sm font-semibold italic">
-              {rank}
-            </div>
-          </div>
-          <div className="text-secondary text-sm font-normal">{content}</div>
-          {attachmentItems.length ? (
-            <div className="flex flex-col gap-2">
-              <div className="text-xs font-semibold uppercase tracking-wide text-secondary/60">
-                Attachments
-              </div>
-              <div className="flex flex-col gap-2">
-                {attachmentItems.map((attachment) => (
-                  <div
-                    key={attachment.fileId}
-                    className="flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-secondary text-sm"
-                  >
-                    <Paperclip className="h-4 w-4 text-secondary/70" />
-                    <span className="truncate">{attachment.fileName}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
+  const handleSaveEdit = async () => {
+    if (editContent.trim().length === 0 || editPost.isPending) return;
+    await handleEditPost(editContent);
+  };
 
-          <div className="flex items-center justify-between">
-            <div>
-              {deleteError ? (
-                <p className="text-xs text-destructive">{deleteError}</p>
-              ) : null}
+  const handleCancelEdit = () => {
+    setEditContent(content);
+    setEditError(null);
+    setIsEditModalOpen(false);
+  };
+
+  return (
+    <>
+      <Card className="w-full p-4">
+        <div className="flex items-center gap-4 px-6 py-4">
+          <Avatar />
+          <div className="flex flex-col gap-2 px-4 py-0 w-full">
+            <div className="text-secondary text-subheader font-semibold">
+              {name}
+              <div className="text-secondary text-sm font-semibold italic">
+                {rank}
+              </div>
             </div>
-            <DropdownButtons items={actionMenuItems} align="end" />
+            <div className="text-secondary text-sm font-normal">{content}</div>
+            {attachmentItems.length ? (
+              <div className="flex flex-col gap-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-secondary/60">
+                  Attachments
+                </div>
+                <div className="flex flex-col gap-2">
+                  {attachmentItems.map((attachment) => (
+                    <div
+                      key={attachment.fileId}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-secondary text-sm"
+                    >
+                      <Paperclip className="h-4 w-4 text-secondary/70" />
+                      <span className="truncate">{attachment.fileName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="flex items-center justify-between">
+              <div>
+                {deleteError ? (
+                  <p className="text-xs text-destructive">{deleteError}</p>
+                ) : null}
+              </div>
+              <DropdownButtons items={actionMenuItems} align="end" />
+            </div>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+
+      <Modal
+        open={isEditModalOpen}
+        onOpenChange={(newOpen) => {
+          if (!newOpen) {
+            handleCancelEdit();
+          } else {
+            setIsEditModalOpen(newOpen);
+          }
+        }}
+        title="Edit Post"
+        footer={
+          <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancelEdit}
+              disabled={editPost.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveEdit}
+              disabled={
+                editContent.trim().length === 0 ||
+                editPost.isPending ||
+                characterCount > maxLength
+              }
+            >
+              {editPost.isPending ? "Saving…" : "Save Changes"}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <Textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            placeholder="Edit your post..."
+            className="min-h-32 resize-none"
+            maxLength={maxLength}
+            disabled={editPost.isPending}
+          />
+          <div className="flex justify-between items-center">
+            <div>
+              {editError ? (
+                <p className="text-xs text-destructive">{editError}</p>
+              ) : null}
+            </div>
+            <span
+              className={`text-sm ${
+                characterCount > maxLength
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {characterCount}/{maxLength}
+            </span>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 };
 
