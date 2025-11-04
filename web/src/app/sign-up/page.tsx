@@ -55,7 +55,13 @@ function SignUpContent() {
 
 export default function SignUpPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <SignUpContent />
     </Suspense>
   );

@@ -37,7 +37,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
       </div>
 
       <Link
-        href={href as any}
+        href={href as Route}
         className="flex h-2/5 cursor-pointer flex-col justify-center rounded-b-2xl bg-primary p-5 transition-colors duration-200 group-hover:bg-primary-dark"
       >
         <div className="mb-1 flex items-center gap-2">
