@@ -861,6 +861,10 @@ resource "aws_ecs_task_definition" "server" {
           value = "default"
         },
         {
+          name  = "REDIS_URL"
+          value = "redis://default@${aws_elasticache_serverless_cache.dev_cache_valkey.endpoint[0].address}:6379"
+        },
+        {
           name  = "POSTGRES_HOST"
           value = split(":", aws_db_instance.dev_db_comm_ng.endpoint)[0]
         },
@@ -905,7 +909,7 @@ resource "aws_ecs_task_definition" "server" {
         },
         {
           name      = "REDIS_PASSWORD"
-          valueFrom = aws_secretsmanager_secret.cache_auth.arn
+          valueFrom = "${aws_secretsmanager_secret.cache_auth.arn}::"
         },
         {
           name      = "BETTER_AUTH_SECRET"
