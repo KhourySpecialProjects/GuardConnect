@@ -79,9 +79,6 @@ app.get("/api/health", (_req, res) => {
 app.listen(port, () => {
   log.info(`tRPC server running at http://localhost:${port}/api/trpc`);
   log.info(`Better auth running at http://localhost:${port}/api/auth`);
-  log.info(
-    `Better-auth OpenAPI spec: http://localhost:${port}/api/auth/reference`,
-  );
 });
 
 // Connect to databases asynchronously after server is listening
