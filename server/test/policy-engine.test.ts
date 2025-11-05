@@ -283,7 +283,9 @@ describe("PolicyEngine", () => {
 
   describe("caching behavior", () => {
     it("should check redis cache before querying database", async () => {
-      const { getRedisClientInstance } = await import("../src/data/db/redis.js");
+      const { getRedisClientInstance } = await import(
+        "../src/data/db/redis.js"
+      );
 
       await policyEngine.validate("1", "channel:1:read");
 
@@ -300,7 +302,9 @@ describe("PolicyEngine", () => {
     });
 
     it("should return true immediately when redis returns 1 (found)", async () => {
-      const { getRedisClientInstance } = await import("../src/data/db/redis.js");
+      const { getRedisClientInstance } = await import(
+        "../src/data/db/redis.js"
+      );
       vi.mocked(getRedisClientInstance().sIsMember).mockResolvedValueOnce(1);
 
       const result = await policyEngine.validate("1", "channel:1:read");

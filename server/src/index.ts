@@ -25,9 +25,11 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, Postman, or same-origin)
       if (!origin) return callback(null, true);
-      
+
       // Check if origin is in allowed list
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed as string))) {
+      if (
+        allowedOrigins.some((allowed) => origin.startsWith(allowed as string))
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`Origin ${origin} not allowed by CORS`));
