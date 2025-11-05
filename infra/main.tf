@@ -938,8 +938,8 @@ resource "aws_ecs_task_definition" "server" {
         command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
         interval    = 30
         timeout     = 10
-        retries     = 5
-        startPeriod = 300
+        retries     = 10
+        startPeriod = 180
       }
     }
   ])

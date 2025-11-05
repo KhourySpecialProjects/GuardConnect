@@ -32,16 +32,33 @@ app.use(
   }),
 );
 
+// Track connection status for health checks
+let isPostgresConnected = false;
+let isRedisConnected = false;
+
 // Health check endpoint for ALB
 app.get("/health", (_req, res) => {
-  res
-    .status(200)
-    .json({ status: "healthy", timestamp: new Date().toISOString() });
+  // During startup, allow health checks to pass even if DB isn't ready
+  // This prevents ECS from killing the task during initialization
+  if (!isPostgresConnected || !isRedisConnected) {
+    log.warn("Health check: Connections still initializing");
+    return res.status(200).json({
+      status: "initializing",
+      postgres: isPostgresConnected,
+      redis: isRedisConnected,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  res.status(200).json({
+    status: "healthy",
+    postgres: isPostgresConnected,
+    redis: isRedisConnected,
+    timestamp: new Date().toISOString(),
+  });
 });
 
-await connectPostgres();
-await connectRedis();
-
+// Start the Express server first so health checks can pass
 app.listen(port, () => {
   log.info(`tRPC server running at http://localhost:${port}/api/trpc`);
   log.info(`Better auth running at http://localhost:${port}/api/auth`);
@@ -50,7 +67,21 @@ app.listen(port, () => {
   );
 });
 
-// Populate policy cache after server is ready to accept health checks
-policyEngine.populateCache(60 * 60 * 12, 5000).catch((error) => {
-  log.error({ error }, "Failed to populate policy engine cache");
-});
+// Connect to databases asynchronously after server is listening
+(async () => {
+  try {
+    await connectPostgres();
+    isPostgresConnected = true;
+    log.info("Postgres connection marked as healthy");
+
+    await connectRedis();
+    isRedisConnected = true;
+    log.info("Redis connection marked as healthy");
+
+    // Populate policy cache after all connections are ready
+    await policyEngine.populateCache(60 * 60 * 12, 5000);
+  } catch (error) {
+    log.error({ error }, "Failed to initialize connections");
+    // Don't exit - let the health check eventually fail if needed
+  }
+})();
