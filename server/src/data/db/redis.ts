@@ -74,6 +74,12 @@ export const connectRedis = async () => {
     try {
       log.info("Redis Client: Attempting connection...");
       await redisClient.connect();
+      // Wait for the "ready" event to ensure connection is fully established
+      if (!redisClient.isReady) {
+        await new Promise((resolve) => {
+          redisClient.once("ready", resolve);
+        });
+      }
       log.info("Redis Client connection established successfully");
       return true;
     } catch (error) {
@@ -88,6 +94,7 @@ export const connectRedis = async () => {
     }
   } else {
     log.debug("Redis Client: Already connected, skipping");
+    return true;
   }
 };
 
