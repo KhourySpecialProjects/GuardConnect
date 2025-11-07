@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   EllipsisVertical,
+  GripVertical,
   Lock,
   Megaphone,
   Menu,
@@ -52,6 +53,7 @@ export const icons = {
   mentorship: Users,
   reports: MessageSquareWarning,
   user: User,
+  drag: GripVertical,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof icons;

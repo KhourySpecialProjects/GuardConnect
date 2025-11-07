@@ -23,6 +23,8 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
+import { SingleSelectButtonGroup } from "@/components/button-single-select";
+import { DragReorderFrame } from "@/components/drag-and-drop";
 
 const mentorQualityOptions: MultiSelectOption[] = [
   {
@@ -105,20 +107,20 @@ const Components = () => {
         })
         .filter(
           (
-            reaction,
+            reaction
           ): reaction is {
             emoji: string;
             count: number;
             reactedByUser: boolean;
-          } => reaction !== null,
-        ),
+          } => reaction !== null
+        )
     );
   };
 
   const handleDemoAddReaction = (emoji: string) => {
     setDemoReactions((previous) => {
       const existingIndex = previous.findIndex(
-        (reaction) => reaction.emoji === emoji,
+        (reaction) => reaction.emoji === emoji
       );
 
       if (existingIndex === -1) {
@@ -132,7 +134,7 @@ const Components = () => {
               count: reaction.count + 1,
               reactedByUser: true,
             }
-          : reaction,
+          : reaction
       );
     });
   };
@@ -141,6 +143,15 @@ const Components = () => {
   const [multiLineText, setMultiLineText] = useState("");
 
   const [files, setFiles] = useState<File[] | undefined>();
+
+  const [singleSelectValue, setSingleSelectValue] = useState<string>("");
+
+  const dragOptions = [
+  { label: "First Item", value: "1" },
+  { label: "Second Item", value: "2" },
+  { label: "Third Item", value: "3" },
+];
+  const [order, setOrder] = useState(dragOptions.map((o) => o.value));
 
   return (
     <>
@@ -435,6 +446,40 @@ const Components = () => {
               <DropzoneContent />
             </Dropzone>
           </section>
+
+          <section className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
+                Single-select Circular Buttons
+              </h2>
+              <p className="text-sm text-secondary/70">Select one quality</p>
+              <SingleSelectButtonGroup
+                options={[
+                  { label: "A", value: "true" },
+                  { label: "B", value: "false" },
+                  { label: "C", value: "maybe" },
+                ]}
+                value={singleSelectValue}
+                onChange={setSingleSelectValue}
+              />
+              <p>Current selection: {singleSelectValue}</p>
+            </div>
+          </section>
+
+          <section>
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
+                Drag-and-Drop Buttons
+              </h2>
+            </div>
+            <div className="max-w-md mt-4">
+              <DragReorderFrame options={dragOptions} onChange={setOrder} />
+              <pre className="text-xs text-gray-500 mt-4">
+                Current order: {JSON.stringify(order)}
+              </pre>
+            </div>
+          </section>
+
         </div>
       </main>
     </>
