@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useId } from "react";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,14 +25,16 @@ interface Props {
   error?: string | null;
 }
 
-type PhotoState = null | {
-  id: string;
-  file: File;
-  status: "uploading" | "uploaded" | "error";
-  fileId?: string;
-  storedName?: string;
-  error?: string;
-};
+type PhotoState =
+  | null
+  | {
+      id: string;
+      file: File;
+      status: "uploading" | "uploaded" | "error";
+      fileId?: string;
+      storedName?: string;
+      error?: string;
+    };
 
 export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
   const trpcClient = useTRPCClient();
@@ -136,7 +138,6 @@ export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
         typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random()}`;
-
       void uploadChannelPhoto(id, file);
     },
     [uploadChannelPhoto],
@@ -144,7 +145,7 @@ export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
 
   const handleRetryPhoto = useCallback(() => {
     if (!photo?.file) return;
-    const id = photo.id ?? crypto.randomUUID?.() ?? `${Date.now()}`;
+    const id = photo.id ?? (crypto.randomUUID?.() ?? `${Date.now()}`);
     void uploadChannelPhoto(id, photo.file);
   }, [photo, uploadChannelPhoto]);
 
@@ -158,9 +159,9 @@ export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
       title,
       blurb,
       imageSrc: undefined,
-      imageFileId: photo?.status === "uploaded" ? photo.fileId : undefined,
+      imageFileId: photo?.status === "uploaded" ? photo.fileId : undefined, 
       hasUploadingPhoto,
-      hasErroredPhoto,
+      hasErroredPhoto, 
     });
   };
 
@@ -171,11 +172,7 @@ export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
     >
       <div className="space-y-6">
         <div className="space-y-1.5">
-          <label
-            htmlFor={titleId}
-            id="channel-title"
-            className="text-subheader text-secondary"
-          >
+          <label htmlFor="title" id="channel-title" className="text-subheader text-secondary">
             Title
           </label>
           <TextInput
@@ -195,7 +192,6 @@ export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
         <div className="flex flex-col gap-2">
           <label
             htmlFor={blurbId}
-            id="channel-blurb"
             className="text-sm font-medium text-secondary"
           >
             Description
