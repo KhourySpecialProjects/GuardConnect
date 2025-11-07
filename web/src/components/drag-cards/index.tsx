@@ -14,7 +14,6 @@ type DragDropCardsProps<T> = {
   renderCard: (data: T, index: number) => React.ReactNode;
 };
 
-
 export const DragDropCards = <T,>({
   cards: initialCards,
   onReorder,
