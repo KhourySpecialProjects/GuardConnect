@@ -9,31 +9,17 @@ import {
   deletePostSchema,
   deleteSubscriptionSchema,
   editPostSchema,
-  getChannelMembersSchema,
+  //getChannelMembersSchema,
   getChannelMessagesSchema,
   postPostSchema,
-  registerDeviceSchema,
   toggleReactionSchema,
+  updateChannelSchema,
 } from "../types/comms-types.js";
-import { ForbiddenError } from "../types/errors.js";
+import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
 import log from "../utils/logger.js";
 
 const commsRepo = new CommsRepository();
 const commsService = new CommsService(commsRepo);
-
-const registerDevice = protectedProcedure
-  .input(registerDeviceSchema)
-  .mutation(({ ctx, input }) =>
-    withErrorHandling("registerDevice", async () => {
-      log.debug({ deviceType: input.deviceType }, "registerDevice");
-
-      return await commsRepo.registerDevice(
-        ctx.auth.user.id, // TODO: get from auth context
-        input.deviceType,
-        input.deviceToken,
-      );
-    }),
-  );
 
 /**
  * createPost
@@ -61,7 +47,7 @@ const createPost = protectedProcedure
       userId,
       input.channelId,
       input.content,
-      input.attachmentUrl,
+      input.attachmentFileIds,
     );
 
     return createdPost;
@@ -171,7 +157,7 @@ const editPost = protectedProcedure
       input.channelId,
       input.messageId,
       input.content,
-      input.attachmentUrl,
+      input.attachmentFileIds,
     );
 
     return updatedPost;
@@ -208,9 +194,39 @@ const createChannel = protectedProcedure
     }),
   );
 
+// get channel settings
+/*const getChannelSettings = protectedProcedure
+  .input(updateChannelSchema)
+  .query(({ input }) =>
+    withErrorHandling("getChannelSettings", async () => {
+      log.debug({ channelId: input.channelId }, "getChannelSettings");
+      return await commsRepo.getChannelSettings(input.channelId);
+    }),
+  );*/
+
+// update channel settings
+const updateChannelSettings = protectedProcedure
+  .input(updateChannelSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("updateChannel", async () => {
+      const userId = ctx.auth.user.id;
+      const accessible = await policyEngine.validate(
+        userId,
+        `channel:${input.channelId}:admin`,
+      );
+      if (!accessible) {
+        throw new UnauthorizedError("Invalid Request");
+      }
+      return await commsService.updateChannelSettings(
+        input.channelId,
+        input.metadata,
+      );
+    }),
+  );
+
 // Channel members endpoint
 const getChannelMembers = protectedProcedure
-  .input(getChannelMembersSchema)
+  .input(updateChannelSchema)
   .query(({ input }) =>
     withErrorHandling("getChannelMembers", async () => {
       log.debug({ channelId: input.channelId }, "getChannelMembers");
@@ -265,7 +281,6 @@ const getUserSubscriptions = protectedProcedure.query(({ ctx }) =>
 );
 
 export const commsRouter = router({
-  registerDevice,
   createPost,
   getAllChannels,
   getChannelMessages,
@@ -273,6 +288,8 @@ export const commsRouter = router({
   editPost,
   deletePost,
   createChannel,
+  updateChannelSettings,
+  // getChannelSettings,
   getChannelMembers,
   createSubscription,
   deleteSubscription,

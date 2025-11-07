@@ -1,10 +1,15 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import type {
+  ActiveMessageBlastsForUserQuery,
   CreateMessageBlastOutput,
   GetMessageBlastOutput,
+  MessageBlastDbRow,
+  MessageBlastInsert,
+  TargetAudience,
   UpdateMessageBlastOutput,
 } from "../../types/message-blast-types.js";
+import { parseTargetAudience } from "../../types/message-blast-types.js";
 import { messageBlasts } from "../db/schema.js";
 import { db } from "../db/sql.js";
 
@@ -12,42 +17,56 @@ import { db } from "../db/sql.js";
  * Repository to handle database queries/communication related to message blasts
  */
 export class MessageBlastRepository {
+  /**
+   * Helper to convert database row to typed output
+   */
+  private parseMessageBlastRow(row: MessageBlastDbRow): GetMessageBlastOutput {
+    return {
+      ...row,
+      targetAudience: parseTargetAudience(row.targetAudience),
+      sentAt: row.sentAt ?? null,
+    };
+  }
+
   async createMessageBlast(
-    senderId: number,
+    senderId: string,
     title: string,
     content: string,
-    targetAudience?: Record<string, unknown>,
-    scheduledAt?: Date,
-    status: "draft" | "scheduled" | "sent" | "failed" = "draft",
+    targetAudience?: TargetAudience,
+    validUntil?: Date,
+    status: "draft" | "sent" | "failed" = "draft",
   ): Promise<CreateMessageBlastOutput> {
-    const [created] = await db
-      .insert(messageBlasts)
-      .values({
-        senderId,
-        title,
-        content,
-        targetAudience: targetAudience || null,
-        scheduledAt: scheduledAt || null,
-        status,
-      })
-      .returning({
-        blastId: messageBlasts.blastId,
-        senderId: messageBlasts.senderId,
-        title: messageBlasts.title,
-        content: messageBlasts.content,
-        targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
-        sentAt: messageBlasts.sentAt,
-        status: messageBlasts.status,
-        createdAt: messageBlasts.createdAt,
-        updatedAt: messageBlasts.updatedAt,
-      });
+    const values: MessageBlastInsert = {
+      senderId,
+      title,
+      content,
+      targetAudience,
+      status,
+    };
 
-    if (!created) {
-      throw new ConflictError("Failed to create message blast");
+    // Only set validUntil if explicitly provided, otherwise use DB default (24 hours)
+    if (validUntil !== undefined) {
+      values.validUntil = validUntil;
     }
 
-    return created;
+    const [created] = await db.insert(messageBlasts).values(values).returning({
+      blastId: messageBlasts.blastId,
+      senderId: messageBlasts.senderId,
+      title: messageBlasts.title,
+      content: messageBlasts.content,
+      targetAudience: messageBlasts.targetAudience,
+      validUntil: messageBlasts.validUntil,
+      sentAt: messageBlasts.sentAt,
+      status: messageBlasts.status,
+      createdAt: messageBlasts.createdAt,
+      updatedAt: messageBlasts.updatedAt,
+    });
+
+    if (!created) {
+      throw new ConflictError("Failed to create broadcast");
+    }
+
+    return this.parseMessageBlastRow(created);
   }
 
   async getMessageBlastById(blastId: number): Promise<GetMessageBlastOutput> {
@@ -58,7 +77,7 @@ export class MessageBlastRepository {
         title: messageBlasts.title,
         content: messageBlasts.content,
         targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
+        validUntil: messageBlasts.validUntil,
         sentAt: messageBlasts.sentAt,
         status: messageBlasts.status,
         createdAt: messageBlasts.createdAt,
@@ -69,23 +88,23 @@ export class MessageBlastRepository {
       .limit(1);
 
     if (!blast) {
-      throw new NotFoundError(`Message blast ${blastId} not found`);
+      throw new NotFoundError(`Broadcast ${blastId} not found`);
     }
 
-    return blast;
+    return this.parseMessageBlastRow(blast);
   }
 
   async getMessageBlastsBySender(
-    senderId: number,
+    senderId: string,
   ): Promise<GetMessageBlastOutput[]> {
-    return await db
+    const rows = await db
       .select({
         blastId: messageBlasts.blastId,
         senderId: messageBlasts.senderId,
         title: messageBlasts.title,
         content: messageBlasts.content,
         targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
+        validUntil: messageBlasts.validUntil,
         sentAt: messageBlasts.sentAt,
         status: messageBlasts.status,
         createdAt: messageBlasts.createdAt,
@@ -93,15 +112,17 @@ export class MessageBlastRepository {
       })
       .from(messageBlasts)
       .where(eq(messageBlasts.senderId, senderId));
+
+    return rows.map((row) => this.parseMessageBlastRow(row));
   }
 
   async updateMessageBlast(
     blastId: number,
     title?: string,
     content?: string,
-    targetAudience?: Record<string, unknown>,
-    scheduledAt?: Date,
-    status?: "draft" | "scheduled" | "sent" | "failed",
+    targetAudience?: TargetAudience,
+    validUntil?: Date,
+    status?: "draft" | "sent" | "failed",
   ): Promise<UpdateMessageBlastOutput> {
     const updateData: Partial<typeof messageBlasts.$inferInsert> = {
       updatedAt: new Date(),
@@ -111,7 +132,7 @@ export class MessageBlastRepository {
     if (content !== undefined) updateData.content = content;
     if (targetAudience !== undefined)
       updateData.targetAudience = targetAudience;
-    if (scheduledAt !== undefined) updateData.scheduledAt = scheduledAt;
+    if (validUntil !== undefined) updateData.validUntil = validUntil;
     if (status !== undefined) updateData.status = status;
 
     const [updated] = await db
@@ -124,7 +145,7 @@ export class MessageBlastRepository {
         title: messageBlasts.title,
         content: messageBlasts.content,
         targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
+        validUntil: messageBlasts.validUntil,
         sentAt: messageBlasts.sentAt,
         status: messageBlasts.status,
         createdAt: messageBlasts.createdAt,
@@ -132,42 +153,10 @@ export class MessageBlastRepository {
       });
 
     if (!updated) {
-      throw new NotFoundError(`Message blast ${blastId} not found`);
+      throw new NotFoundError(`Broadcast ${blastId} not found`);
     }
 
-    return updated;
-  }
-
-  async scheduleMessageBlast(
-    blastId: number,
-    scheduledAt: Date,
-  ): Promise<UpdateMessageBlastOutput> {
-    const [updated] = await db
-      .update(messageBlasts)
-      .set({
-        scheduledAt,
-        status: "scheduled",
-        updatedAt: new Date(),
-      })
-      .where(eq(messageBlasts.blastId, blastId))
-      .returning({
-        blastId: messageBlasts.blastId,
-        senderId: messageBlasts.senderId,
-        title: messageBlasts.title,
-        content: messageBlasts.content,
-        targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
-        sentAt: messageBlasts.sentAt,
-        status: messageBlasts.status,
-        createdAt: messageBlasts.createdAt,
-        updatedAt: messageBlasts.updatedAt,
-      });
-
-    if (!updated) {
-      throw new NotFoundError(`Message blast ${blastId} not found`);
-    }
-
-    return updated;
+    return this.parseMessageBlastRow(updated);
   }
 
   async markAsSent(blastId: number): Promise<UpdateMessageBlastOutput> {
@@ -185,7 +174,7 @@ export class MessageBlastRepository {
         title: messageBlasts.title,
         content: messageBlasts.content,
         targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
+        validUntil: messageBlasts.validUntil,
         sentAt: messageBlasts.sentAt,
         status: messageBlasts.status,
         createdAt: messageBlasts.createdAt,
@@ -193,10 +182,10 @@ export class MessageBlastRepository {
       });
 
     if (!updated) {
-      throw new NotFoundError(`Message blast ${blastId} not found`);
+      throw new NotFoundError(`Broadcast ${blastId} not found`);
     }
 
-    return updated;
+    return this.parseMessageBlastRow(updated);
   }
 
   async markAsFailed(blastId: number): Promise<UpdateMessageBlastOutput> {
@@ -213,7 +202,7 @@ export class MessageBlastRepository {
         title: messageBlasts.title,
         content: messageBlasts.content,
         targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
+        validUntil: messageBlasts.validUntil,
         sentAt: messageBlasts.sentAt,
         status: messageBlasts.status,
         createdAt: messageBlasts.createdAt,
@@ -221,10 +210,10 @@ export class MessageBlastRepository {
       });
 
     if (!updated) {
-      throw new NotFoundError(`Message blast ${blastId} not found`);
+      throw new NotFoundError(`Broadcast ${blastId} not found`);
     }
 
-    return updated;
+    return this.parseMessageBlastRow(updated);
   }
 
   async deleteMessageBlast(blastId: number): Promise<void> {
@@ -239,16 +228,16 @@ export class MessageBlastRepository {
   }
 
   async getMessageBlastsByStatus(
-    status: "draft" | "scheduled" | "sent" | "failed",
+    status: "draft" | "sent" | "failed",
   ): Promise<GetMessageBlastOutput[]> {
-    return await db
+    const rows = await db
       .select({
         blastId: messageBlasts.blastId,
         senderId: messageBlasts.senderId,
         title: messageBlasts.title,
         content: messageBlasts.content,
         targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
+        validUntil: messageBlasts.validUntil,
         sentAt: messageBlasts.sentAt,
         status: messageBlasts.status,
         createdAt: messageBlasts.createdAt,
@@ -256,17 +245,55 @@ export class MessageBlastRepository {
       })
       .from(messageBlasts)
       .where(eq(messageBlasts.status, status));
+
+    return rows.map((row) => this.parseMessageBlastRow(row));
   }
 
-  async getScheduledMessageBlasts(): Promise<GetMessageBlastOutput[]> {
-    return await db
+  private buildTargetAudienceCondition(query: ActiveMessageBlastsForUserQuery) {
+    if (!query.branch) {
+      return sql`${messageBlasts.targetAudience} IS NULL`;
+    }
+
+    const branchPath = sql`${messageBlasts.targetAudience}->${query.branch}`;
+
+    const rankCondition = query.rank
+      ? sql`${branchPath}->'ranks' ? ${query.rank}`
+      : null;
+    const departmentCondition = query.department
+      ? sql`${branchPath}->'departments' ? ${query.department}`
+      : null;
+
+    if (!rankCondition && !departmentCondition) {
+      return sql`(${messageBlasts.targetAudience} IS NULL OR ${branchPath} IS NOT NULL)`;
+    }
+
+    const applicableConditions = [rankCondition, departmentCondition].filter(
+      Boolean,
+    ) as ReturnType<typeof sql>[];
+
+    return sql`(${messageBlasts.targetAudience} IS NULL OR ${sql.join(
+      applicableConditions,
+      sql` OR `,
+    )})`;
+  }
+
+  async getMessageBlastsForUser(
+    query: ActiveMessageBlastsForUserQuery,
+    userId?: string,
+  ): Promise<GetMessageBlastOutput[]> {
+    const now = new Date();
+    const audienceCondition = this.buildTargetAudienceCondition(query);
+    const visibilityCondition = userId
+      ? sql`(${messageBlasts.senderId} = ${userId} OR ${audienceCondition})`
+      : audienceCondition;
+    const rows = await db
       .select({
         blastId: messageBlasts.blastId,
         senderId: messageBlasts.senderId,
         title: messageBlasts.title,
         content: messageBlasts.content,
         targetAudience: messageBlasts.targetAudience,
-        scheduledAt: messageBlasts.scheduledAt,
+        validUntil: messageBlasts.validUntil,
         sentAt: messageBlasts.sentAt,
         status: messageBlasts.status,
         createdAt: messageBlasts.createdAt,
@@ -275,10 +302,11 @@ export class MessageBlastRepository {
       .from(messageBlasts)
       .where(
         and(
-          eq(messageBlasts.status, "scheduled"),
-          // This would need a proper date comparison in a real implementation
-          // For now, we'll get all scheduled blasts
+          eq(messageBlasts.status, "sent"),
+          gt(messageBlasts.validUntil, now),
+          visibilityCondition,
         ),
       );
+    return rows.map((row) => this.parseMessageBlastRow(row));
   }
 }
