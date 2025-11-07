@@ -3,6 +3,9 @@ import { FileRepository } from "../data/repository/file-repo.js";
 import type { UserRepository } from "../data/repository/user-repo.js";
 import { NotFoundError } from "../types/errors.js";
 import { Cache } from "../utils/cache.js";
+import log from "../utils/logger.js";
+
+const USER_CACHE_TTL_SECONDS = 60 * 60; // keep in sync with Cache decorator default
 
 export class UserService {
   private usersRepo: UserRepository;
@@ -59,9 +62,18 @@ export class UserService {
       image: profileData.imageFileId ?? null,
     });
 
-    // Invalidate cache for this user
+    // Refresh cache for this user (best effort - don't fail if Redis is unavailable)
     const cacheKey = `user:${userId}:data`;
-    await getRedisClientInstance().DEL(cacheKey);
+    try {
+      await getRedisClientInstance().set(cacheKey, JSON.stringify(updated), {
+        EX: USER_CACHE_TTL_SECONDS,
+      });
+    } catch (error) {
+      log.warn(
+        { error, cacheKey, userId },
+        "Failed to refresh user cache after profile creation",
+      );
+    }
 
     return updated;
   }

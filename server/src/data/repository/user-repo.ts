@@ -49,16 +49,33 @@ export class UserRepository {
       image?: string | null;
     },
   ) {
+    const updateFields: Partial<typeof users.$inferInsert> = {
+      name: profileData.name,
+    };
+
+    if (profileData.phoneNumber !== undefined) {
+      updateFields.phoneNumber = profileData.phoneNumber;
+    }
+
+    if (profileData.rank !== undefined) {
+      updateFields.rank = profileData.rank;
+    }
+
+    if (profileData.department !== undefined) {
+      updateFields.department = profileData.department;
+    }
+
+    if (profileData.branch !== undefined) {
+      updateFields.branch = profileData.branch;
+    }
+
+    if (profileData.image !== undefined) {
+      updateFields.image = profileData.image;
+    }
+
     const [updated] = await db
       .update(users)
-      .set({
-        name: profileData.name,
-        phoneNumber: profileData.phoneNumber ?? null,
-        rank: profileData.rank ?? null,
-        department: profileData.department ?? null,
-        branch: profileData.branch ?? null,
-        image: profileData.image ?? null,
-      })
+      .set(updateFields)
       .where(eq(users.id, userId))
       .returning({
         id: users.id,
