@@ -3,16 +3,17 @@ import { GripVertical } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 
-type DraggableCard<T = any> = {
+type DraggableCard<T> = {
   id: string;
   data: T;
 };
 
-type DragDropCardsProps<T = any> = {
+type DragDropCardsProps<T> = {
   cards: DraggableCard<T>[];
   onReorder: (cards: DraggableCard<T>[]) => void;
   renderCard: (data: T, index: number) => React.ReactNode;
 };
+
 
 export const DragDropCards = <T,>({
   cards: initialCards,

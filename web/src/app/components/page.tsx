@@ -7,8 +7,8 @@ import ChannelCard from "@/components/channel-card";
 import ChipSelect from "@/components/chip-select";
 import { DragReorderFrame } from "@/components/drag-and-drop";
 import { DropdownButtons } from "@/components/dropdown";
+import type { DropdownMenuItemConfig } from "@/components/dropdown";
 import DropdownSelect from "@/components/dropdown-select";
-import { type DropdownMenuItemConfig } from "@/components/dropdown/index";
 import CollapsibleCard from "@/components/expanding-card";
 import { icons } from "@/components/icons";
 import LinkedCard from "@/components/linked-card";
@@ -154,20 +154,20 @@ const Components = () => {
         })
         .filter(
           (
-            reaction,
+            reaction
           ): reaction is {
             emoji: string;
             count: number;
             reactedByUser: boolean;
-          } => reaction !== null,
-        ),
+          } => reaction !== null
+        )
     );
   };
 
   const handleDemoAddReaction = (emoji: string) => {
     setDemoReactions((previous) => {
       const existingIndex = previous.findIndex(
-        (reaction) => reaction.emoji === emoji,
+        (reaction) => reaction.emoji === emoji
       );
 
       if (existingIndex === -1) {
@@ -181,7 +181,7 @@ const Components = () => {
               count: reaction.count + 1,
               reactedByUser: true,
             }
-          : reaction,
+          : reaction
       );
     });
   };
@@ -199,7 +199,7 @@ const Components = () => {
     { label: "Third Item", value: "3" },
   ];
   const [order, setOrder] = useState(dragOptions.map((o) => o.value));
-  const [dragCards, setDragCards] = useState([
+  const [_dragCards, _setDragCards] = useState([
     {
       id: "1",
       data: "Support my mentee's career advancement and professional goal-setting within the National Guard",
@@ -588,47 +588,47 @@ const Components = () => {
             </div>
           </section>
 
-         <BroadcastModal
-        open={broadcastModalOpen}
-        onOpenChange={setBroadcastModalOpen}
-        title="Severe Weather Alert"
-        message="All units, please ensure readiness status is updated in JIS by 1800 today. Severe weather response protocols may be activated later this week. Commanders, verify your unit rosters and vehicle readiness before COB."
-        onAcknowledge={() => {
-          console.log("Acknowledged");
-        }}
-      />
+          <BroadcastModal
+            open={broadcastModalOpen}
+            onOpenChange={setBroadcastModalOpen}
+            title="Severe Weather Alert"
+            message="All units, please ensure readiness status is updated in JIS by 1800 today. Severe weather response protocols may be activated later this week. Commanders, verify your unit rosters and vehicle readiness before COB."
+            onAcknowledge={() => {
+              console.log("Acknowledged");
+            }}
+          />
 
-      <CreatePostModal
-        open={createPostModalOpen}
-        onOpenChange={setCreatePostModalOpen}
-        onPost={async (content) => {
-          setIsPosting(true);
-          console.log("Posting:", content);
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          setIsPosting(false);
-        }}
-        isPosting={isPosting}
-      />
+          <CreatePostModal
+            open={createPostModalOpen}
+            onOpenChange={setCreatePostModalOpen}
+            onPost={async (content) => {
+              setIsPosting(true);
+              console.log("Posting:", content);
+              // Simulate API call
+              await new Promise((resolve) => setTimeout(resolve, 1500));
+              setIsPosting(false);
+            }}
+            isPosting={isPosting}
+          />
 
-      <LeaveChannelModal
-        open={leaveChannelModalOpen}
-        onOpenChange={setLeaveChannelModalOpen}
-        onLeave={async () => {
-          console.log("Leaving channel");
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }}
-      />
+          <LeaveChannelModal
+            open={leaveChannelModalOpen}
+            onOpenChange={setLeaveChannelModalOpen}
+            onLeave={async () => {
+              console.log("Leaving channel");
+              await new Promise((resolve) => setTimeout(resolve, 500));
+            }}
+          />
 
-      <RemoveMemberModal
-        open={removeMemberModalOpen}
-        onOpenChange={setRemoveMemberModalOpen}
-        memberName="John Adddams"
-        onRemove={async () => {
-          console.log("Removing member");
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }}
-      />
+          <RemoveMemberModal
+            open={removeMemberModalOpen}
+            onOpenChange={setRemoveMemberModalOpen}
+            memberName="John Adddams"
+            onRemove={async () => {
+              console.log("Removing member");
+              await new Promise((resolve) => setTimeout(resolve, 500));
+            }}
+          />
         </div>
       </main>
     </>
