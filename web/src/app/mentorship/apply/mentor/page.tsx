@@ -88,10 +88,20 @@ export default function MentorshipApplyMentorPage() {
   return (
     //background gradient
     <div className="overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100">
+
+      {/* decorative background circles */}
       <div className="pointer-events-none absolute -left-40 top-24 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-40 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-120px] right-[-80px] h-[520px] w-[520px] rounded-full bg-blue-200 opacity-70 blur-[160px]" />
+      <div className="pointer-events-none absolute left-0 top-524 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+      <div className="pointer-events-none absolute right-70 top-280 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+      <div className="pointer-events-none absolute right-20 top-450 h-[420px] w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
+      <div className="pointer-events-none absolute right-50 top-650 h-[420px] w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
 
-      {/* page content */}
+      <div className="pointer-events-none absolute left-0 top-824 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+      <div className="pointer-events-none absolute right-20 top-750 h-[420px] w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-40 top-924 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+
+
       <div className="relative mx-4 flex w-full flex-col items-left justify-center sm:gap-16 sm:px-10 p-20 gap-8">
         <div className="flex flex-col items-left gap-2">
           <h1 className="text-3xl font-semibold text-secondary sm:text-4xl lg:text-5xl">
@@ -201,22 +211,30 @@ export default function MentorshipApplyMentorPage() {
             <DragReorderFrame
               options={[
                 {
-                  label: "Support my mentee's career advancement and professional goal-setting within the National Guard (National Guard career)",
+                  label:
+                    "Support my mentee's career advancement and professional goal-setting within the National Guard (National Guard career)",
                   value: "career",
-                }, {
-                  label: "Help my mentee navigate educational opportunities (Education)",
+                },
+                {
+                  label:
+                    "Help my mentee navigate educational opportunities (Education)",
                   value: "education",
-                }
-, {
-                  label: "Build a strong sense of community within the National Guard (Community)",
+                },
+                {
+                  label:
+                    "Build a strong sense of community within the National Guard (Community)",
                   value: "community",
-                }, {
-                  label: "Strengthen my professional network within the National Guard (Network)",
+                },
+                {
+                  label:
+                    "Strengthen my professional network within the National Guard (Network)",
                   value: "network",
-                }, {
-                  label: "Connect with Guardsmen who have different perspectives and experiences (Diversity)",
+                },
+                {
+                  label:
+                    "Connect with Guardsmen who have different perspectives and experiences (Diversity)",
                   value: "diversity",
-                }
+                },
               ]}
               onChange={() => {}}
             />
