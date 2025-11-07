@@ -253,7 +253,7 @@ export default function MentorshipApplyMentorPage() {
               rows={6}
               maxLength={500}
               showCharCount={true}
-              className="border-primary"
+              className="border-primary bg-neutral-100"
               counterColor="text-primary"
             />
           </section>
