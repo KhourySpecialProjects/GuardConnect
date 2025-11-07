@@ -8,10 +8,17 @@ import ChipSelect from "@/components/chip-select";
 import { DragReorderFrame } from "@/components/drag-and-drop";
 import { DropdownButtons } from "@/components/dropdown";
 import DropdownSelect from "@/components/dropdown-select";
+import { type DropdownMenuItemConfig } from "@/components/dropdown/index";
 import CollapsibleCard from "@/components/expanding-card";
 import { icons } from "@/components/icons";
 import LinkedCard from "@/components/linked-card";
 import ListView from "@/components/list-view";
+import {
+  BroadcastModal,
+  CreatePostModal,
+  LeaveChannelModal,
+  RemoveMemberModal,
+} from "@/components/modal";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import Navigation from "@/components/navigation";
 import PostedCard from "@/components/posted-card";
@@ -20,6 +27,7 @@ import { AddReaction } from "@/components/reaction-bubble/add-reaction";
 import SearchBar from "@/components/search-bar";
 import { ReportsTable } from "@/components/table-view";
 import { TextInput } from "@/components/text-input";
+import { Button } from "@/components/ui/button";
 import {
   Dropzone,
   DropzoneContent,
@@ -57,6 +65,38 @@ const mentorQualityOptions: MultiSelectOption[] = [
   },
 ];
 
+const dropdownMenuItems: DropdownMenuItemConfig[] = [
+  {
+    id: "broadcast",
+    icon: "addAlert",
+    label: "Broadcast",
+    onClick: () => console.log("Broadcast clicked"),
+    separator: true,
+  },
+  {
+    id: "channel",
+    icon: "message",
+    label: "Channel",
+    onClick: () => console.log("Channel clicked"),
+  },
+];
+
+const actionMenuItems: DropdownMenuItemConfig[] = [
+  {
+    id: "delete",
+    icon: "trash",
+    label: "Delete",
+    onClick: () => console.log("Delete clicked"),
+    separator: true,
+  },
+  {
+    id: "comment",
+    icon: "message",
+    label: "Comment",
+    onClick: () => console.log("Comment clicked"),
+  },
+];
+
 const Components = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const MenuIcon = icons.menu;
@@ -80,6 +120,13 @@ const Components = () => {
     useState<string>("");
   const [selectedChipOptions, setSelectedChipOptions] = useState<string[]>([]);
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
+
+  // Modal states
+  const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
+  const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
+  const [leaveChannelModalOpen, setLeaveChannelModalOpen] = useState(false);
+  const [removeMemberModalOpen, setRemoveMemberModalOpen] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
 
   const [demoReactions, setDemoReactions] = useState<
     { emoji: string; count: number; reactedByUser: boolean }[]
@@ -152,6 +199,25 @@ const Components = () => {
     { label: "Third Item", value: "3" },
   ];
   const [order, setOrder] = useState(dragOptions.map((o) => o.value));
+  const [dragCards, setDragCards] = useState([
+    {
+      id: "1",
+      data: "Support my mentee's career advancement and professional goal-setting within the National Guard",
+    },
+    { id: "2", data: "Help my mentee navigate educational opportunities" },
+    {
+      id: "3",
+      data: "Build a strong sense of community within the National Guard",
+    },
+    {
+      id: "4",
+      data: "Strengthen my professional network within the National Guard",
+    },
+    {
+      id: "5",
+      data: "Connect with Guardsmen who have different perspectives and experiences",
+    },
+  ]);
 
   return (
     <>
@@ -260,6 +326,8 @@ const Components = () => {
               </h2>
             </div>
             <PostedCard
+              channelId={0}
+              postId={0}
               name="Brandon Johnson"
               rank="E-1"
               content="Are there any additional resources regarding the mentorship program? I would like to participate 
@@ -320,7 +388,19 @@ const Components = () => {
                 Dropdown Menu
               </h2>
             </div>
-            <DropdownButtons />
+            <div className="flex gap-6">
+              <DropdownButtons
+                items={dropdownMenuItems}
+                align="start"
+                triggerContent={
+                  <Button variant="outline" className="gap-2">
+                    <icons.add className="h-5 w-5" />
+                    New
+                  </Button>
+                }
+              />
+              <DropdownButtons items={actionMenuItems} />
+            </div>
           </section>
 
           <section className="space-y-6">
@@ -479,6 +559,76 @@ const Components = () => {
               </pre>
             </div>
           </section>
+          <section className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
+                Modals
+              </h2>
+              <p className="text-sm text-secondary/70">
+                Modal components for various use cases
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <SelectableButton
+                text="Broadcast Modal"
+                onClick={() => setBroadcastModalOpen(true)}
+              />
+              <SelectableButton
+                text="Create Post Modal"
+                onClick={() => setCreatePostModalOpen(true)}
+              />
+              <SelectableButton
+                text="Leave Channel Modal"
+                onClick={() => setLeaveChannelModalOpen(true)}
+              />
+              <SelectableButton
+                text="Remove Member Modal"
+                onClick={() => setRemoveMemberModalOpen(true)}
+              />
+            </div>
+          </section>
+
+         <BroadcastModal
+        open={broadcastModalOpen}
+        onOpenChange={setBroadcastModalOpen}
+        title="Severe Weather Alert"
+        message="All units, please ensure readiness status is updated in JIS by 1800 today. Severe weather response protocols may be activated later this week. Commanders, verify your unit rosters and vehicle readiness before COB."
+        onAcknowledge={() => {
+          console.log("Acknowledged");
+        }}
+      />
+
+      <CreatePostModal
+        open={createPostModalOpen}
+        onOpenChange={setCreatePostModalOpen}
+        onPost={async (content) => {
+          setIsPosting(true);
+          console.log("Posting:", content);
+          // Simulate API call
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          setIsPosting(false);
+        }}
+        isPosting={isPosting}
+      />
+
+      <LeaveChannelModal
+        open={leaveChannelModalOpen}
+        onOpenChange={setLeaveChannelModalOpen}
+        onLeave={async () => {
+          console.log("Leaving channel");
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }}
+      />
+
+      <RemoveMemberModal
+        open={removeMemberModalOpen}
+        onOpenChange={setRemoveMemberModalOpen}
+        memberName="John Adddams"
+        onRemove={async () => {
+          console.log("Removing member");
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }}
+      />
         </div>
       </main>
     </>
