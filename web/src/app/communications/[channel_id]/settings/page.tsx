@@ -6,7 +6,7 @@ import DropdownSelect from "@/components/dropdown-select";
 import { icons } from "@/components/icons";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
-import { useTRPC } from "@/lib/trpc";
+//import { useTRPC } from "@/lib/trpc";
 import { ChannelShell } from "../../components/channel-shell";
 
 type ChannelSettingsPageProps = {
@@ -18,7 +18,7 @@ type ChannelSettingsPageProps = {
 export default function ChannelSettingsPage({
   params,
 }: ChannelSettingsPageProps) {
-  const trpc = useTRPC();
+  //const trpc = useTRPC();
   const ArrowLeftIcon = icons.arrowLeft;
   const ArrowRightIcon = icons.arrowRight;
   const LockIcon = icons.lock;
