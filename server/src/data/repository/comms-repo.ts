@@ -634,7 +634,7 @@ export class CommsRepository {
     }
   }
 
-  async getChannelSettings(channelId: number) {
+  /*async getChannelSettings(channelId: number) {
     const [channel] = await db
       .select({
         channelId: channels.channelId,
@@ -650,5 +650,5 @@ export class CommsRepository {
       throw new NotFoundError("Channel not found");
     }
     return channel;
-  }
+  }*/
 }
