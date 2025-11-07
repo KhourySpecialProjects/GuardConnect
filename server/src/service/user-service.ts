@@ -1,5 +1,5 @@
-import type { UserRepository } from "../data/repository/user-repo.js";
 import { getRedisClientInstance } from "../data/db/redis.js";
+import type { UserRepository } from "../data/repository/user-repo.js";
 import { Cache } from "../utils/cache.js";
 
 export class UserService {

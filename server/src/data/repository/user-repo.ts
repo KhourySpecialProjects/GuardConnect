@@ -57,7 +57,8 @@ export class UserRepository {
     if (updateData.rank !== undefined) updateFields.rank = updateData.rank;
     if (updateData.department !== undefined)
       updateFields.department = updateData.department;
-    if (updateData.branch !== undefined) updateFields.branch = updateData.branch;
+    if (updateData.branch !== undefined)
+      updateFields.branch = updateData.branch;
     if (updateData.image !== undefined) updateFields.image = updateData.image;
 
     const [updated] = await db

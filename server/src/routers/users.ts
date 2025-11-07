@@ -36,7 +36,8 @@ const updateUserProfile = protectedProcedure
   .input(updateUserProfileInputSchema)
   .meta({
     requiresAuth: true,
-    description: "Update user profile data (name, phone, rank, department, branch, profile picture)",
+    description:
+      "Update user profile data (name, phone, rank, department, branch, profile picture)",
   })
   .mutation(async ({ ctx, input }) => {
     return withErrorHandling("updateUserProfile", async () => {
