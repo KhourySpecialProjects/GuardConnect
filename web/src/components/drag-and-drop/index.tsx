@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 import { icons } from "@/components/icons";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export interface DragSelectOption {
   label: string;
@@ -66,13 +66,15 @@ export function DragReorderFrame({
             className={cn(
               "flex flex-row items-center gap-3 cursor-grab active:cursor-grabbing px-4 py-3 text-sm font-medium min-w-0",
               isDragging && "opacity-50",
-              isDragOver && "border-primary"
+              isDragOver && "border-primary",
             )}
           >
             <span className="flex items-center">
               <DragIcon className="h-5 w-5 text-accent cursor-move" />
             </span>
-            <span className="flex-1 min-w-0 break-words whitespace-normal">{option.label}</span>
+            <span className="flex-1 min-w-0 break-words whitespace-normal">
+              {option.label}
+            </span>
           </Card>
         );
       })}

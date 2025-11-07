@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { SelectableButton } from "@/components/buttons";
 import ChannelCard from "@/components/channel-card";
 import ChipSelect from "@/components/chip-select";
+import { DragReorderFrame } from "@/components/drag-and-drop";
 import { DropdownButtons } from "@/components/dropdown";
 import DropdownSelect from "@/components/dropdown-select";
 import CollapsibleCard from "@/components/expanding-card";
@@ -23,8 +25,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { SingleSelectButtonGroup } from "@/components/button-single-select";
-import { DragReorderFrame } from "@/components/drag-and-drop";
 
 const mentorQualityOptions: MultiSelectOption[] = [
   {
@@ -107,20 +107,20 @@ const Components = () => {
         })
         .filter(
           (
-            reaction
+            reaction,
           ): reaction is {
             emoji: string;
             count: number;
             reactedByUser: boolean;
-          } => reaction !== null
-        )
+          } => reaction !== null,
+        ),
     );
   };
 
   const handleDemoAddReaction = (emoji: string) => {
     setDemoReactions((previous) => {
       const existingIndex = previous.findIndex(
-        (reaction) => reaction.emoji === emoji
+        (reaction) => reaction.emoji === emoji,
       );
 
       if (existingIndex === -1) {
@@ -134,7 +134,7 @@ const Components = () => {
               count: reaction.count + 1,
               reactedByUser: true,
             }
-          : reaction
+          : reaction,
       );
     });
   };
@@ -147,10 +147,10 @@ const Components = () => {
   const [singleSelectValue, setSingleSelectValue] = useState<string>("");
 
   const dragOptions = [
-  { label: "First Item", value: "1" },
-  { label: "Second Item", value: "2" },
-  { label: "Third Item", value: "3" },
-];
+    { label: "First Item", value: "1" },
+    { label: "Second Item", value: "2" },
+    { label: "Third Item", value: "3" },
+  ];
   const [order, setOrder] = useState(dragOptions.map((o) => o.value));
 
   return (
@@ -479,7 +479,6 @@ const Components = () => {
               </pre>
             </div>
           </section>
-
         </div>
       </main>
     </>

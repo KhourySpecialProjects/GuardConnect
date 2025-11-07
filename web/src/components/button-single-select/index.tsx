@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type Option = {
   label: string;
@@ -14,6 +13,7 @@ interface SingleSelectButtonGroupProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  legend?: string; // optional for accessibility
 }
 
 export function SingleSelectButtonGroup({
@@ -21,18 +21,16 @@ export function SingleSelectButtonGroup({
   value,
   onChange,
   className,
+  legend = "Select an option",
 }: SingleSelectButtonGroupProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-start gap-2 rounded-md",
-        className
-      )}
-      role="group"
+    <fieldset
+      className={cn("flex flex-col items-start gap-2 rounded-md", className)}
     >
+      <legend className="sr-only">{legend}</legend>
+
       {options.map((option) => {
         const isActive = option.value === value;
-
         return (
           <Button
             key={option.value}
@@ -42,9 +40,10 @@ export function SingleSelectButtonGroup({
               "w-full max-w-xs justify-start rounded-md px-3 py-2 transition-all",
               isActive
                 ? "bg-primary/10 text-primary hover:bg-primary/20"
-                : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/5",
             )}
             onClick={() => onChange(option.value)}
+            aria-pressed={isActive}
             title={option.label}
           >
             <span
@@ -52,7 +51,7 @@ export function SingleSelectButtonGroup({
                 "mr-2 h-3.5 w-3.5 rounded-full border-2 transition-all",
                 isActive
                   ? "border-blue-600 bg-blue-600"
-                  : "border-muted-foreground"
+                  : "border-muted-foreground",
               )}
             />
             <span className="truncate whitespace-nowrap overflow-hidden">
@@ -61,6 +60,6 @@ export function SingleSelectButtonGroup({
           </Button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }

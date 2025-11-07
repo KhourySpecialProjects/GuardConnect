@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
+import { DragReorderFrame } from "@/components/drag-and-drop";
+import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
+import { TextInput } from "@/components/text-input";
 import {
   Dropzone,
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
-import { TextInput } from "@/components/text-input";
-import { DragReorderFrame } from "@/components/drag-and-drop";
 
 export default function MentorshipApplyMentorPage() {
   const [selected, setSelected] = useState<string>("");
@@ -59,7 +59,7 @@ export default function MentorshipApplyMentorPage() {
   const [multiLineText, setMultiLineText] = useState("");
 
   const [selectedCareerStages, setSelectedCareerStages] = useState<string[]>(
-    []
+    [],
   );
   const mentorCareerStageOptions: MultiSelectOption[] = [
     { label: "New soldiers/Entry Level (E-1 to E-4)", value: "new-soldiers" },
@@ -88,7 +88,6 @@ export default function MentorshipApplyMentorPage() {
   return (
     //background gradient
     <div className="overflow-hidden bg-gradient-to-br">
-
       {/* decorative background circles */}
       <div className="pointer-events-none absolute -left-40 top-24 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-40 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-120px] right-[-80px] h-[520px] w-[520px] rounded-full bg-blue-200 opacity-70 blur-[160px]" />
@@ -100,7 +99,6 @@ export default function MentorshipApplyMentorPage() {
       <div className="pointer-events-none absolute left-0 top-824 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
       <div className="pointer-events-none absolute right-20 top-750 h-[420px] w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
       <div className="pointer-events-none absolute -right-40 top-924 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
-
 
       <div className="relative mx-4 flex w-full flex-col items-left justify-center sm:gap-16 sm:px-10 p-20 gap-8">
         <div className="flex flex-col items-left gap-2">
