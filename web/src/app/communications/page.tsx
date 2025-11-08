@@ -29,7 +29,6 @@ export default function CommunicationsOverviewPage() {
   const [search, setSearch] = useState("");
   const BellIcon = icons.bell;
   const AddIcon = icons.add;
-  const AnnounceIcon = icons.announce;
 
   const { data, isLoading } = useQuery(
     trpc.comms.getAllChannels.queryOptions(),

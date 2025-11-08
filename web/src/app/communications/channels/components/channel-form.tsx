@@ -231,7 +231,6 @@ export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
             <DropzoneEmptyState />
             <DropzoneContent />
           </Dropzone>
-          
 
           {photoError && (
             <p className="text-sm text-destructive">{photoError}</p>
