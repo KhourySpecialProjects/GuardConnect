@@ -408,6 +408,7 @@ export class CommsRepository {
       .selectDistinct({
         channelId: channels.channelId,
         name: channels.name,
+        description: channels.description,
         metadata: channels.metadata,
       })
       .from(channels)

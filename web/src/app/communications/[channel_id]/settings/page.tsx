@@ -1,16 +1,16 @@
 "use client";
 
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useEffect, useId, useState } from "react";
 import DropdownSelect from "@/components/dropdown-select";
 import { icons } from "@/components/icons";
+import { LeaveChannelModal } from "@/components/modal/leave-channel-modal";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
-import { LeaveChannelModal } from "@/components/modal/leave-channel-modal";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
-import { useRouter } from "next/navigation";
 import { ChannelShell } from "../../components/channel-shell";
-import { useMutation, useQuery } from "@tanstack/react-query";
 
 type ChannelSettingsPageProps = {
   params: Promise<{
@@ -58,7 +58,7 @@ export default function ChannelSettingsPage({
 
   // Fetch all user subscriptions
   const { data: subscriptions, isLoading } = useQuery({
-    queryKey: ['userSubscriptions'],
+    queryKey: ["userSubscriptions"],
     queryFn: async () => {
       return await trpcClient.comms.getUserSubscriptions.query();
     },
@@ -67,20 +67,20 @@ export default function ChannelSettingsPage({
   // Find subscription ID for this channel
   useEffect(() => {
     if (subscriptions && parsedChannelId) {
-      console.log('All subscriptions:', subscriptions);
+      console.log("All subscriptions:", subscriptions);
 
       // Find the subscription that matches this channel
       const channelSubscription = subscriptions.find(
-        (sub) => sub.channelId === parsedChannelId
+        (sub) => sub.channelId === parsedChannelId,
       );
 
-      console.log('Found subscription for this channel:', channelSubscription);
+      console.log("Found subscription for this channel:", channelSubscription);
 
       if (channelSubscription) {
         setSubscriptionId(channelSubscription.subscriptionId);
-        console.log('Subscription ID:', channelSubscription.subscriptionId);
+        console.log("Subscription ID:", channelSubscription.subscriptionId);
       } else {
-        console.log('No subscription found for channel ID:', parsedChannelId);
+        console.log("No subscription found for channel ID:", parsedChannelId);
       }
     }
   }, [subscriptions, parsedChannelId]);
@@ -98,13 +98,53 @@ export default function ChannelSettingsPage({
     try {
       await leaveChannel.mutateAsync({ subscriptionId: subscriptionId! });
       router.push("/communications");
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Failed to leave channel:", error);
       alert("Failed to leave channel. Please try again.");
     }
   };
 
+  // Fetch full channel data
+  const { data: channels } = useQuery({
+    queryKey: ["channels"],
+    queryFn: async () => {
+      if (!parsedChannelId) return null;
+      return await trpcClient.comms.getAllChannels.query();
+    },
+  });
+
+  // Load channel data when it arrives
+  useEffect(() => {
+    const channel = channels?.find((ch) => ch.channelId === parsedChannelId);
+
+    if (channel) {
+      setChannelName(channel.name || "");
+      setChannelDescription(channel.description || "");
+      console.log("Found channel:", channel);
+    }
+  }, [channels, parsedChannelId]);
+
+  const updateChannelMutation = useMutation(
+    trpc.comms.updateChannelSettings.mutationOptions(),
+  );
+
+  const handleSaveChanges = async () => {
+    if (!parsedChannelId) return;
+
+    try {
+      await updateChannelMutation.mutateAsync({
+        channelId: parsedChannelId,
+        metadata: {
+          name: channelName,
+          description: channelDescription,
+          notificationsEnabled: notificationSetting === "muted" ? false : true,
+        },
+      });
+      console.log("Settings saved successfully");
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+    }
+  };
 
   return (
     <ChannelShell
@@ -137,10 +177,13 @@ export default function ChannelSettingsPage({
               <div
                 className="flex items-center gap-2 rounded-md px-4 h-10"
                 style={{
-                  background: 'linear-gradient(to right, var(--primary) 15%, var(--muted) 15%)'
+                  background:
+                    "linear-gradient(to right, var(--primary) 15%, var(--muted) 15%)",
                 }}
               >
-                <span className="text-xl text-accent font-semibold mr-5.5">#</span>
+                <span className="text-xl text-accent font-semibold mr-5.5">
+                  #
+                </span>
                 <TextInput
                   id={nameFieldId}
                   value={channelName}
@@ -228,6 +271,15 @@ export default function ChannelSettingsPage({
           variant="outline"
           size="lg"
           className="text-neutral text-base font-semibold bg-transparent hover:border-primary"
+          onClick={handleSaveChanges}
+        >
+          Save Changes
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="text-neutral text-base font-semibold bg-transparent hover:border-primary ml-4"
           onClick={handleSelect}
         >
           Leave Channel
