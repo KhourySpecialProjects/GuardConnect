@@ -2,10 +2,10 @@
 
 import type { ReactNode } from "react";
 import { icons } from "@/components/icons";
+import { TitleShell } from "@/components/layouts/title-shell";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { ChannelShell } from "../communications/components";
 
 export default function HelpPage() {
   const MenuIcon = icons.menu;
@@ -379,7 +379,7 @@ export default function HelpPage() {
 
   return (
     <Tabs defaultValue="communications" className="w-full">
-      <ChannelShell
+      <TitleShell
         title={
           <div className="flex flex-col gap-4">
             <div className="space-y-3">
@@ -499,7 +499,7 @@ export default function HelpPage() {
             <h1>mentorship</h1>
           </section>
         </TabsContent>
-      </ChannelShell>
+      </TitleShell>
     </Tabs>
   );
 }
