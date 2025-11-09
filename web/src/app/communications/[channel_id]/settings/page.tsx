@@ -6,8 +6,9 @@ import DropdownSelect from "@/components/dropdown-select";
 import { icons } from "@/components/icons";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
-import {LeaveChannelModal} from "@/components/modal/leave-channel-modal"; 
+import { LeaveChannelModal } from "@/components/modal/leave-channel-modal";
 import { useTRPC } from "@/lib/trpc";
+import { useRouter } from "next/navigation"; 
 import { ChannelShell } from "../../components/channel-shell";
 
 type ChannelSettingsPageProps = {
@@ -20,6 +21,7 @@ export default function ChannelSettingsPage({
   params,
 }: ChannelSettingsPageProps) {
   const trpc = useTRPC();
+  const router = useRouter();
   const ArrowLeftIcon = icons.arrowLeft;
   const ArrowRightIcon = icons.arrowRight;
   const LockIcon = icons.lock;
@@ -28,12 +30,26 @@ export default function ChannelSettingsPage({
   const [channelName, setChannelName] = useState("");
   const [channelDescription, setChannelDescription] = useState("");
   const [notificationSetting, setNotificationSetting] = useState("muted");
+  const [modalOpen, setModalOpen] = useState(false);
+
 
   const nameFieldId = useId();
   const descFieldId = useId();
   const notifFieldId = useId();
 
-  
+  const handleSelect = async () => {
+    setModalOpen(true);
+  };
+
+  const handleModalClose = async () => {
+    setModalOpen(false);
+  };
+
+  const handleLeave = async () => {
+    router.push("/communications");
+  };
+
+
   return (
     <ChannelShell
       title={
@@ -61,8 +77,8 @@ export default function ChannelSettingsPage({
             Channel Name
           </label>
           <div className="w-72 relative">
-            <div className = "rounded-lg border-2 border-border">
-              <div 
+            <div className="rounded-lg border-2 border-border">
+              <div
                 className="flex items-center gap-2 rounded-md px-4 h-10"
                 style={{
                   background: 'linear-gradient(to right, var(--primary) 15%, var(--muted) 15%)'
@@ -156,10 +172,25 @@ export default function ChannelSettingsPage({
           variant="outline"
           size="lg"
           className="text-neutral text-base font-semibold bg-transparent hover:border-primary"
+          onClick={handleSelect}
         >
           Leave Channel
         </Button>
       </div>
+
+      <LeaveChannelModal
+        open={modalOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleModalClose();
+            } else {
+              setModalOpen(true);
+            }
+          }}
+        onLeave={async () => {
+          handleLeave();
+        }}
+      />
     </ChannelShell>
   );
 }
