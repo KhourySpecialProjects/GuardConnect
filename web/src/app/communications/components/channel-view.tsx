@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { icons } from "@/components/icons";
+import { TitleShell } from "@/components/layouts/title-shell";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DEMO_CHANNEL } from "@/lib/demo-channel";
 import { useTRPC } from "@/lib/trpc";
-import { type ChannelMessage, ChannelShell, MessageList } from "./index";
+import { type ChannelMessage, MessageList } from "./index";
 
 // Type for message reactions from the API
 type MessageReaction = {
@@ -241,7 +242,6 @@ export function ChannelView({ channelId }: ChannelViewProps) {
 
   const messagesToDisplay = messagesState;
 
-  const ArrowLeftIcon = icons.arrowLeft;
   const AddIcon = icons.add;
   const SettingsIcon = icons.settings;
   const EllipsisIcon = icons.ellipsis;
@@ -366,21 +366,10 @@ export function ChannelView({ channelId }: ChannelViewProps) {
   }
 
   return (
-    <ChannelShell
-      title={
-        <div className="flex items-center gap-3 sm:gap-4">
-          <Link
-            href="/communications"
-            className="inline-flex h-12 w-12 items-center justify-center text-accent transition hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:h-14 sm:w-14"
-            aria-label="Back to all channels"
-          >
-            <ArrowLeftIcon className="h-7 w-7 sm:h-8 sm:w-8" />
-          </Link>
-          <span className="text-[1.75rem] font-semibold leading-tight text-secondary sm:text-[2.25rem]">
-            {channelName}
-          </span>
-        </div>
-      }
+    <TitleShell
+      title={channelName}
+      backHref="/communications"
+      backAriaLabel="Back to all channels"
       actions={
         <>
           <div className="hidden items-center gap-3 sm:flex">
@@ -444,7 +433,7 @@ export function ChannelView({ channelId }: ChannelViewProps) {
         messages={messagesToDisplay}
         onReactionToggle={handleReactionToggle}
       />
-    </ChannelShell>
+    </TitleShell>
   );
 }
 

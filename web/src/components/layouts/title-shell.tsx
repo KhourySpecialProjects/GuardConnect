@@ -1,36 +1,68 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-type ChannelShellProps = {
+const ArrowLeftIcon = icons.arrowLeft;
+type LinkHref = Parameters<typeof Link>[0]["href"];
+
+export type TitleShellProps = {
   title?: ReactNode;
   actions?: ReactNode;
   sidebar?: ReactNode;
   children: ReactNode;
   className?: string;
+  backHref?: LinkHref | string;
+  backAriaLabel?: string;
 };
 
-export function ChannelShell({
+export function TitleShell({
   title,
   actions,
   sidebar,
   children,
   className,
-}: ChannelShellProps) {
+  backHref,
+  backAriaLabel,
+}: TitleShellProps) {
   const hasSidebar = Boolean(sidebar);
+  const renderTitleContent = () => {
+    if (!title) {
+      return null;
+    }
+    if (typeof title === "string") {
+      return (
+        <span className="flex items-center text-[1.75rem] font-semibold leading-tight text-secondary sm:text-[2.25rem]">
+          {title}
+        </span>
+      );
+    }
+    return title;
+  };
+
+  const normalizedBackHref =
+    typeof backHref === "string" ? (backHref as LinkHref) : backHref ?? null;
+
+  const headerTitle = normalizedBackHref ? (
+    <div className="flex items-center gap-3 sm:gap-4">
+      <Link
+        href={normalizedBackHref}
+        className="inline-flex h-12 w-12 items-center justify-center text-accent transition hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:h-14 sm:w-14"
+        aria-label={backAriaLabel ?? "Go back"}
+      >
+        <ArrowLeftIcon className="h-7 w-7 sm:h-8 sm:w-8" />
+      </Link>
+      {renderTitleContent()}
+    </div>
+  ) : (
+    renderTitleContent()
+  );
 
   return (
     <div className={cn("flex h-full w-full", className)}>
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 overflow-x-hidden md:min-h-[calc(100vh-6rem)]">
         <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-background px-1 py-3 backdrop-blur sm:gap-4 sm:px-0 sm:py-4">
-          {title ? (
-            typeof title === "string" ? (
-              <h1 className="text-header font-semibold text-secondary">
-                {title}
-              </h1>
-            ) : (
-              title
-            )
-          ) : null}
+          {headerTitle}
           {actions ? (
             <div className="flex items-center gap-3">{actions}</div>
           ) : null}
@@ -59,4 +91,4 @@ export function ChannelShell({
   );
 }
 
-export default ChannelShell;
+export default TitleShell;

@@ -284,7 +284,12 @@ export default function ProfileCard({
                   {interests.map((interest) => (
                     <Badge
                       key={interest}
-                      className="profile-card__interest-badge border-0 px-3 py-1 text-xs font-medium sm:text-sm"
+                      className="profile-card__interest-badge border px-3 py-1 text-xs font-medium sm:text-sm"
+                      style={{
+                        backgroundColor: "var(--profile-card-branch-pastel)",
+                        color: "var(--profile-card-branch-text)",
+                        borderColor: "var(--profile-card-branch-border)",
+                      }}
                     >
                       {interest}
                     </Badge>
