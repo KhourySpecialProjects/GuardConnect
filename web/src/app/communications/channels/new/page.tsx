@@ -6,19 +6,16 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { icons } from "@/components/icons";
+import { TitleShell } from "@/components/layouts/title-shell";
 import { useTRPC } from "@/lib/trpc";
-import { ChannelShell } from "../../components";
 import {
   CreateChannelForm,
   type CreateChannelValues,
 } from "../components/channel-form";
 
 export default function NewChannelPage() {
-  const ArrowLeftIcon = icons.arrowLeft;
   const trpc = useTRPC();
   const router = useRouter();
   const qc = useQueryClient();
@@ -94,27 +91,16 @@ export default function NewChannelPage() {
   };
 
   return (
-    <ChannelShell
-      title={
-        <div className="flex items-center gap-3 sm:gap-4">
-          <Link
-            href="/communications"
-            className="inline-flex h-12 w-12 items-center justify-center text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:h-14 sm:w-14"
-            aria-label="Back to channels"
-          >
-            <ArrowLeftIcon className="h-7 w-7 sm:h-8 sm:w-8" />
-          </Link>
-          <span className="text-[1.75rem] font-semibold leading-tight text-secondary sm:text-[2.25rem]">
-            Create Channel
-          </span>
-        </div>
-      }
+    <TitleShell
+      title="Create Channel"
+      backHref="/communications"
+      backAriaLabel="Back to channels"
     >
       <CreateChannelForm
         onSubmit={handleSubmit}
         submitting={createChannel.isPending}
         error={error}
       />
-    </ChannelShell>
+    </TitleShell>
   );
 }
