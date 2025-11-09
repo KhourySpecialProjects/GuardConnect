@@ -40,7 +40,7 @@ export default function ChannelSettingsPage({
 
   const [channelName, setChannelName] = useState("");
   const [channelDescription, setChannelDescription] = useState("");
-  const [notificationSetting, setNotificationSetting] = useState("muted");
+  const [notificationSetting, setNotificationSetting] = useState("option2");
   const [modalOpen, setModalOpen] = useState(false);
   const [subscriptionId, setSubscriptionId] = useState<number | null>(null);
 
@@ -78,6 +78,9 @@ export default function ChannelSettingsPage({
 
       if (channelSubscription) {
         setSubscriptionId(channelSubscription.subscriptionId);
+        setNotificationSetting(
+          channelSubscription.notificationsEnabled ? "option2" : "option1",
+        );
         console.log("Subscription ID:", channelSubscription.subscriptionId);
       } else {
         console.log("No subscription found for channel ID:", parsedChannelId);
@@ -254,7 +257,6 @@ export default function ChannelSettingsPage({
               options={[
                 { label: "Always Muted", value: "option1" },
                 { label: "All Notifications", value: "option2" },
-                { label: "Mute for 1 hour", value: "option3" },
               ]}
               value={notificationSetting}
               onChange={setNotificationSetting}
