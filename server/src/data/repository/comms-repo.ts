@@ -409,6 +409,7 @@ export class CommsRepository {
         channelId: channels.channelId,
         name: channels.name,
         description: channels.description,
+        postPermissionLevel: channels.postPermissionLevel,
         metadata: channels.metadata,
       })
       .from(channels)

@@ -11,6 +11,7 @@ import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
 import { ChannelShell } from "../../components/channel-shell";
+import { authClient } from "@/lib/auth-client";
 
 type ChannelSettingsPageProps = {
   params: Promise<{
@@ -29,6 +30,10 @@ function parseChannelId(channelId: string): number | null {
 export default function ChannelSettingsPage({
   params,
 }: ChannelSettingsPageProps) {
+  const { data: sessionData } = authClient.useSession();
+  
+  console.log('User session:', sessionData); // Check if user is logged in
+
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
   const router = useRouter();
@@ -37,12 +42,14 @@ export default function ChannelSettingsPage({
   const LockIcon = icons.lock;
   const { channel_id: channelId } = use(params);
   const parsedChannelId = parseChannelId(channelId);
+  const userId = sessionData?.user?.id;
 
   const [channelName, setChannelName] = useState("");
   const [channelDescription, setChannelDescription] = useState("");
   const [notificationSetting, setNotificationSetting] = useState("option2");
   const [modalOpen, setModalOpen] = useState(false);
   const [subscriptionId, setSubscriptionId] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const nameFieldId = useId();
   const descFieldId = useId();
@@ -123,6 +130,8 @@ export default function ChannelSettingsPage({
     if (channel) {
       setChannelName(channel.name || "");
       setChannelDescription(channel.description || "");
+      setIsAdmin(channel.postPermissionLevel === "admin");
+
       console.log("Found channel:", channel);
     }
   }, [channels, parsedChannelId]);
@@ -192,6 +201,7 @@ export default function ChannelSettingsPage({
                   value={channelName}
                   onChange={setChannelName}
                   className="flex-1 bg-transparent border-none p-0 font-semibold !text-base"
+                  disabled={!isAdmin} 
                 />
                 <LockIcon className="h-6 w-6 text-accent" />
               </div>
@@ -216,6 +226,7 @@ export default function ChannelSettingsPage({
                 className="bg-transparent border-none p-0 w-144 font-semibold !text-base"
                 multiline
                 rows={3}
+                disabled={!isAdmin} 
               />
               <LockIcon className="h-5 w-5 text-accent mt-1" />
             </div>
