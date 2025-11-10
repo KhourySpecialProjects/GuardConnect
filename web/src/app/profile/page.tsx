@@ -1,9 +1,9 @@
 "use client";
 
 import { toast } from "sonner";
+import { TitleShell } from "@/components/layouts/title-shell";
 import ProfileCard, { type ProfileCardProps } from "@/components/profile-card";
 import { authClient } from "@/lib/auth-client";
-import { ChannelShell } from "../communications/components";
 
 export default function ProfilePage() {
   const { data: sessionData } = authClient.useSession();
@@ -84,7 +84,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <ChannelShell
+    <TitleShell
       title={
         <span className="text-[1.75rem] font-semibold leading-tight text-secondary sm:text-[2.25rem]">
           My Profile
@@ -92,6 +92,6 @@ export default function ProfilePage() {
       }
     >
       <ProfileCard {...profileCardProps} className="max-w-none" />
-    </ChannelShell>
+    </TitleShell>
   );
 }
