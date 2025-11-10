@@ -12,6 +12,7 @@ import {
   editPostSchema,
   //getChannelMembersSchema,
   getChannelMessagesSchema,
+  joinChannelSchema,
   leaveChannelSchema,
   postPostSchema,
   toggleReactionSchema,
@@ -83,6 +84,10 @@ const getChannelMessages = protectedProcedure
   .query(async ({ ctx, input }) => {
     const userId = ctx.auth.user.id;
 
+    // Verify the channel exists first
+    await commsService.getChannelById(input.channelId);
+
+    // Check if user has read permission in this channel
     const isInChannel = await policyEngine.validate(
       userId,
       `channel:${input.channelId}:read`,
@@ -90,7 +95,7 @@ const getChannelMessages = protectedProcedure
 
     if (!isInChannel) {
       throw new ForbiddenError(
-        "You do not have permission to get messages in this channel",
+        "You are not a member of this channel. Please join the channel to view messages.",
       );
     }
 
@@ -338,6 +343,19 @@ const leaveChannel = protectedProcedure
     }),
   );
 
+// Join channel endpoint (public channels only)
+const joinChannel = protectedProcedure
+  .input(joinChannelSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("joinChannel", async () => {
+      const userId = ctx.auth.user.id;
+
+      log.debug({ userId, channelId: input.channelId }, "Joining channel");
+
+      return await commsService.joinChannel(userId, input.channelId);
+    }),
+  );
+
 export const commsRouter = router({
   createPost,
   getAllChannels,
@@ -354,4 +372,5 @@ export const commsRouter = router({
   getUserSubscriptions,
   deleteChannel,
   leaveChannel,
+  joinChannel,
 });

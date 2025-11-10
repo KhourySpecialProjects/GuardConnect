@@ -116,6 +116,16 @@ export const CommsNavBar = ({
   const channelData =
     Array.isArray(data) && data.length > 0 ? data : [DEMO_CHANNEL];
 
+  // Filter out channels where user has no permission (permission === null)
+  const accessibleChannels = channelData.filter((channel) => {
+    // If it's the DEMO_CHANNEL, always show it (it doesn't have a permission property)
+    if (!("permission" in channel)) {
+      return true;
+    }
+    // Only show channels where user has some permission
+    return channel.permission !== null;
+  });
+
   const channels: Channel[] = [
     {
       id: "all",
@@ -123,7 +133,7 @@ export const CommsNavBar = ({
       href: "/communications",
       type: "all",
     },
-    ...(channelData.map((channel) => {
+    ...(accessibleChannels.map((channel) => {
       const metadata = channel.metadata as
         | {
             imageFileId?: string;

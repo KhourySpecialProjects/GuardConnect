@@ -26,20 +26,27 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
 }) => {
   const Icon = icons[iconName];
   const trpcClient = useTRPCClient();
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  
+  // Initialize with imageFileId if it's already a URL (pre-fetched)
+  const initialImageUrl = 
+    imageFileId && (imageFileId.startsWith("/") || imageFileId.startsWith("http"))
+      ? imageFileId
+      : null;
+  
+  const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl);
 
   useEffect(() => {
     if (!imageFileId) {
       return;
     }
 
-    // If it's a direct path/URL, use it directly
+    // If it's a direct path/URL (including pre-fetched URLs), use it directly
     if (imageFileId.startsWith("/") || imageFileId.startsWith("http")) {
       setImageUrl(imageFileId);
       return;
     }
 
-    // Otherwise, fetch from the files API
+    // Otherwise, fetch from the files API (fallback for when not pre-fetched)
     const fetchImage = async () => {
       try {
         const fileData = await trpcClient.files.getFile.query({
