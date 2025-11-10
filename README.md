@@ -239,7 +239,7 @@ Secrets for workflows are managed via AWS Secrets Manager; refer to `docs/SECRET
 
 ## 🗺️ Roadmap
 
-### Phase 1 (Current)
+### Phase 1 
 - [x] Project structure
 - [x] tRPC API setup
 - [x] Frontend foundation
@@ -248,7 +248,7 @@ Secrets for workflows are managed via AWS Secrets Manager; refer to `docs/SECRET
 
     > ██████████ **100%**
 
-### Phase 2  
+### Phase 2  (Current)
 - [x] Mentorship system
 - [ ] Matching algorithm
 - [ ] Admin dashboard
