@@ -17,7 +17,11 @@ import {
   toggleReactionSchema,
   updateChannelSchema,
 } from "../types/comms-types.js";
-import { ForbiddenError, InternalServerError, UnauthorizedError } from "../types/errors.js";
+import {
+  ForbiddenError,
+  InternalServerError,
+  UnauthorizedError,
+} from "../types/errors.js";
 import log from "../utils/logger.js";
 import { fileService } from "./files.js";
 
@@ -194,11 +198,14 @@ const createChannel = protectedProcedure
 
       log.debug({ userId, channelName: input.name }, "Creating channel");
 
-      const channelCreationResult = await commsRepo.createChannel(input.name, input.metadata);
-      if(!channelCreationResult || !channelCreationResult.channelId) {
-        throw new InternalServerError("Something went wrong creating channel")
+      const channelCreationResult = await commsRepo.createChannel(
+        input.name,
+        input.metadata,
+      );
+      if (!channelCreationResult || !channelCreationResult.channelId) {
+        throw new InternalServerError("Something went wrong creating channel");
       }
-      
+
       // Create admin role and assign it to the channel creator
       const roleKey = `channel:${channelCreationResult.channelId}:admin`;
       await policyEngine.createRoleAndAssign(
@@ -209,10 +216,13 @@ const createChannel = protectedProcedure
         "channel",
         channelCreationResult.channelId,
       );
-      
+
       // Auto-subscribe the creator with notifications enabled
-      await commsRepo.ensureChannelSubscription(userId, channelCreationResult.channelId);
-      
+      await commsRepo.ensureChannelSubscription(
+        userId,
+        channelCreationResult.channelId,
+      );
+
       return channelCreationResult;
     }),
   );
@@ -309,10 +319,7 @@ const deleteChannel = protectedProcedure
     withErrorHandling("deleteChannel", async () => {
       const userId = ctx.auth.user.id;
 
-      log.debug(
-        { userId, channelId: input.channelId },
-        "Deleting channel",
-      );
+      log.debug({ userId, channelId: input.channelId }, "Deleting channel");
 
       return await commsService.deleteChannel(userId, input.channelId);
     }),
@@ -325,10 +332,7 @@ const leaveChannel = protectedProcedure
     withErrorHandling("leaveChannel", async () => {
       const userId = ctx.auth.user.id;
 
-      log.debug(
-        { userId, channelId: input.channelId },
-        "Leaving channel",
-      );
+      log.debug({ userId, channelId: input.channelId }, "Leaving channel");
 
       return await commsService.leaveChannel(userId, input.channelId);
     }),

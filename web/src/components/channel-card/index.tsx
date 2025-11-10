@@ -64,7 +64,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
       : description;
 
   // Check if image is from S3 (external URL with signed parameters)
-  const isS3Image = imageUrl?.includes('amazonaws.com') ?? false;
+  const isS3Image = imageUrl?.includes("amazonaws.com") ?? false;
 
   return (
     <div className="group flex w-full min-h-[15rem] flex-col overflow-hidden rounded-2xl border border-neutral/50 bg-card shadow-sm sm:min-h-[16rem]">

@@ -1,7 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -27,7 +26,7 @@ const ChannelLink = ({
   onNavigate?: () => void;
 }) => {
   const trpcClient = useTRPCClient();
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [_imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!channel.imageFileId) {
@@ -46,8 +45,11 @@ const ChannelLink = ({
     // Otherwise, fetch from the files API
     const fetchImage = async () => {
       try {
+        if (!channel.imageFileId) {
+          throw new Error("Missing Image");
+        }
         const fileData = await trpcClient.files.getFile.query({
-          fileId: channel.imageFileId!,
+          fileId: channel.imageFileId,
         });
         setImageUrl(fileData.data);
       } catch (error) {

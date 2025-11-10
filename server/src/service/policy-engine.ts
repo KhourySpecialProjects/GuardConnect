@@ -37,13 +37,13 @@ export class PolicyEngine {
    * @returns `true` or `false`
    */
   async validate(userId: string, roleKey: string) {
-    log.debug({userId, roleKey}, "Validate perms")
+    log.debug({ userId, roleKey }, "Validate perms");
     if (roleKey.length === 0) {
       return false;
     }
-    
+
     const roleId = await this.authRepository.getRoleId(roleKey);
-    
+
     // Check Redis cache first if the role exists
     if (roleId !== -1) {
       const redisResult = await getRedisClientInstance().sIsMember(
@@ -60,20 +60,22 @@ export class PolicyEngine {
     const roleSet = new Set(rolesForUser);
 
     const adminRoleKey = `${roleKey.substring(0, roleKey.lastIndexOf(":"))}:admin`;
-    const hasPermission = (
+    const hasPermission =
       roleSet.has("global:admin") ||
       roleSet.has(roleKey) ||
-      roleSet.has(adminRoleKey)
-    );
+      roleSet.has(adminRoleKey);
 
-    log.debug({ 
-      userId, 
-      roleKey, 
-      roleId,
-      rolesForUser: Array.from(roleSet), 
-      adminRoleKey,
-      hasPermission 
-    }, "Permission validation");
+    log.debug(
+      {
+        userId,
+        roleKey,
+        roleId,
+        rolesForUser: Array.from(roleSet),
+        adminRoleKey,
+        hasPermission,
+      },
+      "Permission validation",
+    );
 
     return hasPermission;
   }
@@ -136,7 +138,7 @@ export class PolicyEngine {
   ) {
     // Check if role already exists
     let roleId = await this.authRepository.getRoleId(roleKey);
-    
+
     // If role doesn't exist, create it
     if (roleId === -1) {
       const subjectId = channelId ? channelId.toString() : null;
@@ -147,7 +149,7 @@ export class PolicyEngine {
         channelId,
         subjectId,
       );
-      
+
       if (!newRole) {
         // Role creation failed, possibly due to race condition
         // Try to get the role ID again in case it was created by another process
@@ -175,10 +177,16 @@ export class PolicyEngine {
 
     if (result) {
       await this.cacheRoleKeys([roleKey], ttlSec);
-      log.debug({ userId, targetUserId, roleKey, roleId }, "Successfully created and assigned role");
+      log.debug(
+        { userId, targetUserId, roleKey, roleId },
+        "Successfully created and assigned role",
+      );
       return true;
     }
-    log.warn({ userId, targetUserId, roleKey, roleId }, "Failed to assign role");
+    log.warn(
+      { userId, targetUserId, roleKey, roleId },
+      "Failed to assign role",
+    );
     return false;
   }
 

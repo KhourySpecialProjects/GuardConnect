@@ -23,7 +23,6 @@ export const deletePostSchema = z.object({
   messageId: z.coerce.number().int().positive(),
 });
 
-
 export const createChannelSchema = z.object({
   name: z
     .string()

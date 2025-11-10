@@ -1,18 +1,21 @@
-import { PolicyEngine } from "../src/service/policy-engine.js";
-import { AuthRepository } from "../src/data/repository/auth-repo.js";
 import { eq } from "drizzle-orm";
+import { connectRedis, disconnectRedis } from "../src/data/db/redis.js";
 import { users } from "../src/data/db/schema.js";
 import { db, shutdownPostgres } from "../src/data/db/sql.js";
-import { connectRedis, disconnectRedis } from "../src/data/db/redis.js";
-import log from "../src/utils/logger.js";
+import { AuthRepository } from "../src/data/repository/auth-repo.js";
+import { PolicyEngine } from "../src/service/policy-engine.js";
 
 const channelIdArg = process.argv[2];
 const userEmailArg = process.argv[3];
 const permission = process.argv[4];
 
 if (!channelIdArg || !userEmailArg || !permission) {
-  console.error("Usage: npx tsx fix-channel-permissions.ts <channelId> <userEmail>");
-  console.error("Example: npx tsx fix-channel-permissions.ts 31 admin@example.com");
+  console.error(
+    "Usage: npx tsx fix-channel-permissions.ts <channelId> <userEmail> <permission 'read' | 'post' | 'admin'>",
+  );
+  console.error(
+    "Example: npx tsx fix-channel-permissions.ts 31 admin@example.com admin",
+  );
   process.exit(1);
 }
 
@@ -22,7 +25,7 @@ const userEmail = userEmailArg;
 async function main() {
   // Connect to Redis and Postgres
   await connectRedis();
-  
+
   const [user] = await db
     .select({ id: users.id })
     .from(users)
@@ -38,15 +41,14 @@ async function main() {
 
   const channelIdNum = Number.parseInt(channelId, 10);
   const roleKey = `channel:${channelIdNum}:${permission}`;
-  
-  console.log(`Granting ${roleKey} to ${userEmail} (${user.id})`);
 
+  console.log(`Granting ${roleKey} to ${userEmail} (${user.id})`);
   try {
     const result = await policyEngine.createRoleAndAssign(
       user.id,
       user.id,
       roleKey,
-      permission!,
+      permission ?? "should never reach this",
       "channel",
       channelIdNum,
     );

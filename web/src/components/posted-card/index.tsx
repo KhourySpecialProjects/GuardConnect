@@ -137,7 +137,7 @@ export const PostedCard = ({
     async (fileId: string, fileName: string) => {
       try {
         const fileData = await trpcClient.files.getFile.query({ fileId });
-        
+
         // Create a temporary anchor element to trigger download
         const link = document.createElement("a");
         link.href = fileData.data; // This is the S3 URL or data URL
@@ -224,12 +224,17 @@ export const PostedCard = ({
                       type="button"
                       key={attachment.fileId}
                       onClick={() =>
-                        handleDownloadFile(attachment.fileId, attachment.fileName)
+                        handleDownloadFile(
+                          attachment.fileId,
+                          attachment.fileName,
+                        )
                       }
                       className="flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-secondary text-sm hover:bg-primary/10 transition-colors cursor-pointer"
                     >
                       <Paperclip className="h-4 w-4 text-secondary/70" />
-                      <span className="truncate flex-1 text-left">{attachment.fileName}</span>
+                      <span className="truncate flex-1 text-left">
+                        {attachment.fileName}
+                      </span>
                       <Download className="h-4 w-4 text-secondary/70" />
                     </button>
                   ))}

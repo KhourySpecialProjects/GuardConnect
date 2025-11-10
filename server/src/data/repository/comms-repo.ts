@@ -1,10 +1,6 @@
 import { and, desc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import type { QueryResult } from "pg";
-import {
-  ConflictError,
-  InternalServerError,
-  NotFoundError,
-} from "../../types/errors.js";
+import { ConflictError, NotFoundError } from "../../types/errors.js";
 import { fileMetadataSchema } from "../../types/file-types.js";
 import log from "../../utils/logger.js";
 import {
@@ -347,8 +343,8 @@ export class CommsRepository {
         .where(
           and(
             eq(channelSubscriptions.userId, userId),
-            eq(channelSubscriptions.channelId, channelId)
-          )
+            eq(channelSubscriptions.channelId, channelId),
+          ),
         )
         .limit(1);
 
@@ -363,7 +359,10 @@ export class CommsRepository {
       }
       return true;
     } catch (e) {
-      log.error(e, `Error ensuring subscription for user ${userId} in channel ${channelId}`);
+      log.error(
+        e,
+        `Error ensuring subscription for user ${userId} in channel ${channelId}`,
+      );
       return false;
     }
   }
@@ -690,20 +689,20 @@ export class CommsRepository {
           and(
             eq(roles.channelId, channelId),
             eq(roles.namespace, "channel"),
-            eq(userRoles.userId, userId)
-          )
+            eq(userRoles.userId, userId),
+          ),
         );
 
       // Remove all role assignments for this user in this channel
       if (userChannelRoles.length > 0) {
-        const roleIds = userChannelRoles.map(r => r.roleId);
+        const roleIds = userChannelRoles.map((r) => r.roleId);
         await tx
           .delete(userRoles)
           .where(
             and(
               eq(userRoles.userId, userId),
-              inArray(userRoles.roleId, roleIds)
-            )
+              inArray(userRoles.roleId, roleIds),
+            ),
           );
       }
 
@@ -713,8 +712,8 @@ export class CommsRepository {
         .where(
           and(
             eq(channelSubscriptions.userId, userId),
-            eq(channelSubscriptions.channelId, channelId)
-          )
+            eq(channelSubscriptions.channelId, channelId),
+          ),
         );
 
       return { success: true };
