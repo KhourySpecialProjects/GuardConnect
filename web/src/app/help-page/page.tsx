@@ -484,7 +484,7 @@ export default function HelpPage() {
         initialState[section.id] = true;
       }
       return initialState;
-    }
+    },
   );
 
   const handleSectionToggle = (id: string, open: boolean) => {
@@ -586,7 +586,7 @@ export default function HelpPage() {
                   <ArrowRightIcon
                     className={cn(
                       "h-5 w-5 text-secondary transition-transform",
-                      openSections[section.id] ? "rotate-90" : "rotate-0"
+                      openSections[section.id] ? "rotate-90" : "rotate-0",
                     )}
                     aria-hidden="true"
                   />
