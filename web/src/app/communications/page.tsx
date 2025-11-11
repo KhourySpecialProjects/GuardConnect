@@ -40,10 +40,10 @@ export default function CommunicationsOverviewPage() {
   const AddIcon = icons.add;
 
   const { data, isLoading } = useQuery(
-    trpc.comms.getAllChannels.queryOptions(),
+    trpc.comms.getAllChannels.queryOptions()
   );
   const { data: activeBroadcasts } = useQuery(
-    trpc.messageBlasts.getActiveMessageBlastsForUser.queryOptions(),
+    trpc.messageBlasts.getActiveMessageBlastsForUser.queryOptions()
   );
 
   // Pre-fetch all channel images in parallel
@@ -62,7 +62,7 @@ export default function CommunicationsOverviewPage() {
       })
       .filter(
         (fileId): fileId is string =>
-          !!fileId && !fileId.startsWith("/") && !fileId.startsWith("http"),
+          !!fileId && !fileId.startsWith("/") && !fileId.startsWith("http")
       );
 
     if (fileIdsToFetch.length === 0) return;
@@ -73,7 +73,7 @@ export default function CommunicationsOverviewPage() {
         fileIdsToFetch.map(async (fileId) => {
           const fileData = await trpcClient.files.getFile.query({ fileId });
           return { fileId, url: fileData.data };
-        }),
+        })
       );
 
       const newImageUrls = new Map<string, string>();
@@ -117,7 +117,7 @@ export default function CommunicationsOverviewPage() {
     }
     const query = search.trim().toLowerCase();
     return rawChannels.filter((channel) =>
-      channel.name.toLowerCase().includes(query),
+      channel.name.toLowerCase().includes(query)
     );
   }, [rawChannels, search]);
 
@@ -147,7 +147,7 @@ export default function CommunicationsOverviewPage() {
           size="icon"
           className={cn(
             "relative rounded-full border border-border bg-card text-primary transition hover:bg-primary/10",
-            triggerClassName,
+            triggerClassName
           )}
           aria-label="Open create menu"
         >
@@ -181,7 +181,7 @@ export default function CommunicationsOverviewPage() {
   const pageTitle: string | undefined = undefined;
 
   const gridClassName =
-    "grid w-full grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] justify-items-center gap-6 sm:gap-8 2xl:gap-10";
+    "grid w-full grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] justify-items-center gap-6 sm:gap-8 2xl:gap-10";
 
   return (
     <div className="mx-auto flex w-full app-content-width flex-col gap-8 px-4 sm:px-12">
