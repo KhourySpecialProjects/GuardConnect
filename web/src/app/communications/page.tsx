@@ -181,7 +181,7 @@ export default function CommunicationsOverviewPage() {
   const pageTitle: string | undefined = undefined;
 
   const gridClassName =
-    "grid w-full grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] justify-items-center gap-6 sm:gap-8 2xl:gap-10";
+    "grid w-full grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] justify-items-center gap-6 sm:gap-8 2xl:gap-10";
 
   return (
     <div className="mx-auto flex w-full app-content-width flex-col gap-8 px-4 sm:px-12">

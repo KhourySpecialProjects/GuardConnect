@@ -103,7 +103,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
         <div className="flex items-center gap-2 leading-tight">
           {Icon && <Icon className="h-5 w-5 text-accent" />}
           <h3
-            className="text-subheader text-lg font-semibold text-background"
+            className="text-subheader text-lg font-semibold text-background whitespace-nowrap truncate"
             title={title}
           >
             {truncatedTitle}
