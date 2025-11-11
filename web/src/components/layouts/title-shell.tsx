@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { icons } from "@/components/icons";
+import { MobileNavTrigger } from "@/components/layouts/navigation-shell";
 import { cn } from "@/lib/utils";
 
 const ArrowLeftIcon = icons.arrowLeft;
@@ -14,6 +15,9 @@ export type TitleShellProps = {
   className?: string;
   backHref?: LinkHref | string;
   backAriaLabel?: string;
+  contentClassName?: string;
+  pinnedContent?: ReactNode;
+  scrollableContent?: boolean;
 };
 
 export function TitleShell({
@@ -24,6 +28,9 @@ export function TitleShell({
   className,
   backHref,
   backAriaLabel,
+  contentClassName,
+  pinnedContent,
+  scrollableContent = true,
 }: TitleShellProps) {
   const hasSidebar = Boolean(sidebar);
   const renderTitleContent = () => {
@@ -42,31 +49,38 @@ export function TitleShell({
 
   const normalizedBackHref =
     typeof backHref === "string" ? (backHref as LinkHref) : (backHref ?? null);
-
-  const headerTitle = normalizedBackHref ? (
-    <div className="flex items-center gap-3 sm:gap-4">
-      <Link
-        href={normalizedBackHref}
-        className="inline-flex h-12 w-12 items-center justify-center text-accent transition hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:h-14 sm:w-14"
-        aria-label={backAriaLabel ?? "Go back"}
-      >
-        <ArrowLeftIcon className="h-7 w-7 sm:h-8 sm:w-8" />
-      </Link>
-      {renderTitleContent()}
-    </div>
-  ) : (
-    renderTitleContent()
-  );
+  const hasBackButton = Boolean(normalizedBackHref);
+  const headerTitle = renderTitleContent();
 
   return (
     <div className={cn("flex h-full w-full", className)}>
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 overflow-x-hidden md:min-h-[calc(100vh-6rem)]">
-        <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-background px-1 py-3 backdrop-blur sm:gap-4 sm:px-0 sm:py-4">
-          {headerTitle}
-          {actions ? (
-            <div className="flex items-center gap-3">{actions}</div>
-          ) : null}
+      <div className="mx-auto flex w-full app-content-width flex-1 flex-col gap-6 overflow-x-hidden md:min-h-[calc(100vh-6rem)]">
+        <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-border/70 bg-background px-1 py-3 backdrop-blur sm:gap-4 sm:px-0 sm:py-4">
+          <div className="flex w-full items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+              <MobileNavTrigger />
+              {hasBackButton && normalizedBackHref ? (
+                <Link
+                  href={normalizedBackHref}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                  aria-label={backAriaLabel ?? "Go back"}
+                >
+                  <ArrowLeftIcon className="h-6 w-6" aria-hidden="true" />
+                </Link>
+              ) : null}
+              <div className="min-w-0 flex-1">{headerTitle}</div>
+            </div>
+            {actions ? (
+              <div className="flex flex-shrink-0 items-center gap-3">
+                {actions}
+              </div>
+            ) : null}
+          </div>
         </header>
+
+        {pinnedContent ? (
+          <div className="px-1 sm:px-0">{pinnedContent}</div>
+        ) : null}
 
         <div
           className={cn(
@@ -82,7 +96,14 @@ export function TitleShell({
             </aside>
           ) : null}
 
-          <main className="flex-1 pb-10 md:overflow-y-auto md:pr-1 md:pb-12 md:max-h-[calc(100vh-12rem)]">
+          <main
+            className={cn(
+              scrollableContent
+                ? "flex-1 pb-10 md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-1 md:pb-12"
+                : "flex-1 pb-10",
+              contentClassName,
+            )}
+          >
             <div className="flex flex-col gap-6 pb-12 pt-2">{children}</div>
           </main>
         </div>

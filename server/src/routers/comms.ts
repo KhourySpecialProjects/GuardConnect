@@ -6,17 +6,25 @@ import { protectedProcedure, router } from "../trpc/trpc.js";
 import {
   createChannelSchema,
   createSubscriptionSchema,
+  deleteChannelSchema,
   deletePostSchema,
   deleteSubscriptionSchema,
   editPostSchema,
   //getChannelMembersSchema,
   getChannelMessagesSchema,
+  joinChannelSchema,
+  leaveChannelSchema,
   postPostSchema,
   toggleReactionSchema,
   updateChannelSchema,
 } from "../types/comms-types.js";
-import { ForbiddenError, UnauthorizedError } from "../types/errors.js";
+import {
+  ForbiddenError,
+  InternalServerError,
+  UnauthorizedError,
+} from "../types/errors.js";
 import log from "../utils/logger.js";
+import { fileService } from "./files.js";
 
 const commsRepo = new CommsRepository();
 const commsService = new CommsService(commsRepo);
@@ -76,6 +84,10 @@ const getChannelMessages = protectedProcedure
   .query(async ({ ctx, input }) => {
     const userId = ctx.auth.user.id;
 
+    // Verify the channel exists first
+    await commsService.getChannelById(input.channelId);
+
+    // Check if user has read permission in this channel
     const isInChannel = await policyEngine.validate(
       userId,
       `channel:${input.channelId}:read`,
@@ -83,7 +95,7 @@ const getChannelMessages = protectedProcedure
 
     if (!isInChannel) {
       throw new ForbiddenError(
-        "You do not have permission to get messages in this channel",
+        "You are not a member of this channel. Please join the channel to view messages.",
       );
     }
 
@@ -176,6 +188,7 @@ const deletePost = protectedProcedure
       userId,
       input.channelId,
       input.messageId,
+      fileService,
     );
 
     return deletedPost;
@@ -190,7 +203,32 @@ const createChannel = protectedProcedure
 
       log.debug({ userId, channelName: input.name, channelDescription: input.description }, "Creating channel");
 
-      return await commsRepo.createChannel(input.name, input.description, input.metadata);
+      const channelCreationResult = await commsRepo.createChannel(
+        input.name,
+        input.metadata,
+      );
+      if (!channelCreationResult || !channelCreationResult.channelId) {
+        throw new InternalServerError("Something went wrong creating channel");
+      }
+
+      // Create admin role and assign it to the channel creator
+      const roleKey = `channel:${channelCreationResult.channelId}:admin`;
+      await policyEngine.createRoleAndAssign(
+        userId,
+        userId,
+        roleKey,
+        "admin",
+        "channel",
+        channelCreationResult.channelId,
+      );
+
+      // Auto-subscribe the creator with notifications enabled
+      await commsRepo.ensureChannelSubscription(
+        userId,
+        channelCreationResult.channelId,
+      );
+
+      return channelCreationResult;
     }),
   );
 
@@ -252,7 +290,6 @@ const createSubscription = protectedProcedure
       return await commsRepo.createSubscription(
         userId,
         input.channelId,
-        input.permission,
         input.notificationsEnabled,
       );
     }),
@@ -283,6 +320,45 @@ const getUserSubscriptions = protectedProcedure.query(({ ctx }) =>
   }),
 );
 
+// Delete channel endpoint (admin only)
+const deleteChannel = protectedProcedure
+  .input(deleteChannelSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("deleteChannel", async () => {
+      const userId = ctx.auth.user.id;
+
+      log.debug({ userId, channelId: input.channelId }, "Deleting channel");
+
+      return await commsService.deleteChannel(userId, input.channelId);
+    }),
+  );
+
+// Leave channel endpoint (non-admin only)
+const leaveChannel = protectedProcedure
+  .input(leaveChannelSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("leaveChannel", async () => {
+      const userId = ctx.auth.user.id;
+
+      log.debug({ userId, channelId: input.channelId }, "Leaving channel");
+
+      return await commsService.leaveChannel(userId, input.channelId);
+    }),
+  );
+
+// Join channel endpoint (public channels only)
+const joinChannel = protectedProcedure
+  .input(joinChannelSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("joinChannel", async () => {
+      const userId = ctx.auth.user.id;
+
+      log.debug({ userId, channelId: input.channelId }, "Joining channel");
+
+      return await commsService.joinChannel(userId, input.channelId);
+    }),
+  );
+
 export const commsRouter = router({
   createPost,
   getAllChannels,
@@ -297,4 +373,7 @@ export const commsRouter = router({
   createSubscription,
   deleteSubscription,
   getUserSubscriptions,
+  deleteChannel,
+  leaveChannel,
+  joinChannel,
 });

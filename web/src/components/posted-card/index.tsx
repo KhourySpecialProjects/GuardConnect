@@ -1,7 +1,7 @@
 "use client";
 import type { QueryKey } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Paperclip } from "lucide-react";
+import { Download, Paperclip } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import {
   DropdownButtons,
@@ -14,7 +14,7 @@ import { AddReaction } from "@/components/reaction-bubble/add-reaction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { useTRPC } from "@/lib/trpc";
+import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
 type AttachmentDescriptor = {
   fileId: string;
@@ -63,6 +63,7 @@ export const PostedCard = ({
   onReactionToggle,
 }: PostedCardProps) => {
   const trpc = useTRPC();
+  const trpcClient = useTRPCClient();
   const queryClient = useQueryClient();
 
   const channelMessagesQueryKey = useMemo<QueryKey>(() => {
@@ -132,6 +133,26 @@ export const PostedCard = ({
   const maxLength = 5000;
   const characterCount = editContent.length;
 
+  const handleDownloadFile = useCallback(
+    async (fileId: string, fileName: string) => {
+      try {
+        const fileData = await trpcClient.files.getFile.query({ fileId });
+
+        // Create a temporary anchor element to trigger download
+        const link = document.createElement("a");
+        link.href = fileData.data; // This is the S3 URL or data URL
+        link.download = fileName;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Failed to download file:", error);
+      }
+    },
+    [trpcClient],
+  );
+
   const actionMenuItems: DropdownMenuItemConfig[] = [
     {
       id: "edit-post",
@@ -173,24 +194,29 @@ export const PostedCard = ({
 
   return (
     <>
-      <Card className="w-full p-4 relative">
-        <div className="absolute top-4 right-4 z-10">
+      <Card className="relative w-full p-3 sm:p-4">
+        <div className="absolute top-2 right-2 z-10 sm:top-4 sm:right-4">
           <DropdownButtons
             items={actionMenuItems}
             align="end"
             triggerAriaLabel="Post actions"
+            className="scale-90 sm:scale-100"
           />
         </div>
-        <div className="flex items-center gap-4 px-6 py-4 pr-12">
-          <Avatar />
-          <div className="flex flex-col gap-2 px-4 py-0 w-full">
-            <div className="text-secondary text-subheader font-semibold">
+        <div className="flex flex-col gap-4 px-2 pt-6 sm:flex-row sm:items-start sm:gap-4 sm:px-4 sm:pt-4">
+          <div className="flex justify-start sm:pt-2">
+            <Avatar />
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            <div className="text-secondary text-base font-semibold sm:text-subheader">
               {name}
-              <div className="text-secondary text-sm font-semibold italic">
+              <div className="text-secondary text-xs font-semibold italic sm:text-sm">
                 {rank}
               </div>
             </div>
-            <div className="text-secondary text-sm font-normal">{content}</div>
+            <div className="text-secondary text-sm font-normal break-words">
+              {content}
+            </div>
 
             {attachmentItems.length ? (
               <div className="flex flex-col gap-2">
@@ -199,13 +225,23 @@ export const PostedCard = ({
                 </div>
                 <div className="flex flex-col gap-2">
                   {attachmentItems.map((attachment) => (
-                    <div
+                    <button
+                      type="button"
                       key={attachment.fileId}
-                      className="flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-secondary text-sm"
+                      onClick={() =>
+                        handleDownloadFile(
+                          attachment.fileId,
+                          attachment.fileName,
+                        )
+                      }
+                      className="flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-secondary text-sm hover:bg-primary/10 transition-colors cursor-pointer"
                     >
                       <Paperclip className="h-4 w-4 text-secondary/70" />
-                      <span className="truncate">{attachment.fileName}</span>
-                    </div>
+                      <span className="truncate flex-1 text-left">
+                        {attachment.fileName}
+                      </span>
+                      <Download className="h-4 w-4 text-secondary/70" />
+                    </button>
                   ))}
                 </div>
               </div>
