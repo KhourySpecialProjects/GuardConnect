@@ -29,6 +29,7 @@ type MessageReaction = {
   reactedByCurrentUser?: boolean;
 };
 
+// Reaction toggles mutate nested arrays later on, so keep cache-owned data isolated by cloning before any optimistic updates run
 function cloneMessages(messages: ChannelMessage[]): ChannelMessage[] {
   return messages.map((message) => ({
     ...message,
@@ -228,6 +229,7 @@ export function ChannelView({ channelId }: ChannelViewProps) {
 
   const hasHydratedFromServerRef = useRef(false);
 
+  // React Query will briefly serve undefined during route transitions; this flag ensures that transient empties do not blow away optimistic local state
   useEffect(() => {
     if (!messagesQuery.isSuccess) {
       return;

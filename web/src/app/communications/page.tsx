@@ -62,6 +62,7 @@ export default function CommunicationsOverviewPage() {
         return metadata?.imageFileId;
       })
       .filter(
+        // Seeded metadata already stores a direct pathname/URL; skip those to avoid double-fetching assets the browser can load on its own
         (fileId): fileId is string =>
           !!fileId && !fileId.startsWith("/") && !fileId.startsWith("http"),
       );
