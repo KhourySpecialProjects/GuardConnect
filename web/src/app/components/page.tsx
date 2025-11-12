@@ -22,6 +22,7 @@ import {
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import Navigation from "@/components/navigation";
 import PostedCard from "@/components/posted-card";
+import ProfileCard, { type ProfileCardProps } from "@/components/profile-card";
 import Reaction from "@/components/reaction-bubble";
 import { AddReaction } from "@/components/reaction-bubble/add-reaction";
 import SearchBar from "@/components/search-bar";
@@ -97,6 +98,85 @@ const actionMenuItems: DropdownMenuItemConfig[] = [
   },
 ];
 
+const profileGalleryExamples: ProfileCardProps[] = [
+  {
+    name: "John Addams",
+    rank: "E-3 Private",
+    branch: "Army",
+    unit: "1st Battalion, 181st Infantry Regiment",
+    location: "Worcester, MA",
+    interests: ["Firefighter", "Football", "Mentoring", "Frisbee Golf"],
+    about:
+      "I've been serving in the Massachusetts National Guard for 5 years. By day I work as a firefighter and by weekend I am a proud guard member.",
+    contactActions: [
+      {
+        label: "Signal",
+        onClick: () => {
+          console.log("Signal copy paste soon");
+        },
+      },
+      {
+        label: "Email",
+        href: "mailto:john.addams@example.com",
+      },
+    ],
+    headerActions: [
+      {
+        label: "Edit profile",
+        iconName: "edit",
+        onClick: () => {
+          console.log("Edit profile clicked");
+        },
+      },
+      {
+        label: "Profile settings",
+        iconName: "settings",
+        onClick: () => {
+          console.log("Profile settings clicked");
+        },
+      },
+    ],
+  },
+  {
+    name: "Genesis Lee",
+    rank: "O-2 Captain",
+    branch: "Air National Guard",
+    unit: "102nd Intelligence Wing",
+    location: "Otis Air National Guard Base, MA",
+    interests: ["Cyber Intel", "STEM Mentoring", "Running"],
+    about:
+      "Serving with the 102nd Intelligence Wing has given me the opportunity to mentor STEM-focused cadets and promote resilient cyber practices.",
+    contactActions: [
+      {
+        label: "Signal",
+        onClick: () => {
+          console.log("Signal copy paste soon");
+        },
+      },
+      {
+        label: "Email",
+        href: "mailto:genesis.lee@example.com",
+      },
+    ],
+    headerActions: [
+      {
+        label: "Edit profile",
+        iconName: "edit",
+        onClick: () => {
+          console.log("Edit profile clicked");
+        },
+      },
+      {
+        label: "Share profile",
+        iconName: "announce",
+        onClick: () => {
+          console.log("Share profile clicked");
+        },
+      },
+    ],
+  },
+];
+
 const Components = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const MenuIcon = icons.menu;
@@ -110,9 +190,13 @@ const Components = () => {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = mobileNavOpen ? "hidden" : "";
+    if (typeof window !== "undefined") {
+      document.body.style.overflow = mobileNavOpen ? "hidden" : "";
+    }
     return () => {
-      document.body.style.overflow = "";
+      if (typeof window !== "undefined") {
+        document.body.style.overflow = "";
+      }
     };
   }, [mobileNavOpen]);
 
@@ -208,7 +292,7 @@ const Components = () => {
       />
 
       <main className="min-h-screen bg-background px-4 pb-16 pt-20 sm:px-6 lg:pl-[21rem] lg:pr-12 lg:pt-16">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
+        <div className="mx-auto flex w-full app-content-width flex-col gap-10">
           <div className="flex justify-start lg:hidden">
             <button
               type="button"
@@ -352,6 +436,23 @@ const Components = () => {
               information="I'm eager to learn from those who've walked the path before me, so I can grow faster and avoid mistakes along the way."
               contact="617-222-3333"
             />
+          </section>
+
+          <section className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-subheader font-semibold text-secondary">
+                Profile Card
+              </h2>
+            </div>
+            <div className="flex flex-col gap-8">
+              {profileGalleryExamples.map((profile) => (
+                <ProfileCard
+                  key={`${profile.name}-${profile.branch}`}
+                  {...profile}
+                  className="flex-1"
+                />
+              ))}
+            </div>
           </section>
 
           <section className="space-y-6">

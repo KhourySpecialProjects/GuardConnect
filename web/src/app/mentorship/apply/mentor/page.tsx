@@ -14,7 +14,7 @@ import { SelectableButton } from "@/components/buttons";
 
 export default function MentorshipApplyMentorPage() {
   const [positionSelection, setPositionSelection] = useState<string>("");
-  const [rankSelection, setRankSelection] = useState<string>("");
+  const [_rankSelection, _setRankSelection] = useState<string>("");
   const [files, setFiles] = useState<File[] | undefined>();
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
 
