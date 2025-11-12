@@ -2,11 +2,12 @@ import { count, eq } from "drizzle-orm";
 import { Cache } from "../../utils/cache.js";
 import log from "../../utils/logger.js";
 import { getRedisClientInstance } from "../db/redis.js";
-import { roles, userRoles, users } from "../db/schema.js";
+import { type RoleNamespace, roles, userRoles, users } from "../db/schema.js";
 import { db } from "../db/sql.js";
+import type { RoleKey } from "../roles.js";
 
 export class AuthRepository {
-  async getUserIdsForRole(roleKey: string) {
+  async getUserIdsForRole(roleKey: RoleKey) {
     const rows = await db
       .select({ userId: userRoles.userId })
       .from(roles)
@@ -24,10 +25,8 @@ export class AuthRepository {
       .from(userRoles)
       .innerJoin(roles, eq(userRoles.roleId, roles.roleId))
       .where(eq(userRoles.userId, userId));
-    if (!rows) {
-      return [];
-    }
-    return rows.map((r) => r.key);
+
+    return new Set(rows.map((r) => r.key));
   }
 
   async getRoles(limit: number = 5000) {
@@ -39,7 +38,7 @@ export class AuthRepository {
   }
 
   @Cache((roleKey: string) => `role:id:${roleKey}`, 3600)
-  async getRoleId(roleKey: string) {
+  async getRoleId(roleKey: RoleKey) {
     const roleData = await db
       .selectDistinct({
         roleId: roles.roleId,
@@ -48,9 +47,9 @@ export class AuthRepository {
       .where(eq(roles.roleKey, roleKey));
     if (!roleData || roleData.length === 0) {
       log.warn(`Role ${roleKey} not found`);
-      return -1;
+      return null;
     }
-    return roleData[0]?.roleId ?? -1;
+    return roleData[0]?.roleId ?? null;
   }
 
   async checkIfUserExists(userId: string) {
@@ -62,9 +61,9 @@ export class AuthRepository {
   }
 
   async createRole(
-    roleKey: string,
+    roleKey: RoleKey,
     action: string,
-    namespace: "global" | "channel" | "mentor" | "feature",
+    namespace: RoleNamespace,
     channelId?: number | null,
     subjectId?: string | null,
   ) {
@@ -97,7 +96,7 @@ export class AuthRepository {
     userId: string,
     targetUserId: string,
     roleId: number,
-    roleKey: string,
+    roleKey: RoleKey,
   ) {
     try {
       await db

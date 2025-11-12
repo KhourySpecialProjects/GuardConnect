@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { RoleNamespace } from "../data/db/schema.js";
 
 export const userSchema = z.object({
   userId: z.number().int().positive(),
@@ -26,7 +27,6 @@ export const checkEmailExistsInputSchema = z.object({
 
 export type CheckEmailExistsInput = z.infer<typeof checkEmailExistsInputSchema>;
 
-export type RoleNamespace = "global" | "channel" | "mentor" | "feature";
 export type RoleSummary = {
   roleId: number;
   namespace: RoleNamespace;
