@@ -421,7 +421,11 @@ export class CommsRepository {
   }
 
   // Channel creation method
-  async createChannel(name: string, metadata?: Record<string, unknown>) {
+  async createChannel(
+    name: string,
+    metadata?: Record<string, unknown>,
+    postingPermissions: "admin" | "everyone" | "custom" = "admin",
+  ) {
     // Check if channel with this name already exists
     const existingChannel = await this.getChannelDataByName(name);
 
@@ -434,6 +438,7 @@ export class CommsRepository {
       .values({
         name,
         metadata: metadata || null,
+        postPermissionLevel: postingPermissions,
       })
       .returning();
 
@@ -446,11 +451,13 @@ export class CommsRepository {
       name: string;
       metadata: Record<string, unknown> | null;
       permission: "admin" | "post" | "read" | null;
+      postPermissionLevel: "admin" | "everyone" | "custom";
     }>(sql`
       SELECT DISTINCT ON (c.channel_id)
         c.channel_id AS "channelId",
         c.name,
         c.metadata,
+        c.post_permission_level AS "postPermissionLevel",
         CASE
           WHEN MAX(CASE WHEN r.action = 'admin' THEN 3 WHEN r.action = 'post' THEN 2 WHEN r.action = 'read' THEN 1 ELSE 0 END) >= 3 THEN 'admin'::text
           WHEN MAX(CASE WHEN r.action = 'admin' THEN 3 WHEN r.action = 'post' THEN 2 WHEN r.action = 'read' THEN 1 ELSE 0 END) = 2 THEN 'post'::text
@@ -465,7 +472,7 @@ export class CommsRepository {
       WHERE
         COALESCE(c.metadata->>'type', 'public') = 'public'
         OR r.role_id IS NOT NULL
-      GROUP BY c.channel_id, c.name, c.metadata
+      GROUP BY c.channel_id, c.name, c.metadata, c.post_permission_level
       ORDER BY c.channel_id, c.name
     `);
 

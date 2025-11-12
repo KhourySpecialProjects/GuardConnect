@@ -206,6 +206,7 @@ const createChannel = protectedProcedure
       const channelCreationResult = await commsRepo.createChannel(
         input.name,
         input.metadata,
+        input.postingPermissions,
       );
       if (!channelCreationResult || !channelCreationResult.channelId) {
         throw new InternalServerError("Something went wrong creating channel");
