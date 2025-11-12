@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+const REPORT_CATEGORY_VALUES = [
+  "Communication",
+  "Mentorship",
+  "Training",
+  "Resources",
+] as const;
+export const reportCategorySchema = z.enum(REPORT_CATEGORY_VALUES);
+export type ReportCategory = z.infer<typeof reportCategorySchema>;
+
 export const getReportsSchema = z.object({
   name: z.string(),
 });
@@ -11,7 +20,7 @@ export const assignReportSchema = z.object({
 });
 
 export const createReportsSchema = z.object({
-  category: z.string().optional(),
+  category: reportCategorySchema.optional(),
   title: z.string().min(1, "Report title cannot be empty."),
   description: z.string().min(1, "Report description cannot be empty."),
   attachments: z.array(z.uuid()).max(10).default([]),
@@ -23,7 +32,7 @@ export const editReportSchema = z
   .object({
     reportId: z.uuid(),
     updates: z.object({
-      category: z.string().optional(),
+      category: reportCategorySchema.optional(),
       title: z.string().min(1).optional(),
       description: z.string().min(1).optional(),
       attachments: z.array(z.uuid()).max(10).optional(),
@@ -32,7 +41,7 @@ export const editReportSchema = z
   })
   .refine(
     (data) => Object.values(data.updates).some((value) => value !== undefined),
-    { message: "At least one field must be updated" }
+    { message: "At least one field must be updated" },
   );
 
 export const deleteReportSchema = z.object({
