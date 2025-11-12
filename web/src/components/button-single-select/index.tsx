@@ -32,7 +32,7 @@ export function SingleSelectButtonGroup({
   legend = "Select an option",
 }: SingleSelectButtonGroupProps) {
   const [dropdownValues, setDropdownValues] = useState<Record<string, string>>(
-    {}
+    {},
   );
   const [otherTextValues, setOtherTextValues] = useState<
     Record<string, string>
@@ -58,7 +58,7 @@ export function SingleSelectButtonGroup({
                 "w-full max-w-xs justify-start rounded-md px-3 py-2 transition-all",
                 isActive
                   ? "bg-primary/10 text-primary hover:bg-primary/20"
-                  : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/5",
               )}
               onClick={() => {
                 onChange(option.value);
@@ -73,7 +73,7 @@ export function SingleSelectButtonGroup({
                   "mr-2 h-3.5 w-3.5 rounded-full border-2 transition-all",
                   isActive
                     ? "border-primary/10 bg-primary"
-                    : "border-muted-foreground"
+                    : "border-muted-foreground",
                 )}
               />
               <span className="truncate whitespace-nowrap overflow-hidden">
