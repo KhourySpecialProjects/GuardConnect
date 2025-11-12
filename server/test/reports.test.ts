@@ -53,7 +53,9 @@ describe("ReportService", () => {
 
   it("returns reports for the requested user", async () => {
     const userId = "user-42";
-    const reports = [buildReport({ reportId: "report-1", submittedBy: userId })];
+    const reports = [
+      buildReport({ reportId: "report-1", submittedBy: userId }),
+    ];
     repoMocks.getReportsForUser.mockResolvedValue(reports);
 
     const result = await service.getReportsForUser(userId);
