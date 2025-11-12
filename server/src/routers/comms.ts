@@ -10,7 +10,7 @@ import {
   deletePostSchema,
   deleteSubscriptionSchema,
   editPostSchema,
-  //getChannelMembersSchema,
+  getChannelMembersSchema,
   getChannelMessagesSchema,
   joinChannelSchema,
   leaveChannelSchema,
@@ -265,7 +265,7 @@ const updateChannelSettings = protectedProcedure
 
 // Channel members endpoint
 const getChannelMembers = protectedProcedure
-  .input(updateChannelSchema)
+  .input(getChannelMembersSchema)
   .query(({ input }) =>
     withErrorHandling("getChannelMembers", async () => {
       log.debug({ channelId: input.channelId }, "getChannelMembers");
