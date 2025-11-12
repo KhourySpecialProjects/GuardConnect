@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
+import { SelectableButton } from "@/components/buttons";
 import { DragReorderFrame } from "@/components/drag-and-drop";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import { TextInput } from "@/components/text-input";
@@ -10,7 +11,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { SelectableButton } from "@/components/buttons";
 
 export default function MentorshipApplyMenteePage() {
   const [positionSelection, setPositionSelection] = useState<string>("");
@@ -63,7 +63,6 @@ export default function MentorshipApplyMenteePage() {
   ];
 
   const [desiredMentorHours, setDesiredMentorHours] = useState("");
-  const [availableMentorHours, setAvailableMentorHours] = useState("");
 
   return (
     <div className="overflow-hidden bg-gradient-to-br">
@@ -97,66 +96,66 @@ export default function MentorshipApplyMenteePage() {
             </h1>
             <SingleSelectButtonGroup
               options={[
-          {
-            label: "Active Guard Reserve",
-            value: "active-guard-reserve",
-            dropdownOptions: [
-              { label: "TBD", value: "tbd" },
-              { label: "Other", value: "other" },
-            ],
-          },
-          {
-            label: "Enlisted",
-            value: "enlisted",
-            dropdownOptions: [
-              { label: "Squad Leader", value: "squad-leader" },
-              { label: "Platoon Sergeant", value: "platoon-sergeant" },
-              { label: "First Sergeant", value: "first-sergeant" },
-              {
-                label: "Command Sergeant Major",
-                value: "command-sergeant-major",
-              },
-              {
-                label: "Directorate Sergeant Major",
-                value: "directorate-sergeant-major",
-              },
-              {
-                label: "Group Command Chief",
-                value: "group-command-chief",
-              },
-              {
-                label: "Wing Command Chief",
-                value: "wing-command-chief",
-              },
-              { label: "Other", value: "other" },
-            ],
-          },
-          {
-            label: "Officer",
-            value: "officer",
-            dropdownOptions: [
-              { label: "Platoon Leader", value: "platoon-leader" },
-              {
-                label: "Company Executive Officer",
-                value: "company-executive-officer",
-              },
-              { label: "Company Commander", value: "company-commander" },
-              { label: "Battalion Staff", value: "battalion-staff" },
-              {
-                label: "Battalion Executive Officer",
-                value: "battalion-executive-officer",
-              },
-              { label: "Brigade Staff", value: "brigade-staff" },
-              {
-                label: "Brigade Executive Officer",
-                value: "brigade-executive-officer",
-              },
-              { label: "Brigade Commander", value: "brigade-commander" },
-              { label: "G-Staff", value: "g-staff" },
-              { label: "J-Staff", value: "j-staff" },
-              { label: "Other", value: "other" },
-            ],
-          },
+                {
+                  label: "Active Guard Reserve",
+                  value: "active-guard-reserve",
+                  dropdownOptions: [
+                    { label: "TBD", value: "tbd" },
+                    { label: "Other", value: "other" },
+                  ],
+                },
+                {
+                  label: "Enlisted",
+                  value: "enlisted",
+                  dropdownOptions: [
+                    { label: "Squad Leader", value: "squad-leader" },
+                    { label: "Platoon Sergeant", value: "platoon-sergeant" },
+                    { label: "First Sergeant", value: "first-sergeant" },
+                    {
+                      label: "Command Sergeant Major",
+                      value: "command-sergeant-major",
+                    },
+                    {
+                      label: "Directorate Sergeant Major",
+                      value: "directorate-sergeant-major",
+                    },
+                    {
+                      label: "Group Command Chief",
+                      value: "group-command-chief",
+                    },
+                    {
+                      label: "Wing Command Chief",
+                      value: "wing-command-chief",
+                    },
+                    { label: "Other", value: "other" },
+                  ],
+                },
+                {
+                  label: "Officer",
+                  value: "officer",
+                  dropdownOptions: [
+                    { label: "Platoon Leader", value: "platoon-leader" },
+                    {
+                      label: "Company Executive Officer",
+                      value: "company-executive-officer",
+                    },
+                    { label: "Company Commander", value: "company-commander" },
+                    { label: "Battalion Staff", value: "battalion-staff" },
+                    {
+                      label: "Battalion Executive Officer",
+                      value: "battalion-executive-officer",
+                    },
+                    { label: "Brigade Staff", value: "brigade-staff" },
+                    {
+                      label: "Brigade Executive Officer",
+                      value: "brigade-executive-officer",
+                    },
+                    { label: "Brigade Commander", value: "brigade-commander" },
+                    { label: "G-Staff", value: "g-staff" },
+                    { label: "J-Staff", value: "j-staff" },
+                    { label: "Other", value: "other" },
+                  ],
+                },
               ]}
               value={positionSelection}
               onChange={setPositionSelection}

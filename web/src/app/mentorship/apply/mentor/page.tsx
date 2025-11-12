@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
+import { SelectableButton } from "@/components/buttons";
 import { DragReorderFrame } from "@/components/drag-and-drop";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import { TextInput } from "@/components/text-input";
@@ -10,11 +11,9 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { SelectableButton } from "@/components/buttons";
 
 export default function MentorshipApplyMentorPage() {
   const [positionSelection, setPositionSelection] = useState<string>("");
-  const [rankSelection, setRankSelection] = useState<string>("");
   const [files, setFiles] = useState<File[] | undefined>();
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
 
@@ -499,7 +498,10 @@ export default function MentorshipApplyMentorPage() {
             />
           </section>
 
-          <SelectableButton text="Submit" className="mt-4 mb-4 bg-yellow-600 text-white" />
+          <SelectableButton
+            text="Submit"
+            className="mt-4 mb-4 bg-yellow-600 text-white"
+          />
         </div>
       </div>
     </div>

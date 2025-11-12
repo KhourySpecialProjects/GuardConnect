@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useState } from "react";
 import DropdownSelect from "@/components/dropdown-select";
 import TextInput from "@/components/text-input";
@@ -51,7 +50,6 @@ export function SingleSelectButtonGroup({
 
         return (
           <div key={option.value} className="w-full">
-            {/* Parent option button */}
             <Button
               type="button"
               variant="ghost"
@@ -78,10 +76,10 @@ export function SingleSelectButtonGroup({
             </Button>
 
             {/* Dropdown appears ONLY after this option is selected */}
-            {isActive && hasDropdown && (
+            {isActive && hasDropdown && option.dropdownOptions && (
               <div className="mt-2 ml-6 flex-col gap-2">
                 <DropdownSelect
-                  options={option.dropdownOptions!}
+                  options={option.dropdownOptions}
                   value={dropdownValue}
                   onChange={(dropdownValue) => {
                     setDropdownValues((prev) => ({
