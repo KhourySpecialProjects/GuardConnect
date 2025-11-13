@@ -68,7 +68,10 @@ export class MentorRepository {
     // Ensure eligibilityData is typed correctly for CreateMentorOutput
     return {
       ...created,
-      eligibilityData: created.eligibilityData as Record<string, unknown> | null | undefined,
+      eligibilityData: created.eligibilityData as
+        | Record<string, unknown>
+        | null
+        | undefined,
     };
   }
 

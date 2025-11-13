@@ -23,9 +23,12 @@ export class MatchingService {
       .orderBy(sql`RANDOM()`)
       .limit(MatchingService.MAX_MATCH_REQUESTS);
 
-    log.info({
-      count: selectedMentees.length,
-    }, "Found active mentees for matching");
+    log.info(
+      {
+        count: selectedMentees.length,
+      },
+      "Found active mentees for matching",
+    );
 
     // For each selected mentee, create a matching request
     const failedMenteeUserIds: string[] = [];
@@ -38,10 +41,13 @@ export class MatchingService {
     }
 
     if (failedMenteeUserIds.length > 0) {
-      log.error({
-        failedMenteeUserIds,
-        mentorUserId,
-      }, "Failed to create matching requests");
+      log.error(
+        {
+          failedMenteeUserIds,
+          mentorUserId,
+        },
+        "Failed to create matching requests",
+      );
     }
   }
 
@@ -59,9 +65,12 @@ export class MatchingService {
       .orderBy(sql`RANDOM()`)
       .limit(MatchingService.MAX_MATCH_REQUESTS);
 
-    log.info({
-      count: selectedMentors.length,
-    }, "Found available mentors for matching");
+    log.info(
+      {
+        count: selectedMentors.length,
+      },
+      "Found available mentors for matching",
+    );
 
     // For each selected mentor, create a matching request
     const failedMentorUserIds: string[] = [];
@@ -74,10 +83,13 @@ export class MatchingService {
     }
 
     if (failedMentorUserIds.length > 0) {
-      log.error({
-        menteeUserId,
-        failedMentorUserIds,
-      }, "Failed to create matching requests");
+      log.error(
+        {
+          menteeUserId,
+          failedMentorUserIds,
+        },
+        "Failed to create matching requests",
+      );
     }
   }
 
