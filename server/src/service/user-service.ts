@@ -35,15 +35,16 @@ export class UserService {
   ) {
     const updated = await this.usersRepo.updateUserProfile(userId, updateData);
 
-    // Invalidate cache for this user (best effort - don't fail if Redis is unavailable)
+    // Update cache with new data (best effort - don't fail if Redis is unavailable)
     const cacheKey = `user:${userId}:data`;
     try {
-      await getRedisClientInstance().DEL(cacheKey);
+      await getRedisClientInstance().SET(cacheKey, JSON.stringify(updated));
+      await getRedisClientInstance().EXPIRE(cacheKey, 3600);
     } catch (error) {
-      // Log but don't fail the operation if cache invalidation fails
+      // Log but don't fail the operation if cache update fails
       log.warn(
         { error, cacheKey, userId },
-        "Failed to invalidate user cache after profile update",
+        "Failed to update user cache after profile update",
       );
     }
 
