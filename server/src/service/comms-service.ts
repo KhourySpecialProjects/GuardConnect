@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { channels, channelSubscriptions } from "../data/db/schema.js";
 import type {
   CommsRepository,
@@ -201,47 +201,54 @@ export class CommsService {
    * @throws InternalServerError if update fails
    */
   async updateChannelSettings(
+    userId: string,
     channel_id: number,
-    metadata: ChannelUpdateMetadata,
+    notifications_enabled: boolean,
+    metadata?: ChannelUpdateMetadata,
   ) {
     await this.getChannelById(channel_id);
     const updates: ((tx: Transaction) => Promise<unknown>)[] = [];
 
-    console.log("YO IM HEREEEEEEEE")
-    if (metadata.name) {
-      updates.push((tx: Transaction) =>
-        tx
-          .update(channels)
-          .set({ name: metadata.name })
-          .where(eq(channels.channelId, channel_id)),
-      );
+    if (metadata != null) {
+      if (metadata.name) {
+        updates.push((tx: Transaction) =>
+          tx
+            .update(channels)
+            .set({ name: metadata.name })
+            .where(eq(channels.channelId, channel_id)),
+        );
+      }
+
+      if (metadata.postingPermissions) {
+        updates.push((tx) =>
+          tx
+            .update(channels)
+            .set({ postPermissionLevel: metadata.postingPermissions })
+            .where(eq(channels.channelId, channel_id)),
+        );
+      }
+
+      if (metadata.description) {
+        updates.push((tx) =>
+          tx
+            .update(channels)
+            .set({ metadata: { description: metadata.description } })
+            .where(eq(channels.channelId, channel_id)),
+        );
+      }
     }
 
-    if (metadata.postingPermissions) {
-      updates.push((tx) =>
-        tx
-          .update(channels)
-          .set({ postPermissionLevel: metadata.postingPermissions })
-          .where(eq(channels.channelId, channel_id)),
-      );
-    }
-
-    if (metadata.description) {
-      updates.push((tx) =>
-        tx
-          .update(channels)
-          .set({ metadata: { description: metadata.description } })
-          .where(eq(channels.channelId, channel_id)),
-      );
-    }
-
-    console.log("NOTIFICATIONS ENABLED:", metadata.notificationsEnabled)
-    if (metadata.notificationsEnabled) {
+    if (notifications_enabled != null) {
       updates.push((tx) =>
         tx
           .update(channelSubscriptions)
-          .set({ notificationsEnabled: metadata.notificationsEnabled })
-          .where(eq(channelSubscriptions.channelId, channel_id)),
+          .set({ notificationsEnabled: notifications_enabled })
+          .where(
+            and(
+              eq(channelSubscriptions.channelId, channel_id),
+              eq(channelSubscriptions.userId, userId),
+            )
+          ),
       );
     }
     const result = await this.commsRepo.updateChannelSettings(updates);
@@ -326,8 +333,8 @@ export class CommsService {
     // Check if channel is public (default is public if not specified)
     const channelType =
       channelData?.metadata &&
-      typeof channelData.metadata === "object" &&
-      "type" in channelData.metadata
+        typeof channelData.metadata === "object" &&
+        "type" in channelData.metadata
         ? channelData.metadata.type
         : "public";
 

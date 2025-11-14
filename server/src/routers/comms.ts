@@ -247,7 +247,9 @@ const updateChannelSettings = protectedProcedure
         throw new UnauthorizedError("Invalid Request");
       }
       return await commsService.updateChannelSettings(
+        userId,
         input.channelId,
+        input.notificationsEnabled,
         input.metadata,
       );
     }),

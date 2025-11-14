@@ -74,22 +74,17 @@ export default function ChannelSettingsPage({
   // Find subscription ID for this channel
   useEffect(() => {
     if (subscriptions && parsedChannelId) {
-      console.log("All subscriptions:", subscriptions);
 
       // Find the subscription that matches this channel
       const channelSubscription = subscriptions.find(
         (sub) => sub.channelId === parsedChannelId,
       );
 
-      console.log("Found subscription for this channel:", channelSubscription);
-
       if (channelSubscription) {
         setSubscriptionId(channelSubscription.subscriptionId);
-        console.log("Notification setting for channel:", channelSubscription.notificationsEnabled);
         setNotificationSetting(
           channelSubscription.notificationsEnabled ? "option2" : "option1",
         );
-        console.log("Subscription ID:", channelSubscription.subscriptionId);
       } else {
         console.log("No subscription found for channel ID:", parsedChannelId);
       }
@@ -147,29 +142,32 @@ export default function ChannelSettingsPage({
   const handleSaveChanges = async () => {
     if (!parsedChannelId) return;
 
-    // if the user has read and write permissions
     if (isAdmin) {
       try {
-        console.log("Saving settings, new channel name?:", channelName);
-        console.log("Saving settings, new channel description?:", channelDescription);
-        console.log("Saving settings, new notification setting?:", notificationSetting === "option2");
         await updateChannelMutation.mutateAsync({
           channelId: parsedChannelId,
           metadata: {
             name: channelName,
             description: channelDescription,
-            notificationsEnabled: notificationSetting === "option2",
           },
+          notificationsEnabled: notificationSetting === "option2",
         });
-        console.log("Settings saved successfully");
       } catch (error) {
         console.error("Failed to save settings:", error);
       }
     }
     else {
-      console.log("yoh you're not admin smh");
+      try {
+        await updateChannelMutation.mutateAsync({
+          channelId: parsedChannelId,
+          notificationsEnabled: notificationSetting === "option2",
+        });
+      } catch (error) {
+        console.error("Failed to save settings:", error);
+      }
     }
   };
+
 
   /* ============ CREATING THE SETTINGS PAGE ============ */
   return (
