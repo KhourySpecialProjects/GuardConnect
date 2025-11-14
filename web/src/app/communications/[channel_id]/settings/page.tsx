@@ -11,7 +11,6 @@ import { TitleShell } from "@/components/layouts/title-shell";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
-import { authClient } from "@/lib/auth-client";
 
 type ChannelSettingsPageProps = {
   params: Promise<{
@@ -19,6 +18,7 @@ type ChannelSettingsPageProps = {
   }>;
 };
 
+// Convert channel id into a number
 function parseChannelId(channelId: string): number | null {
   const numericId = Number(channelId);
   if (Number.isNaN(numericId) || numericId <= 0) {
@@ -30,18 +30,15 @@ function parseChannelId(channelId: string): number | null {
 export default function ChannelSettingsPage({
   params,
 }: ChannelSettingsPageProps) {
-  const { data: sessionData } = authClient.useSession();
-
-  console.log('User session:', sessionData); // Check if user is logged in
-
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
   const router = useRouter();
+
   const ArrowRightIcon = icons.arrowRight;
   const LockIcon = icons.lock;
+
   const { channel_id: channelId } = use(params);
   const parsedChannelId = parseChannelId(channelId);
-  const userId = sessionData?.user?.id;
 
   const [channelName, setChannelName] = useState("");
   const [channelDescription, setChannelDescription] = useState("");
@@ -54,10 +51,12 @@ export default function ChannelSettingsPage({
   const descFieldId = useId();
   const notifFieldId = useId();
 
+  // Run when the user clicks the "Leave Channel" button
   const handleSelect = async () => {
     setModalOpen(true);
   };
 
+  // Run when the user leaves the "Leave Channel" modal
   const handleModalClose = async () => {
     setModalOpen(false);
   };
@@ -80,6 +79,7 @@ export default function ChannelSettingsPage({
         (sub) => sub.channelId === parsedChannelId,
       );
 
+      // Set saved values 
       if (channelSubscription) {
         setSubscriptionId(channelSubscription.subscriptionId);
         setNotificationSetting(
@@ -92,7 +92,7 @@ export default function ChannelSettingsPage({
   }, [subscriptions, parsedChannelId]);
 
   /* ============ GETTING INFO FROM CHANNEL ============ */
-  // Fetch full channel data
+  // Fetch all the channels this user has access to
   const { data: channels } = useQuery({
     queryKey: ["channels"],
     queryFn: async () => {
@@ -105,6 +105,7 @@ export default function ChannelSettingsPage({
   useEffect(() => {
     const channel = channels?.find((ch) => ch.channelId === parsedChannelId);
 
+    // Set saved values
     if (channel) {
       setChannelName(channel.name || "");
       setChannelDescription(
@@ -113,20 +114,20 @@ export default function ChannelSettingsPage({
           : ""
       );
       setIsAdmin(channel.userPermission === "admin");
-
-      console.log("Found channel:", channel);
     }
   }, [channels, parsedChannelId]);
 
 
   /* ============ LEAVING THE CHANNEL ============ */
   const leaveChannelMutation = useMutation(
-    trpc.comms.deleteSubscription.mutationOptions(),
+    trpc.comms.leaveChannel.mutationOptions(),
   );
 
   const handleLeave = async () => {
     try {
-      await leaveChannelMutation.mutateAsync({ subscriptionId: subscriptionId! });
+      await leaveChannelMutation.mutateAsync({ channelId: parsedChannelId });
+
+      // Return to the communications hub
       router.push("/communications");
     } catch (error) {
       console.error("Failed to leave channel:", error);
@@ -142,7 +143,7 @@ export default function ChannelSettingsPage({
   const handleSaveChanges = async () => {
     if (!parsedChannelId) return;
 
-    if (isAdmin) {
+    if (isAdmin) { // Admin is able to change channel name, description, notif preferences
       try {
         await updateChannelMutation.mutateAsync({
           channelId: parsedChannelId,
@@ -156,7 +157,7 @@ export default function ChannelSettingsPage({
         console.error("Failed to save settings:", error);
       }
     }
-    else {
+    else { // Non-admin can only change notif preferences
       try {
         await updateChannelMutation.mutateAsync({
           channelId: parsedChannelId,
