@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BackgroundGradient from "@/components/background-gradients";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { SelectableButton } from "@/components/buttons";
 import { DragReorderFrame } from "@/components/drag-and-drop";
@@ -11,7 +12,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import BackgroundGradient from "@/components/background-gradients";
 
 //Static arrays for select options
 const mentorInterestOptions: MultiSelectOption[] = [
@@ -224,7 +224,7 @@ export default function MentorshipApplyMenteePage() {
               onChange={setPositionSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
-            
+
             <h1 className="max-w-3xl mt-3 mb-3 text-left text-xs font-large text-secondary sm:text-sm">
               2. What is your current rank in the MA National Guard?*
             </h1>

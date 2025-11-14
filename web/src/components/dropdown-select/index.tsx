@@ -27,17 +27,28 @@ export const DropdownSelect = ({
 
   const handleOpenChange = (open: boolean) => {
     if (open && triggerRef.current) {
-      triggerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      triggerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
     }
   };
 
   return (
-    <Select value={value} onValueChange={onChange} onOpenChange={handleOpenChange}>
+    <Select
+      value={value}
+      onValueChange={onChange}
+      onOpenChange={handleOpenChange}
+    >
       <SelectTrigger
         ref={triggerRef}
         className="w-full text-subheader font-semibold py-3 rounded-xl bg-white border border-primary hover:bg-primary hover:text-white"
       >
-        <SelectValue placeholder={options.length > 0 ? options[0].label : "Select an option"} />
+        <SelectValue
+          placeholder={
+            options.length > 0 ? options[0].label : "Select an option"
+          }
+        />
       </SelectTrigger>
 
       {mounted && (

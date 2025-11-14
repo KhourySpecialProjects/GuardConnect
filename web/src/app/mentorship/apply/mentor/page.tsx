@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BackgroundGradient from "@/components/background-gradients";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { SelectableButton } from "@/components/buttons";
 import { DragReorderFrame } from "@/components/drag-and-drop";
@@ -11,7 +12,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import BackgroundGradient from "@/components/background-gradients";
 
 //Static arrays for select options
 const mentorInterestOptions: MultiSelectOption[] = [
@@ -213,7 +213,7 @@ export default function MentorshipApplyMentorPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [multiLineText, setMultiLineText] = useState("");
   const [selectedCareerStages, setSelectedCareerStages] = useState<string[]>(
-    []
+    [],
   );
   const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<
     string[]
