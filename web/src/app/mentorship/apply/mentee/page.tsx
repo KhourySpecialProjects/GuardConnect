@@ -11,7 +11,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { Bacasime_Antique } from "next/font/google";
 import BackgroundGradient from "@/components/background-gradients";
 
 //Static arrays for select options
@@ -53,10 +52,6 @@ const positionOptions = [
   {
     label: "Active Guard Reserve",
     value: "active-guard-reserve",
-    dropdownOptions: [
-      { label: "TBD", value: "tbd" },
-      { label: "Other", value: "other" },
-    ],
   },
   {
     label: "Enlisted",
@@ -199,8 +194,8 @@ export default function MentorshipApplyMenteePage() {
   const [desiredMentorHours, setDesiredMentorHours] = useState("");
 
   return (
-    <div className="overflow-hidden">
-      <BackgroundGradient variant="mentee"/>
+    <div className="flex flex-col flex-wrap w-full">
+      <BackgroundGradient variant="mentee" />
       <div className="relative mx-4 flex w-full flex-col items-left justify-center sm:gap-16 px-8 sm:px-10 lg:px-20 py-10 gap-8">
         {/* Page Intro */}
         <div className="flex flex-col items-left gap-2">
@@ -218,9 +213,7 @@ export default function MentorshipApplyMenteePage() {
           </h1>
         </div>
 
-        {/* FORM FIELDS */}
         <div className="flex flex-col items-start space-y-2 -mt-4">
-          {/* 1. Position */}
           <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
               1. What is your current position in the MA National Guard?*
@@ -231,10 +224,7 @@ export default function MentorshipApplyMenteePage() {
               onChange={setPositionSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
-          </section>
-
-          {/* 2. Rank */}
-          <section>
+            
             <h1 className="max-w-3xl mt-3 mb-3 text-left text-xs font-large text-secondary sm:text-sm">
               2. What is your current rank in the MA National Guard?*
             </h1>
@@ -246,7 +236,6 @@ export default function MentorshipApplyMenteePage() {
             />
           </section>
 
-          {/* 3. Resume Upload */}
           <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
               3. Upload a resume to share with mentors once matched.
@@ -262,7 +251,6 @@ export default function MentorshipApplyMenteePage() {
             </Dropzone>
           </section>
 
-          {/* 4. Interests */}
           <section>
             <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               4. What are your personal interests*{" "}
@@ -278,7 +266,6 @@ export default function MentorshipApplyMenteePage() {
             />
           </section>
 
-          {/* 5. Role model question */}
           <section>
             <div className="max-w-3xl mt-3 mb-3 text-left text-xs font-large text-secondary sm:text-sm">
               5. Who has been an important role model or source of inspiration
@@ -297,7 +284,6 @@ export default function MentorshipApplyMenteePage() {
             />
           </section>
 
-          {/* 6. Ranking reasons */}
           <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mt-3 mb-3">
               6. What do you hope to get out of the mentorship program?*
@@ -338,7 +324,6 @@ export default function MentorshipApplyMenteePage() {
             />
           </section>
 
-          {/* 7. Qualities */}
           <section>
             <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
               7. What qualities do you look for in a mentor?*{" "}
@@ -354,7 +339,6 @@ export default function MentorshipApplyMenteePage() {
             />
           </section>
 
-          {/* 8. Meeting formats */}
           <section>
             <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
               8. What meeting formats work best for you?*{" "}
@@ -370,7 +354,6 @@ export default function MentorshipApplyMenteePage() {
             />
           </section>
 
-          {/* 9. Hours */}
           <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-3">
               9. How much time would you like to spend with your mentor?*
@@ -385,7 +368,6 @@ export default function MentorshipApplyMenteePage() {
             />
           </section>
 
-          {/* Submit button */}
           <SelectableButton
             text="Submit"
             className="mt-4 mb-4 bg-accent text-white"

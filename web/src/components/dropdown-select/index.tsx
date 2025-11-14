@@ -23,55 +23,37 @@ export const DropdownSelect = ({
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  React.useEffect(() => setMounted(true), []);
 
-  // Scroll the trigger into view when dropdown opens
   const handleOpenChange = (open: boolean) => {
     if (open && triggerRef.current) {
-      triggerRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+      triggerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
 
   return (
-    <Select
-      value={value}
-      onValueChange={onChange}
-      onOpenChange={handleOpenChange}
-    >
+    <Select value={value} onValueChange={onChange} onOpenChange={handleOpenChange}>
       <SelectTrigger
         ref={triggerRef}
-        className="hover:data-[placeholder]:text-white data-[state=open]:rounded-b-none data-[state=open]:border-b-0 text-subheader font-semibold py-5 rounded-xl bg-white hover:bg-primary hover:text-white border-1 border-primary w-[332px]"
+        className="w-full text-subheader font-semibold py-3 rounded-xl bg-white border border-primary hover:bg-primary hover:text-white"
       >
-        <SelectValue
-          placeholder={
-            options.length > 0 ? options[0].label : "Select an option"
-          }
-        />
+        <SelectValue placeholder={options.length > 0 ? options[0].label : "Select an option"} />
       </SelectTrigger>
 
-      {/* Use a portal to always render on top of everything */}
       {mounted && (
         <SelectPortal container={document.body}>
           <SelectContent
             position="popper"
             side="bottom"
             align="start"
-            avoidCollisions={false}
-            className="z-[9999] rounded-b-xl rounded-t-none w-[var(--radix-select-trigger-width)] border-1 border-primary bg-white"
+            className="w-[var(--radix-select-trigger-width)] border border-primary rounded-b-xl bg-white"
           >
             <SelectGroup>
-              {options.map((option, index) => (
+              {options.map((option, idx) => (
                 <SelectItem
                   key={option.value}
                   value={option.value}
-                  className={`text-subheader font-semibold text-primary py-3 rounded-none ${
-                    index > 0 ? "border-t-1 border-neutral" : ""
-                  }`}
+                  className={`text-subheader font-semibold text-primary py-2 px-3 ${idx > 0 ? "border-t border-neutral" : ""}`}
                 >
                   {option.label}
                 </SelectItem>
@@ -83,5 +65,4 @@ export const DropdownSelect = ({
     </Select>
   );
 };
-
 export default DropdownSelect;

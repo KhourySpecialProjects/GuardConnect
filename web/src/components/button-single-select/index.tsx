@@ -39,33 +39,32 @@ export function SingleSelectButtonGroup({
   >({});
 
   return (
-    <fieldset className={cn("flex flex-col items-start gap-2", className)}>
+    <fieldset
+      className={cn("flex-1 flex-wrap items-start gap-4 flex-wrap", className)}
+    >
       <legend className="sr-only">{legend}</legend>
 
       {options.map((option) => {
         const isActive = option.value === value;
-        const hasDropdown =
-          option.dropdownOptions && option.dropdownOptions.length > 0;
+        const hasDropdown = option.dropdownOptions?.length;
         const dropdownValue = dropdownValues[option.value] || "";
 
         const shouldShowTextInput =
           dropdownValue === "other" || option.value === "active-guard-reserve";
 
         return (
-          <div key={option.value} className="w-full">
-            {/* Parent option button */}
+          <div key={option.value} className="flex flex-col w-full">
             <Button
               type="button"
               variant="ghost"
               className={cn(
-                "w-full max-w-xs justify-start rounded-md px-3 py-2 transition-all",
+                "w-full justify-start rounded-md px-3 py-2 transition-all text-left",
                 isActive
                   ? "bg-primary/10 text-primary hover:bg-primary/20"
                   : "text-muted-foreground hover:text-primary hover:bg-primary/5"
               )}
               onClick={() => {
                 onChange(option.value);
-                // Clear dropdowns and "other" fields when switching options
                 setDropdownValues({});
                 setOtherTextValues({});
               }}
@@ -79,16 +78,13 @@ export function SingleSelectButtonGroup({
                     : "border-muted-foreground"
                 )}
               />
-              <span className="truncate whitespace-nowrap overflow-hidden">
-                {option.label}
-              </span>
+              <span className="break-words">{option.label}</span>
             </Button>
 
-            {/* Dropdown appears ONLY after this option is selected */}
-            {isActive && hasDropdown && option.dropdownOptions && (
-              <div className="mt-2 ml-6 flex-col gap-2">
+            {isActive && hasDropdown && (
+              <div className="w-full mt-2">
                 <DropdownSelect
-                  options={option.dropdownOptions}
+                  options={option.dropdownOptions!}
                   value={dropdownValue}
                   onChange={(dropdownValue) => {
                     setDropdownValues((prev) => ({
@@ -98,22 +94,21 @@ export function SingleSelectButtonGroup({
                     onDropdownChange?.(option.value, dropdownValue);
                   }}
                 />
-
-                {/* Show TextInput if "Other" is selected */}
-                {shouldShowTextInput && (
-                  <TextInput
-                    className="background-neutral mt-2 w-full w-[332px]"
-                    placeholder="Please specify your position"
-                    value={otherTextValues[option.value] || ""}
-                    onChange={(text) =>
-                      setOtherTextValues((prev) => ({
-                        ...prev,
-                        [option.value]: text,
-                      }))
-                    }
-                  />
-                )}
               </div>
+            )}
+
+            {isActive && shouldShowTextInput && (
+              <TextInput
+                className="w-full mt-2"
+                placeholder="Please specify your position"
+                value={otherTextValues[option.value] || ""}
+                onChange={(text) =>
+                  setOtherTextValues((prev) => ({
+                    ...prev,
+                    [option.value]: text,
+                  }))
+                }
+              />
             )}
           </div>
         );
