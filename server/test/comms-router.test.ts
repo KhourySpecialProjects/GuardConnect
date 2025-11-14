@@ -1932,7 +1932,9 @@ describe("commsRouter.createChannel", () => {
 // Tests for updateChannelSettings behavior (service -> repo interaction)
 describe("updateChannelSettings (service -> repo)", () => {
   it("populates listOfUpdates correctly when only name is provided", async () => {
+    const userId = "test";
     const channelId = 42;
+    const notificationsEnabled = true;
     const metadata = { name: "new-name" };
 
     const { CommsService } = await import("../src/service/comms-service.js");
@@ -1957,7 +1959,9 @@ describe("updateChannelSettings (service -> repo)", () => {
     const svc = new CommsService(mockRepo as CommsRepository);
 
     const result = await svc.updateChannelSettings(
+      userId,
       channelId,
+      notificationsEnabled,
       metadata as ChannelUpdateMetadata,
     );
 
@@ -1981,7 +1985,9 @@ describe("updateChannelSettings (service -> repo)", () => {
   });
 
   it("populates listOfUpdates correctly for multiple metadata fields", async () => {
+    const userId = "test";
     const channelId = 101;
+    const notificationsEnabled = true;
     const metadata: ChannelUpdateMetadata = {
       name: "multi",
       postingPermissions: "custom",
@@ -2009,7 +2015,9 @@ describe("updateChannelSettings (service -> repo)", () => {
     const svc = new CommsService(mockRepo as CommsRepository);
 
     const result = await svc.updateChannelSettings(
+      userId,
       channelId,
+      notificationsEnabled,
       metadata as ChannelUpdateMetadata,
     );
 
