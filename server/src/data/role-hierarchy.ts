@@ -1,3 +1,4 @@
+import log from "../utils/logger.js";
 import type { RoleNamespace } from "./db/schema.js";
 import type { RoleKey } from "./roles.js";
 import { ROLE_HIERARCHIES } from "./roles.js";
@@ -54,12 +55,8 @@ function parseRoleKey(roleKey: RoleKey): {
     };
   }
 
-  // Fallback for malformed keys (shouldn't happen with proper typing)
-  return {
-    namespace: roleKey as RoleNamespace,
-    subject: null,
-    action: "",
-  };
+  log.error({ roleKey }, "Malformed role key in parseRoleKey");
+  throw new Error(`Malformed role key: '${roleKey}'`);
 }
 
 /**
