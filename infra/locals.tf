@@ -2,6 +2,8 @@
 # Local Values
 # ------------------------------------------------------------
 locals {
+  project_slug = replace(var.project_name, "_", "-")
+
   # Common tags applied to all resources
   common_tags = {
     Environment = var.environment
@@ -10,5 +12,5 @@ locals {
   }
 
   # Resource naming prefix
-  name_prefix = "${var.environment}-${var.project_name}"
+  name_prefix = "${var.environment}-${local.project_slug}"
 }

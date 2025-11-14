@@ -78,8 +78,8 @@ resource "aws_s3_bucket_cors_configuration" "comm_ng_files_cors" {
 # ------------------------------------------------------------
 
 resource "aws_vpc_endpoint" "s3" {
-  vpc_id          = data.aws_vpc.default.id
-  service_name    = "com.amazonaws.${var.aws_region}.s3"
+  vpc_id            = data.aws_vpc.default.id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = data.aws_route_tables.default_vpc.ids
@@ -90,7 +90,7 @@ resource "aws_vpc_endpoint" "s3" {
       {
         Effect    = "Allow"
         Principal = "*"
-        Action    = [
+        Action = [
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",

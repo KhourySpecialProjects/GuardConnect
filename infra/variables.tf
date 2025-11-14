@@ -30,7 +30,7 @@ variable "project_name" {
 variable "enable_infrastructure_scheduler" {
   description = "Enable automatic shutdown/startup of infrastructure (6 PM - 8 AM EST)"
   type        = bool
-  default     = true  # Set to false to disable the scheduler
+  default     = true # Set to false to disable the scheduler
 }
 
 # ------------------------------------------------------------
@@ -51,19 +51,19 @@ variable "db_allocated_storage" {
 variable "db_backup_retention_period" {
   description = "Number of days to retain automated backups"
   type        = number
-  default     = 0  # 0 for dev, 7+ for prod
+  default     = 0 # 0 for dev, 7+ for prod
 }
 
 variable "db_multi_az" {
   description = "Enable Multi-AZ for RDS"
   type        = bool
-  default     = false  # false for dev, true for prod
+  default     = false # false for dev, true for prod
 }
 
 variable "db_deletion_protection" {
   description = "Enable deletion protection for RDS"
   type        = bool
-  default     = false  # false for dev, true for prod
+  default     = false # false for dev, true for prod
 }
 
 # ------------------------------------------------------------
@@ -111,7 +111,7 @@ variable "ecs_max_capacity" {
 variable "enable_container_insights" {
   description = "Enable CloudWatch Container Insights"
   type        = bool
-  default     = false  # false for dev to save costs
+  default     = false # false for dev to save costs
 }
 
 # ------------------------------------------------------------
@@ -120,7 +120,7 @@ variable "enable_container_insights" {
 variable "log_retention_days" {
   description = "CloudWatch Logs retention in days"
   type        = number
-  default     = 1  # 1 for dev, 7+ for prod
+  default     = 1 # 1 for dev, 7+ for prod
 }
 
 # ------------------------------------------------------------
@@ -129,7 +129,7 @@ variable "log_retention_days" {
 variable "db_publicly_accessible" {
   description = "Make RDS publicly accessible"
   type        = bool
-  default     = true  # true for dev (easier access), false for prod
+  default     = true # true for dev (easier access), false for prod
 }
 
 # ------------------------------------------------------------
