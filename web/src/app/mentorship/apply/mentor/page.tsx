@@ -14,6 +14,7 @@ import {
 
 export default function MentorshipApplyMentorPage() {
   const [positionSelection, setPositionSelection] = useState<string>("");
+  const [mentorRankSelection, setMentorRankSelection] = useState<string>("");
   const [_rankSelection, _setRankSelection] = useState<string>("");
   const [files, setFiles] = useState<File[] | undefined>();
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
@@ -61,7 +62,7 @@ export default function MentorshipApplyMentorPage() {
   const [multiLineText, setMultiLineText] = useState("");
 
   const [selectedCareerStages, setSelectedCareerStages] = useState<string[]>(
-    [],
+    []
   );
   const mentorCareerStageOptions: MultiSelectOption[] = [
     { label: "New soldiers/Entry Level (E-1 to E-4)", value: "new-soldiers" },
@@ -335,8 +336,8 @@ export default function MentorshipApplyMentorPage() {
                   ],
                 },
               ]}
-              value={positionSelection}
-              onChange={setPositionSelection}
+              value={mentorRankSelection}
+              onChange={setMentorRankSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
           </section>
@@ -501,7 +502,7 @@ export default function MentorshipApplyMentorPage() {
 
           <SelectableButton
             text="Submit"
-            className="mt-4 mb-4 bg-yellow-600 text-white"
+            className="mt-4 mb-4 bg-accent-600 text-white"
           />
         </div>
       </div>

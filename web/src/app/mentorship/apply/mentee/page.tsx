@@ -14,6 +14,7 @@ import {
 
 export default function MentorshipApplyMenteePage() {
   const [positionSelection, setPositionSelection] = useState<string>("");
+  const [menteeRankSelection, setMenteeRankSelection] = useState<string>("");
   const [files, setFiles] = useState<File[] | undefined>();
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
 
@@ -307,8 +308,8 @@ export default function MentorshipApplyMenteePage() {
                   ],
                 },
               ]}
-              value={positionSelection}
-              onChange={setPositionSelection}
+              value={menteeRankSelection}
+              onChange={setMenteeRankSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
           </section>
