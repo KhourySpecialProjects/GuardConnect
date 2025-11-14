@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { channels, channelSubscriptions } from "../data/db/schema.js";
+import { channelSubscriptions, channels } from "../data/db/schema.js";
 import type {
   CommsRepository,
   Transaction,
@@ -247,7 +247,7 @@ export class CommsService {
             and(
               eq(channelSubscriptions.channelId, channel_id),
               eq(channelSubscriptions.userId, userId),
-            )
+            ),
           ),
       );
     }
@@ -333,8 +333,8 @@ export class CommsService {
     // Check if channel is public (default is public if not specified)
     const channelType =
       channelData?.metadata &&
-        typeof channelData.metadata === "object" &&
-        "type" in channelData.metadata
+      typeof channelData.metadata === "object" &&
+      "type" in channelData.metadata
         ? channelData.metadata.type
         : "public";
 
