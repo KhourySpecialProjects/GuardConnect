@@ -502,7 +502,7 @@ export default function MentorshipApplyMentorPage() {
 
           <SelectableButton
             text="Submit"
-            className="mt-4 mb-4 bg-accent-600 text-white"
+            className="mt-4 mb-4 bg-accent text-white"
           />
         </div>
       </div>
