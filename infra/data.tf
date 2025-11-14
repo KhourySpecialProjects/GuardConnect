@@ -28,7 +28,7 @@ data "aws_subnets" "default_vpc_supported_az" {
   }
 
   filter {
-    name   = "availability-zone"
+    name = "availability-zone"
     values = [
       "${var.aws_region}a",
       "${var.aws_region}b",

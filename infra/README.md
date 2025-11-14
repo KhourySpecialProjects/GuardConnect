@@ -19,7 +19,8 @@ infra/
 ├── monitoring.tf       # CloudWatch logs and EventBridge
 ├── scheduler.tf        # Infrastructure scheduler Lambda
 ├── outputs.tf          # Output values
-├── terraform.tfvars    # Dev environment values (default)
+├── terraform.tfvars    # Checked-in dev defaults (can be copied)
+├── terraform.tfvars.dev.example  # Dev template for new environments
 └── terraform.tfvars.prod.example  # Prod environment template
 ```
 
@@ -30,6 +31,9 @@ infra/
 # Uses terraform.tfvars by default
 terraform plan
 terraform apply
+
+# Or copy the example if you prefer to keep a clean working tree
+cp terraform.tfvars.dev.example terraform.tfvars
 ```
 
 ### Production Environment
