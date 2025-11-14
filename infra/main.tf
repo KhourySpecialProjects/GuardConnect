@@ -82,17 +82,17 @@ resource "aws_security_group" "dev_db_public" {
   }
 }
 
-resource "aws_security_group" "dev_cache_public" {
+resource "aws_security_group" "dev_cache_private" {
   name        = "dev-comm-ng-cache-valkey-redis"
-  description = "Allow public Valkey/Redis access"
+  description = "Allow Valkey/Redis access from ECS tasks only"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-  description = "Valkey/Redis from anywhere"
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "Valkey/Redis from ECS tasks only"
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
   }
 
   egress {
@@ -115,7 +115,7 @@ resource "aws_security_group" "dev_cache_public" {
 resource "aws_db_instance" "dev_db_comm_ng" {
   identifier             = "dev-db-comm-ng"
   engine                 = "postgres"
-  instance_class         = "db.t3.micro"
+  instance_class         = "db.t4g.micro"
   db_name                = "comm_ng"
 
   # Storage
@@ -137,10 +137,6 @@ resource "aws_db_instance" "dev_db_comm_ng" {
 
   # Monitoring & logs
   monitoring_interval    = 0  # standard monitoring only
-  enabled_cloudwatch_logs_exports = [
-    "postgresql",
-    "iam-db-auth-error"
-  ]
 
   # Backups & maintenance (default)
   backup_retention_period = 0 # dev/test template
@@ -163,7 +159,7 @@ resource "aws_elasticache_serverless_cache" "dev_cache_valkey" {
   description           = "Dev Valkey/Redis serverless cache"
   engine                = "valkey"
   major_engine_version  = "8"
-  security_group_ids    = [aws_security_group.dev_cache_public.id]
+  security_group_ids    = [aws_security_group.dev_cache_private.id]
   subnet_ids            = slice(data.aws_subnets.default_vpc_supported_az.ids, 0, 2) # Supported AZs only; AWS requires between 2 and 3 subnets
   user_group_id         = aws_elasticache_user_group.valkey_default.user_group_id
 
@@ -440,6 +436,48 @@ resource "random_id" "bucket_suffix" {
 }
 
 # ------------------------------------------------------------
+# VPC Endpoint for S3 (eliminates data transfer costs)
+# ------------------------------------------------------------
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id          = data.aws_vpc.default.id
+  service_name    = "com.amazonaws.us-east-1.s3"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = data.aws_route_tables.default_vpc.ids
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          aws_s3_bucket.comm_ng_files.arn,
+          "${aws_s3_bucket.comm_ng_files.arn}/*"
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "dev-comm-ng-s3-endpoint"
+    Environment = "dev"
+    Project     = "comm_ng"
+  }
+}
+
+# Get route tables for the default VPC
+data "aws_route_tables" "default_vpc" {
+  vpc_id = data.aws_vpc.default.id
+}
+
+# ------------------------------------------------------------
 # AWS Resource Group for project organization
 # ------------------------------------------------------------
 resource "aws_resourcegroups_group" "commng_dev" {
@@ -597,13 +635,13 @@ resource "aws_lb_target_group" "server" {
   health_check {
     enabled             = true
     healthy_threshold   = 2
-    interval            = 30
+    interval            = 60
     matcher             = "200"
     path                = "/api/health"
     port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = 10
-    unhealthy_threshold = 5
+    unhealthy_threshold = 3
   }
 
   deregistration_delay = 30
@@ -625,13 +663,13 @@ resource "aws_lb_target_group" "web" {
   health_check {
     enabled             = true
     healthy_threshold   = 2
-    interval            = 30
+    interval            = 60
     matcher             = "200"
     path                = "/"
     port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = 10
-    unhealthy_threshold = 5
+    unhealthy_threshold = 3
   }
 
   deregistration_delay = 30
@@ -680,7 +718,7 @@ resource "aws_ecs_cluster" "main" {
 
   setting {
     name  = "containerInsights"
-    value = "enabled"
+    value = "disabled"
   }
 
   tags = {
@@ -695,7 +733,7 @@ resource "aws_ecs_cluster" "main" {
 # ------------------------------------------------------------
 resource "aws_cloudwatch_log_group" "server" {
   name              = "/ecs/dev-comm-ng-server"
-  retention_in_days = 7
+  retention_in_days = 1
 
   tags = {
     Name        = "dev-comm-ng-server-logs"
@@ -706,7 +744,7 @@ resource "aws_cloudwatch_log_group" "server" {
 
 resource "aws_cloudwatch_log_group" "web" {
   name              = "/ecs/dev-comm-ng-web"
-  retention_in_days = 7
+  retention_in_days = 1
 
   tags = {
     Name        = "dev-comm-ng-web-logs"
@@ -1090,7 +1128,7 @@ resource "aws_ecs_service" "web" {
 
 # Server Auto Scaling Target
 resource "aws_appautoscaling_target" "server" {
-  max_capacity       = 10
+  max_capacity       = 3
   min_capacity       = 1
   resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.server.name}"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -1115,46 +1153,11 @@ resource "aws_appautoscaling_policy" "server_cpu" {
   }
 }
 
-# Server Memory-based scaling policy
-resource "aws_appautoscaling_policy" "server_memory" {
-  name               = "dev-comm-ng-server-memory-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.server.resource_id
-  scalable_dimension = aws_appautoscaling_target.server.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.server.service_namespace
 
-  target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
-    }
-    target_value       = 80.0
-    scale_in_cooldown  = 300
-    scale_out_cooldown = 60
-  }
-}
-
-# Server ALB Request Count scaling policy
-resource "aws_appautoscaling_policy" "server_requests" {
-  name               = "dev-comm-ng-server-request-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.server.resource_id
-  scalable_dimension = aws_appautoscaling_target.server.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.server.service_namespace
-
-  target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ALBRequestCountPerTarget"
-      resource_label         = "${aws_lb.main.arn_suffix}/${aws_lb_target_group.server.arn_suffix}"
-    }
-    target_value       = 1000.0
-    scale_in_cooldown  = 300
-    scale_out_cooldown = 60
-  }
-}
 
 # Web Auto Scaling Target
 resource "aws_appautoscaling_target" "web" {
-  max_capacity       = 10
+  max_capacity       = 3
   min_capacity       = 1
   resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.web.name}"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -1179,42 +1182,7 @@ resource "aws_appautoscaling_policy" "web_cpu" {
   }
 }
 
-# Web Memory-based scaling policy
-resource "aws_appautoscaling_policy" "web_memory" {
-  name               = "dev-comm-ng-web-memory-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.web.resource_id
-  scalable_dimension = aws_appautoscaling_target.web.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.web.service_namespace
 
-  target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
-    }
-    target_value       = 80.0
-    scale_in_cooldown  = 300
-    scale_out_cooldown = 60
-  }
-}
-
-# Web ALB Request Count scaling policy
-resource "aws_appautoscaling_policy" "web_requests" {
-  name               = "dev-comm-ng-web-request-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.web.resource_id
-  scalable_dimension = aws_appautoscaling_target.web.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.web.service_namespace
-
-  target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ALBRequestCountPerTarget"
-      resource_label         = "${aws_lb.main.arn_suffix}/${aws_lb_target_group.web.arn_suffix}"
-    }
-    target_value       = 1000.0
-    scale_in_cooldown  = 300
-    scale_out_cooldown = 60
-  }
-}
 
 # ------------------------------------------------------------
 # Auto-Restart ECS on Secret Rotation
@@ -1307,7 +1275,7 @@ resource "aws_lambda_function" "ecs_restart_on_secret_rotation" {
 # CloudWatch Log Group for Lambda
 resource "aws_cloudwatch_log_group" "ecs_restart_lambda" {
   name              = "/aws/lambda/${aws_lambda_function.ecs_restart_on_secret_rotation.function_name}"
-  retention_in_days = 7
+  retention_in_days = 1
 
   tags = {
     Name        = "dev-comm-ng-ecs-restart-lambda-logs"
