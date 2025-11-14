@@ -412,11 +412,9 @@ describe("PolicyEngine", () => {
       expect(result).toBe(true);
 
       // User without global:admin should not have access
-      const result2 = await policyEngine.validate(
-        "2",
-        "invalidrolekey" as RoleKey,
-      );
-      expect(result2).toBe(false);
+      await expect(
+        policyEngine.validate("2", "invalidrolekey" as RoleKey),
+      ).rejects.toThrow("Malformed role key: 'invalidrolekey'");
     });
 
     it("should handle roleKey with multiple colons correctly", async () => {
