@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useId, useState } from "react";
 import DropdownSelect from "@/components/dropdown-select";
 import { icons } from "@/components/icons";
-import { LeaveChannelModal } from "@/components/modal/leave-channel-modal";
 import { TitleShell } from "@/components/layouts/title-shell";
+import { LeaveChannelModal } from "@/components/modal/leave-channel-modal";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
@@ -63,7 +63,7 @@ export default function ChannelSettingsPage({
 
   /* ============ GETTING INFO FROM SUBSCRIPTION ============ */
   // Fetch all user subscriptions
-  const { data: subscriptions, isLoading } = useQuery({
+  const { data: subscriptions } = useQuery({
     queryKey: ["userSubscriptions"],
     queryFn: async () => {
       return await trpcClient.comms.getUserSubscriptions.query();
@@ -73,13 +73,12 @@ export default function ChannelSettingsPage({
   // Find subscription ID for this channel
   useEffect(() => {
     if (subscriptions && parsedChannelId) {
-
       // Find the subscription that matches this channel
       const channelSubscription = subscriptions.find(
         (sub) => sub.channelId === parsedChannelId,
       );
 
-      // Set saved values 
+      // Set saved values
       if (channelSubscription) {
         setNotificationSetting(
           channelSubscription.notificationsEnabled ? "option2" : "option1",
@@ -108,14 +107,13 @@ export default function ChannelSettingsPage({
     if (channel) {
       setChannelName(channel.name || "");
       setChannelDescription(
-        typeof channel.metadata?.description === 'string'
+        typeof channel.metadata?.description === "string"
           ? channel.metadata.description
-          : ""
+          : "",
       );
       setIsAdmin(channel.userPermission === "admin");
     }
   }, [channels, parsedChannelId]);
-
 
   /* ============ LEAVING THE CHANNEL ============ */
   const leaveChannelMutation = useMutation(
@@ -143,7 +141,8 @@ export default function ChannelSettingsPage({
     if (!parsedChannelId) return;
 
     try {
-      if (isAdmin) { // Admin is able to change channel name, description, notif preferences
+      if (isAdmin) {
+        // Admin is able to change channel name, description, notif preferences
         await updateChannelMutation.mutateAsync({
           channelId: parsedChannelId,
           metadata: {
@@ -152,8 +151,8 @@ export default function ChannelSettingsPage({
           },
           notificationsEnabled: notificationSetting === "option2",
         });
-      }
-      else { // Non-admin can only change notif preferences
+      } else {
+        // Non-admin can only change notif preferences
         await updateChannelMutation.mutateAsync({
           channelId: parsedChannelId,
           notificationsEnabled: notificationSetting === "option2",
@@ -168,10 +167,9 @@ export default function ChannelSettingsPage({
         setShowSuccessMessage(false);
       }, 2000);
     } catch (error) {
-      console.error("Failed to save settings: ", error)
+      console.error("Failed to save settings: ", error);
     }
   };
-
 
   /* ============ CREATING THE SETTINGS PAGE ============ */
   return (
@@ -327,11 +325,11 @@ export default function ChannelSettingsPage({
       />
 
       {/* Success message */}
-        {showSuccessMessage && (
-          <div className="text-sm font-medium text-center text-primary">
-            Changes successfully saved
-          </div>
-        )}
+      {showSuccessMessage && (
+        <div className="text-sm font-medium text-center text-primary">
+          Changes successfully saved
+        </div>
+      )}
     </TitleShell>
   );
 }
