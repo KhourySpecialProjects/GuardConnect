@@ -855,22 +855,4 @@ export class CommsRepository {
       return { success: true };
     });
   }
-
-  /*async getChannelSettings(channelId: number) {
-    const [channel] = await db
-      .select({
-        channelId: channels.channelId,
-        name: channels.name,
-        description: channels.description,
-        metadata: channels.metadata,
-      })
-      .from(channels)
-      .where(eq(channels.channelId, channelId))
-      .limit(1);
-      
-    if (!channel) {
-      throw new NotFoundError("Channel not found");
-    }
-    return channel;
-  }*/
 }

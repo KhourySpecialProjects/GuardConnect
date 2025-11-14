@@ -194,15 +194,6 @@ export class CommsService {
   }
 
   /**
-   * Get channel settings by ID
-   * @param channel_id Channel ID
-   * @returns Channel settings object
-   */
-  async getChannelSettings(channel_id: number) {
-    return this.commsRepo.getChannelDataByID(channel_id);
-  }
-
-  /**
    * Update channel settings (name, posting permissions, description)
    * @param channel_id Channel ID
    * @param metadata Channel update metadata
@@ -216,6 +207,7 @@ export class CommsService {
     await this.getChannelById(channel_id);
     const updates: ((tx: Transaction) => Promise<unknown>)[] = [];
 
+    console.log("YO IM HEREEEEEEEE")
     if (metadata.name) {
       updates.push((tx: Transaction) =>
         tx
@@ -238,7 +230,7 @@ export class CommsService {
       updates.push((tx) =>
         tx
           .update(channels)
-          .set({ description: metadata.description })
+          .set({ metadata: { description: metadata.description } })
           .where(eq(channels.channelId, channel_id)),
       );
     }
