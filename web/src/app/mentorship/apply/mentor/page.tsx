@@ -415,7 +415,6 @@ export default function MentorshipApplyMentorPage() {
           />
         </div>
       </div>
-      //{" "}
     </div>
   );
 }

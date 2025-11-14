@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 interface BackgroundGradientProps {
   variant?: "mentor" | "mentee";
   className?: string;
@@ -9,7 +7,6 @@ interface BackgroundGradientProps {
 
 export default function BackgroundGradient({
   variant,
-  className,
 }: BackgroundGradientProps) {
   return (
     <div className="pointer-events-none overflow-visible">
