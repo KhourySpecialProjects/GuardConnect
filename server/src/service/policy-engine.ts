@@ -41,9 +41,9 @@ export class PolicyEngine {
   }
 
   /**
-   * Populates redis with `limit` amount of role data for quick permission lookup
-   * @param ttlSec time to live for cache
-   * @param limit number of items to cache, adjust according to system memory
+   * Populate redis cache with role data for quick permission lookup
+   * @param ttlSec Time to live for cache (default: 8 hours)
+   * @param limit Number of items to cache (default: 5000)
    */
   async populateCache(ttlSec: number = this.DEFAULT_TTL, limit: number = 5000) {
     try {
@@ -56,13 +56,13 @@ export class PolicyEngine {
   }
 
   /**
-   * Validates if a user has permission to access a resource or not.
+   * Validate if a user has permission to access a resource.
    * Accounts for role hierarchy (e.g., channel:1:admin grants channel:1:post and channel:1:read).
    * Global admins bypass all checks.
    *
-   * @param userId userId
-   * @param roleKey roleKey, for example `channel:1:read`
-   * @returns `true` or `false`
+   * @param userId User ID
+   * @param roleKey Role key (e.g., `channel:1:read`)
+   * @returns True if user has permission, false otherwise
    */
   async validate(userId: string, roleKey: RoleKey) {
     log.debug({ userId, roleKey }, "Validate perms");
@@ -106,12 +106,13 @@ export class PolicyEngine {
   }
 
   /**
-   * Grant new permission to `targetUserId`. Someone with admin permissions would call this role to grant permissions.
-   * @param userId userId of the granter
-   * @param targetUserId userId that is getting assigned the permission
-   * @param roleKey roleKey getting assigned
-   * @param ttlSec time to live, optional
-   * @returns
+   * Grant new permission to a target user
+   * @param userId User ID of the granter (must have admin permissions)
+   * @param targetUserId User ID receiving the permission
+   * @param roleKey Role key to assign
+   * @param ttlSec Time to live for cache (default: 8 hours)
+   * @returns True if successful, false otherwise
+   * @throws BadRequestError if role or user not found
    */
   async addNewPermission(
     userId: string,
@@ -143,14 +144,15 @@ export class PolicyEngine {
 
   /**
    * Create a role and assign it to a user in one transaction
-   * @param assigningUserId userId creating/assigning the role
-   * @param targetUserId userId that will receive the role
-   * @param roleKey roleKey to create (e.g., 'channel:1:admin')
-   * @param action action for the role (e.g., 'admin', 'post', 'read')
-   * @param namespace namespace for the role ('channel', 'global', etc.)
-   * @param channelId optional channelId for channel-scoped roles
-   * @param ttlSec time to live for cache, optional
-   * @returns
+   * @param assigningUserId User ID creating/assigning the role
+   * @param targetUserId User ID that will receive the role
+   * @param roleKey Role key to create (e.g., 'channel:1:admin')
+   * @param action Action for the role (e.g., 'admin', 'post', 'read')
+   * @param namespace Namespace for the role ('channel', 'global', etc.)
+   * @param channelId Optional channel ID for channel-scoped roles
+   * @param ttlSec Time to live for cache (default: 8 hours)
+   * @returns True if successful, false otherwise
+   * @throws BadRequestError if role creation fails or user not found
    */
   async createAndAssignChannelRole(
     assigningUserId: string,

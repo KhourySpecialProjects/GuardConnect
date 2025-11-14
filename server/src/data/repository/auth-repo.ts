@@ -6,7 +6,15 @@ import { type RoleNamespace, roles, userRoles, users } from "../db/schema.js";
 import { db } from "../db/sql.js";
 import type { RoleKey } from "../roles.js";
 
+/**
+ * Repository for authentication and role management operations
+ */
 export class AuthRepository {
+  /**
+   * Get all user IDs assigned to a specific role
+   * @param roleKey Role key
+   * @returns Array of user IDs
+   */
   async getUserIdsForRole(roleKey: RoleKey) {
     const rows = await db
       .select({ userId: userRoles.userId })
@@ -17,6 +25,11 @@ export class AuthRepository {
   }
 
   @Cache((userId: string) => `roles:${userId}`, 3600)
+  /**
+   * Get all role keys assigned to a user
+   * @param userId User ID
+   * @returns Array of role keys
+   */
   async getRolesForUser(userId: string) {
     const rows = await db
       .selectDistinct({
@@ -29,6 +42,11 @@ export class AuthRepository {
     return new Set(rows.map((r) => r.key));
   }
 
+  /**
+   * Get all available role keys (limited)
+   * @param limit Maximum number of roles to return (default: 5000)
+   * @returns Array of role keys
+   */
   async getRoles(limit: number = 5000) {
     const roleData = await db
       .selectDistinct({ roleKey: roles.roleKey })
@@ -38,6 +56,11 @@ export class AuthRepository {
   }
 
   @Cache((roleKey: string) => `role:id:${roleKey}`, 3600)
+  /**
+   * Get the role ID for a given role key
+   * @param roleKey Role key
+   * @returns Role ID or null if not found
+   */
   async getRoleId(roleKey: RoleKey) {
     const roleData = await db
       .selectDistinct({
@@ -52,6 +75,11 @@ export class AuthRepository {
     return roleData[0]?.roleId ?? null;
   }
 
+  /**
+   * Check if a user exists by user ID
+   * @param userId User ID
+   * @returns True if user exists, false otherwise
+   */
   async checkIfUserExists(userId: string) {
     const ct = await db
       .select({ value: count() })
@@ -60,6 +88,15 @@ export class AuthRepository {
     return ct.length > 0;
   }
 
+  /**
+   * Create a new role
+   * @param roleKey Role key
+   * @param action Action string
+   * @param namespace Role namespace
+   * @param channelId Optional channel ID
+   * @param subjectId Optional subject ID
+   * @returns Created role object or null on error
+   */
   async createRole(
     roleKey: RoleKey,
     action: string,
@@ -92,6 +129,14 @@ export class AuthRepository {
     }
   }
 
+  /**
+   * Grant a role to a user
+   * @param userId User ID granting the role
+   * @param targetUserId Target user ID to receive the role
+   * @param roleId Role ID
+   * @param roleKey Role key
+   * @returns True if granted, false otherwise
+   */
   async grantAccess(
     userId: string,
     targetUserId: string,
