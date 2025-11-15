@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { channels } from "../data/db/schema.js";
+import { channelRole } from "../data/roles.js";
 import type {
   CommsRepository,
   Transaction,
@@ -118,7 +119,7 @@ export class CommsService {
     if (existingMessage.senderId !== user_id) {
       const isAdmin = await policyEngine.validate(
         user_id,
-        `channel:${channel_id}:admin`,
+        channelRole("admin", channel_id),
       );
 
       if (!isAdmin) {
@@ -200,7 +201,7 @@ export class CommsService {
     }
     const isAdmin = await policyEngine.validate(
       user_id,
-      `channel:${channel_id}:admin`,
+      channelRole("admin", channel_id),
     );
     if (!isAdmin) {
       throw new ForbiddenError(
@@ -218,7 +219,7 @@ export class CommsService {
     await this.getChannelById(channel_id);
     const isAdmin = await policyEngine.validate(
       user_id,
-      `channel:${channel_id}:admin`,
+      channelRole("admin", channel_id),
     );
 
     if (isAdmin) {
@@ -242,7 +243,7 @@ export class CommsService {
     // Verify the requester is admin
     const isAdmin = await policyEngine.validate(
       user_id,
-      `channel:${channel_id}:admin`,
+      channelRole("admin", channel_id),
     );
     if (!isAdmin) {
       throw new ForbiddenError(
@@ -282,9 +283,10 @@ export class CommsService {
     }
 
     // Check if user already has a role in this channel
+    const roleKey = channelRole("read", channel_id);
     const hasRole = await policyEngine.validate(
       user_id,
-      `channel:${channel_id}:read`,
+      roleKey,
     );
 
     if (hasRole) {
@@ -292,7 +294,6 @@ export class CommsService {
     }
 
     // Create read role and assign it to the user
-    const roleKey = `channel:${channel_id}:read`;
     await policyEngine.createRoleAndAssign(
       user_id,
       user_id,
@@ -303,10 +304,11 @@ export class CommsService {
     );
 
     if (channelData?.postPermissionLevel === "everyone") {
+      const postRoleKey = channelRole("post", channel_id);
       await policyEngine.createRoleAndAssign(
         user_id,
         user_id,
-        `channel:${channel_id}:post`,
+        postRoleKey,
         "post",
         "channel",
         channel_id,

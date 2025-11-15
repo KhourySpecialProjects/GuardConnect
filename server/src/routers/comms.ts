@@ -1,8 +1,9 @@
 import { CommsRepository } from "../data/repository/comms-repo.js";
+import { channelRole } from "../data/roles.js";
 import { CommsService } from "../service/comms-service.js";
 import { policyEngine } from "../service/policy-engine.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
-import { protectedProcedure, router } from "../trpc/trpc.js";
+import { ensureHasRole, protectedProcedure, router } from "../trpc/trpc.js";
 import {
   createChannelSchema,
   createSubscriptionSchema,
@@ -19,11 +20,7 @@ import {
   toggleReactionSchema,
   updateChannelSchema,
 } from "../types/comms-types.js";
-import {
-  ForbiddenError,
-  InternalServerError,
-  UnauthorizedError,
-} from "../types/errors.js";
+import { ForbiddenError, InternalServerError } from "../types/errors.js";
 import log from "../utils/logger.js";
 import { fileService } from "./files.js";
 
@@ -37,20 +34,10 @@ const commsService = new CommsService(commsRepo);
 const createPost = protectedProcedure
   .input(postPostSchema)
   .mutation(async ({ ctx, input }) => {
+    ensureHasRole(ctx, [channelRole("post", input.channelId)]);
+
     const userId = ctx.auth.user.id;
-
     await commsService.getChannelById(input.channelId);
-
-    const canPost = await policyEngine.validate(
-      userId,
-      `channel:${input.channelId}:post`,
-    );
-
-    if (!canPost) {
-      throw new ForbiddenError(
-        "You do not have permission to post in this channel",
-      );
-    }
 
     const createdPost = await commsService.createMessage(
       userId,
@@ -88,17 +75,7 @@ const getChannelMessages = protectedProcedure
     // Verify the channel exists first
     await commsService.getChannelById(input.channelId);
 
-    // Check if user has read permission in this channel
-    const isInChannel = await policyEngine.validate(
-      userId,
-      `channel:${input.channelId}:read`,
-    );
-
-    if (!isInChannel) {
-      throw new ForbiddenError(
-        "You are not a member of this channel. Please join the channel to view messages.",
-      );
-    }
+    ensureHasRole(ctx, [channelRole("read", input.channelId)]);
 
     log.debug(
       { userId, channelId: input.channelId },
@@ -111,18 +88,8 @@ const getChannelMessages = protectedProcedure
 const toggleMessageReaction = protectedProcedure
   .input(toggleReactionSchema)
   .mutation(async ({ ctx, input }) => {
+    ensureHasRole(ctx, [channelRole("read", input.channelId)]);
     const userId = ctx.auth.user.id;
-
-    const canRead = await policyEngine.validate(
-      userId,
-      `channel:${input.channelId}:read`,
-    );
-
-    if (!canRead) {
-      throw new ForbiddenError(
-        "You do not have permission to react in this channel",
-      );
-    }
 
     const message = await commsRepo.getMessageById(input.messageId);
 
@@ -152,18 +119,8 @@ const toggleMessageReaction = protectedProcedure
 const editPost = protectedProcedure
   .input(editPostSchema)
   .mutation(async ({ ctx, input }) => {
+    ensureHasRole(ctx, [channelRole("post", input.channelId)]);
     const userId = ctx.auth.user.id;
-
-    const canPost = await policyEngine.validate(
-      userId,
-      `channel:${input.channelId}:post`,
-    );
-
-    if (!canPost) {
-      throw new ForbiddenError(
-        "You do not have permission to edit posts in this channel",
-      );
-    }
 
     const updatedPost = await commsService.editMessage(
       userId,
@@ -214,7 +171,7 @@ const createChannel = protectedProcedure
       }
 
       // Create admin role and assign it to the channel creator
-      const roleKey = `channel:${channelCreationResult.channelId}:admin`;
+      const roleKey = channelRole("admin", channelCreationResult.channelId);
       await policyEngine.createRoleAndAssign(
         userId,
         userId,
@@ -249,14 +206,7 @@ const updateChannelSettings = protectedProcedure
   .input(updateChannelSchema)
   .mutation(({ ctx, input }) =>
     withErrorHandling("updateChannel", async () => {
-      const userId = ctx.auth.user.id;
-      const accessible = await policyEngine.validate(
-        userId,
-        `channel:${input.channelId}:admin`,
-      );
-      if (!accessible) {
-        throw new UnauthorizedError("Invalid Request");
-      }
+      ensureHasRole(ctx, [channelRole("admin", input.channelId)]);
       return await commsService.updateChannelSettings(
         input.channelId,
         input.metadata,
