@@ -1,3 +1,4 @@
+import { AuthRepository } from "../data/repository/auth-repo.js";
 import { UserRepository } from "../data/repository/user-repo.js";
 import { UserService } from "../service/user-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
@@ -10,6 +11,7 @@ import {
 } from "../types/user-types.js";
 
 const userService = new UserService(new UserRepository());
+const authRepository = new AuthRepository();
 
 const getUserData = protectedProcedure
   .input(getUserDataInputSchema)
@@ -61,9 +63,23 @@ const updateUserProfile = protectedProcedure
     });
   });
 
+const getUserRoles = protectedProcedure
+  .meta({
+    description:
+      "Get all roles for the current user, including implied permissions from role hierarchy",
+  })
+  .query(async ({ ctx }) => {
+    return withErrorHandling("getUserRoles", async () => {
+      const userId = ctx.auth.user.id;
+      const roles = await authRepository.getAllImpliedRolesForUser(userId);
+      return Array.from(roles);
+    });
+  });
+
 export const userRouter = router({
   getUserData,
   checkEmailExists,
   createUserProfile,
   updateUserProfile,
+  getUserRoles,
 });
