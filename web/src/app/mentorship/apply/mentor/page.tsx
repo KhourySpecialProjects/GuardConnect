@@ -13,7 +13,7 @@ import {
 
 export default function MentorshipApplyMentorPage() {
   const [positionSelection, setPositionSelection] = useState<string>("");
-  const [_rankSelection, _setRankSelection] = useState<string>("");
+  const [rankSelection, setRankSelection] = useState<string>("");
   const [files, setFiles] = useState<File[] | undefined>();
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
 
@@ -88,19 +88,19 @@ export default function MentorshipApplyMentorPage() {
   const [availableMentorHours, setAvailableMentorHours] = useState("");
 
   return (
-    <div className="overflow-hidden bg-gradient-to-br">
-      {/* background gradient */}
-      <div className="pointer-events-none absolute -left-40 top-24 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-40 blur-[120px]" />
-      {/* <div className="pointer-events-none absolute bottom-[-120px] right-[-80px] h-[520px] w-[520px] rounded-full bg-blue-200 opacity-70 blur-[160px]" /> */}
-      <div className="pointer-events-none absolute left-0 top-524 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
-      <div className="pointer-events-none absolute right-70 top-280 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
-      <div className="pointer-events-none absolute right-20 top-450 h-[420px] w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
-      <div className="pointer-events-none absolute right-50 top-650 h-[420px] w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
-      <div className="pointer-events-none absolute left-0 top-824 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
-      <div className="pointer-events-none absolute right-20 top-750 h-[420px] w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-40 top-924 h-[420px] w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-gradient-to-br">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -left-40 top-24 h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-yellow-600 opacity-40 blur-[120px]" />
+        <div className="absolute left-0 top-52 h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+        <div className="absolute right-10 top-72 h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+        <div className="absolute right-4 top-96 h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
+        <div className="absolute right-8 top-[28rem] h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
+        <div className="absolute left-0 top-[34rem] h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+        <div className="absolute right-6 top-[40rem] h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-blue-200 opacity-70 blur-[120px]" />
+        <div className="absolute -right-24 top-[46rem] h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] rounded-full bg-yellow-600 opacity-20 blur-[120px]" />
+      </div>
 
-      <div className="relative mx-4 flex w-full flex-col items-left justify-center sm:gap-16 px-8 sm:px-10 lg:px-20 py-10 gap-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-left justify-center gap-8 px-4 py-10 sm:gap-16 sm:px-6 lg:px-8">
         <div className="flex flex-col items-left gap-3">
           <h1 className="text-3xl font-semibold text-secondary sm:text-4xl lg:text-5xl">
             Mentor Onboarding Application
@@ -118,7 +118,7 @@ export default function MentorshipApplyMentorPage() {
 
         <div className="flex flex-col items-start space-y-2">
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
+            <h1 className="mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               1. What is your current position in the MA National Guard?*
             </h1>
             <SingleSelectButtonGroup
@@ -334,18 +334,19 @@ export default function MentorshipApplyMentorPage() {
                   ],
                 },
               ]}
-              value={positionSelection}
-              onChange={setPositionSelection}
+              value={rankSelection}
+              onChange={setRankSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
           </section>
+
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
+            <h1 className="mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               3. Upload a resume to share your educational and career history
               with potential mentees.
             </h1>
             <Dropzone
-              className="max-w-3xl mb-3"
+              className="mb-3 max-w-3xl"
               onDrop={(files) => {
                 setFiles(files);
               }}
@@ -356,6 +357,7 @@ export default function MentorshipApplyMentorPage() {
               <DropzoneContent />
             </Dropzone>
           </section>
+
           <section>
             <span className="max-w-3xl text-left text-xs text-secondary sm:text-sm">
               4. Select your greatest personal and professional strengths.*{" "}
@@ -370,6 +372,7 @@ export default function MentorshipApplyMentorPage() {
               maxSelections={5}
             />
           </section>
+
           <section>
             <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               5. What are your personal interests*{" "}
@@ -386,7 +389,7 @@ export default function MentorshipApplyMentorPage() {
           </section>
 
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mt-3 mb-3">
+            <h1 className="mt-3 mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               6. What are you interested in becoming a mentor?*
             </h1>
             <DragReorderFrame
@@ -422,7 +425,7 @@ export default function MentorshipApplyMentorPage() {
           </section>
 
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-3">
+            <h1 className="mb-3 mt-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               7. What is one piece of advice that you wish you had received
               earlier in your career?
             </h1>
@@ -440,9 +443,9 @@ export default function MentorshipApplyMentorPage() {
           </section>
 
           <section>
-            <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
+            <span className="mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               8. Are there specific career stages that you would like to
-              mentor?* {""}
+              mentor?*{" "}
               <span className="text-yellow-600">(Select all that apply)</span>
             </span>
             <MultiSelect
@@ -456,7 +459,7 @@ export default function MentorshipApplyMentorPage() {
           </section>
 
           <section>
-            <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
+            <span className="mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               9. What meeting formats do you prefer?*{" "}
               <span className="text-yellow-600">(Select all that apply)</span>
             </span>
@@ -471,7 +474,7 @@ export default function MentorshipApplyMentorPage() {
           </section>
 
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-3">
+            <h1 className="mb-3 mt-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               10. How much time would you like to spend with your mentor?*
             </h1>
             <TextInput
@@ -485,7 +488,7 @@ export default function MentorshipApplyMentorPage() {
           </section>
 
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-3">
+            <h1 className="mb-3 mt-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               11. How much time can you commit per month to mentoring?*{" "}
             </h1>
             <TextInput

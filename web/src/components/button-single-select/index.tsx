@@ -11,7 +11,7 @@ type DropdownOption = { label: string; value: string };
 type Option = {
   label: string;
   value: string;
-  dropdownOptions?: DropdownOption[]; // optional nested dropdown
+  dropdownOptions?: DropdownOption[];
 };
 
 interface SingleSelectButtonGroupProps {
@@ -39,7 +39,9 @@ export function SingleSelectButtonGroup({
   >({});
 
   return (
-    <fieldset className={cn("flex flex-col items-start gap-2", className)}>
+    <fieldset
+      className={cn("flex w-full flex-col items-start gap-2", className)}
+    >
       <legend className="sr-only">{legend}</legend>
 
       {options.map((option) => {
@@ -55,10 +57,10 @@ export function SingleSelectButtonGroup({
               type="button"
               variant="ghost"
               className={cn(
-                "w-full max-w-xs justify-start rounded-md px-3 py-2 transition-all",
+                "w-full justify-start rounded-md px-3 py-2 transition-all",
                 isActive
                   ? "bg-primary/10 text-primary hover:bg-primary/20"
-                  : "text-muted-foreground hover:text-primary hover:bg-primary/5",
+                  : "text-muted-foreground hover:bg-primary/5 hover:text-primary",
               )}
               onClick={() => onChange(option.value)}
               title={option.label}
@@ -76,9 +78,9 @@ export function SingleSelectButtonGroup({
               </span>
             </Button>
 
-            {/* Dropdown appears ONLY after this option is selected */}
+            {/* Child dropdown & optional "Other" text input */}
             {isActive && hasDropdown && option.dropdownOptions && (
-              <div className="mt-2 ml-6 flex-col gap-2">
+              <div className="mt-2 flex w-full flex-col gap-2 pl-6">
                 <DropdownSelect
                   options={option.dropdownOptions}
                   value={dropdownValue}
@@ -91,10 +93,9 @@ export function SingleSelectButtonGroup({
                   }}
                 />
 
-                {/* Show TextInput if "Other" is selected */}
                 {dropdownValue === "other" && (
                   <TextInput
-                    className="background-neutral-100 mt-2 w-full w-[332px]"
+                    className="mt-2 bg-neutral-100"
                     placeholder="Please specify your position"
                     value={otherTextValues[option.value] || ""}
                     onChange={(text) =>
