@@ -8,7 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-type CollapsibleCardProps = {
+export type CollapsibleCardProps = {
   name: string;
   rank: string;
   job: string;
