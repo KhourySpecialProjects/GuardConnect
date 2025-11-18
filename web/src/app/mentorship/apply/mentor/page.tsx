@@ -213,7 +213,7 @@ export default function MentorshipApplyMentorPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [multiLineText, setMultiLineText] = useState("");
   const [selectedCareerStages, setSelectedCareerStages] = useState<string[]>(
-    [],
+    []
   );
   const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<
     string[]
@@ -252,7 +252,9 @@ export default function MentorshipApplyMentorPage() {
               onChange={setPositionSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
+          </section>
 
+          <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               2. What is your current rank in the MA National Guard?*
             </h1>
@@ -262,7 +264,9 @@ export default function MentorshipApplyMentorPage() {
               onChange={setMentorRankSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
+          </section>
 
+          <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
               3. Upload a resume to share your educational and career history
               with potential mentees.
@@ -278,7 +282,9 @@ export default function MentorshipApplyMentorPage() {
               <DropzoneEmptyState />
               <DropzoneContent />
             </Dropzone>
+          </section>
 
+          <section>
             <span className="max-w-3xl text-left text-xs text-secondary sm:text-sm">
               4. Select your greatest personal and professional strengths.*{" "}
               <span className="text-accent">(Select up to 5)</span>
@@ -291,7 +297,9 @@ export default function MentorshipApplyMentorPage() {
               onChange={setSelectedQualities}
               maxSelections={5}
             />
+          </section>
 
+          <section>
             <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               5. What are your personal interests*{" "}
               <span className="text-accent">(Select all that apply)</span>
@@ -304,7 +312,9 @@ export default function MentorshipApplyMentorPage() {
               onChange={setSelectedInterests}
               maxSelections={9}
             />
+          </section>
 
+          <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mt-3 mb-3">
               6. What are you interested in becoming a mentor?*
             </h1>
@@ -338,7 +348,9 @@ export default function MentorshipApplyMentorPage() {
               ]}
               onChange={() => {}}
             />
+          </section>
 
+          <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-3">
               7. What is one piece of advice that you wish you had received
               earlier in your career?
@@ -354,7 +366,9 @@ export default function MentorshipApplyMentorPage() {
               className="border-primary bg-neutral-100"
               counterColor="text-primary"
             />
+          </section>
 
+          <section>
             <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
               8. Are there specific career stages that you would like to
               mentor?* {""}
@@ -368,7 +382,9 @@ export default function MentorshipApplyMentorPage() {
               onChange={setSelectedCareerStages}
               maxSelections={7}
             />
+          </section>
 
+          <section>
             <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
               9. What meeting formats do you prefer?*{" "}
               <span className="text-accent">(Select all that apply)</span>
@@ -395,7 +411,8 @@ export default function MentorshipApplyMentorPage() {
               className="border-neutral "
               counterColor="#CDCDCD"
             />
-
+          </section>
+          <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-4">
               11. How much time can you commit per month to mentoring?*{" "}
             </h1>

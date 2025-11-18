@@ -81,7 +81,7 @@ export function MultiSelect({
       }
     >
       {label && (
-        <legend className="text-md font-semibold text-secondary">
+        <legend className="text-sm font-semibold text-secondary">
           {label}
         </legend>
       )}
@@ -116,7 +116,7 @@ export function MultiSelect({
                 key={option.value}
                 htmlFor={optionId}
                 className={cn(
-                  "group flex w-full items-center gap-4 rounded-lg border border-transparent bg-background px-3 py-3 text-left transition",
+                  "group flex items-center gap-3 rounded-lg border border-transparent px-3 py-0 text-left transition",
                   "hover:bg-primary/5",
                   isDisabled
                     ? "cursor-not-allowed opacity-60"
@@ -147,8 +147,8 @@ export function MultiSelect({
                 >
                   {selected && <CheckIcon className="text-accent size-5" />}
                 </span>
-                <span className="flex flex-col gap-1 text-left">
-                  <span className="text-base font-medium text-secondary">
+                <span className="flex flex-col text-left">
+                  <span className="text-sm font-medium text-secondary">
                     {option.label}
                   </span>
                   {option.description && (

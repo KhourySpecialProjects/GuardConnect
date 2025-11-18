@@ -224,7 +224,9 @@ export default function MentorshipApplyMenteePage() {
               onChange={setPositionSelection}
               onDropdownChange={(parent, child) => console.log(parent, child)}
             />
+          </section>
 
+          <section>
             <h1 className="max-w-3xl mt-3 mb-3 text-left text-xs font-large text-secondary sm:text-sm">
               2. What is your current rank in the MA National Guard?*
             </h1>
