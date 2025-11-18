@@ -291,7 +291,7 @@ const Components = () => {
         onMobileClose={() => setMobileNavOpen(false)}
       />
 
-      <main className="min-h-screen bg-background px-4 pb-16 pt-20 sm:px-6 lg:pl-[21rem] lg:pr-12 lg:pt-16">
+      <main className="min-h-screen bg-background px-4 pb-16 pt-20 sm:px-6 lg:pl-[25rem] lg:pr-16 lg:pt-16">
         <div className="mx-auto flex w-full app-content-width flex-col gap-10">
           <div className="flex justify-start lg:hidden">
             <button
@@ -458,7 +458,7 @@ const Components = () => {
           <section className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-subheader font-semibold text-secondary">
-                Member List View
+                Member List View...
               </h2>
             </div>
             <ListView />

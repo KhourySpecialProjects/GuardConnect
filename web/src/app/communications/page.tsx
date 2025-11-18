@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import ChannelCard from "@/components/channel-card";
 import { type IconName, icons } from "@/components/icons";
-import { MobileNavTrigger } from "@/components/layouts/navigation-shell";
+import { TitleShell } from "@/components/layouts/title-shell";
+import { Protected } from "@/components/rbac/Protected";
 import SearchBar from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,13 +26,15 @@ type ChannelMetadata = {
   imageFileId?: string;
 };
 
-function resolveIconName(icon?: string): IconName {
-  if (icon && icon in icons) {
-    return icon as IconName;
-  }
-  return "communications";
+type ChannelPostPermission = "admin" | "everyone" | "custom";
+
+function resolveChannelCardIcon(
+  level?: ChannelPostPermission | null,
+): IconName {
+  return level === "admin" ? "announce" : "communications";
 }
 
+// CommunicationsOverviewPage is the landing surface for the comms product: channel discovery, broadcast entry points, and asset prefetching for faster navigation into detail views.
 export default function CommunicationsOverviewPage() {
   const trpc = useTRPC();
   const trpcClient = useTRPCClient();
@@ -61,6 +64,7 @@ export default function CommunicationsOverviewPage() {
         return metadata?.imageFileId;
       })
       .filter(
+        // Seeded metadata already stores a direct pathname/URL; skip those to avoid double-fetching assets the browser can load on its own
         (fileId): fileId is string =>
           !!fileId && !fileId.startsWith("/") && !fileId.startsWith("http"),
       );
@@ -146,7 +150,7 @@ export default function CommunicationsOverviewPage() {
           variant="outline"
           size="icon"
           className={cn(
-            "relative rounded-full border border-border bg-card text-primary transition hover:bg-primary/10",
+            "relative rounded-full border border-border bg-card text-primary transition hover:bg-primary/10 shadow-none",
             triggerClassName,
           )}
           aria-label="Open create menu"
@@ -178,78 +182,57 @@ export default function CommunicationsOverviewPage() {
     </DropdownMenu>
   );
 
-  const pageTitle: string | undefined = undefined;
-
   const gridClassName =
     "grid w-full grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] justify-items-center gap-6 sm:gap-8 2xl:gap-10";
 
   return (
-    <div className="mx-auto flex w-full app-content-width flex-col gap-8 px-4 sm:px-12">
-      <header className="pt-2">
-        {/* Mobile actions */}
-        <div className="flex flex-col gap-4 sm:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <MobileNavTrigger />
-              {pageTitle ? (
-                <span className="text-xl font-semibold text-secondary">
-                  {pageTitle}
-                </span>
-              ) : null}
-            </div>
-            <div className="flex items-center gap-2">
-              <CreationMenu />
-              <Button
-                asChild
-                variant="ghost"
-                size="icon"
-                className="relative rounded-full border border-border bg-card text-secondary shadow-sm transition hover:text-primary"
+    <TitleShell
+      title={
+        <SearchBar
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search channels"
+          aria-label="Search communication channels"
+          containerClassName="w-full max-w-xs"
+          className="h-[41px] w-full"
+        />
+      }
+      actions={
+        <>
+          {/* Mobile actions */}
+          <div className="flex items-center gap-2 sm:hidden">
+            <CreationMenu />
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full border border-border bg-card text-secondary transition hover:text-primary"
+            >
+              <Link
+                href="/communications/broadcasts"
+                aria-label="Open broadcasts"
               >
-                <Link
-                  href="/communications/broadcasts"
-                  aria-label="Open broadcasts"
-                >
-                  <BellIcon className="h-5 w-5 text-secondary" />
-                  {hasActiveBroadcast ? (
-                    <span className="absolute right-2 top-2 inline-flex h-2 w-2 rounded-full bg-error" />
-                  ) : null}
-                </Link>
-              </Button>
-            </div>
+                <BellIcon className="h-5 w-5 text-primary" />
+                {hasActiveBroadcast ? (
+                  <span className="absolute right-2 top-2 inline-flex h-2 w-2 rounded-full bg-error" />
+                ) : null}
+              </Link>
+            </Button>
           </div>
 
-          <div className="flex w-full px-2">
-            <SearchBar
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search channels"
-              aria-label="Search communication channels"
-              containerClassName="w-full"
-              className="h-[41px] w-full"
-            />
-          </div>
-        </div>
+          {/* Desktop actions */}
+          <div className="hidden items-center gap-3 sm:flex">
+            <Button asChild variant="outline" className="gap-2">
+              <Link
+                href="/communications/channels/new"
+                aria-label="Create a new channel"
+              >
+                <AddIcon className="h-5 w-5 text-accent" aria-hidden="true" />
+                Channel
+              </Link>
+            </Button>
 
-        {/* Tablet/Desktop actions */}
-        <div className="hidden flex-col gap-4 sm:flex">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <MobileNavTrigger className="text-primary" />
-              {pageTitle ? (
-                <h1 className="text-3xl font-semibold text-secondary">
-                  {pageTitle}
-                </h1>
-              ) : null}
-              <Button asChild variant="outline" className="gap-2">
-                <Link
-                  href="/communications/channels/new"
-                  aria-label="Create a new channel"
-                >
-                  <AddIcon className="h-5 w-5 text-accent" aria-hidden="true" />
-                  Channel
-                </Link>
-              </Button>
-
+            <Protected requiredRole="broadcast:create">
               <Button asChild variant="outline" className="gap-2">
                 <Link
                   href="/communications/broadcasts/new"
@@ -259,86 +242,82 @@ export default function CommunicationsOverviewPage() {
                   Broadcast
                 </Link>
               </Button>
-            </div>
+            </Protected>
 
-            <div className="flex flex-1 min-w-0 items-center gap-3 justify-end">
-              <SearchBar
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search channels"
-                aria-label="Search communication channels"
-                containerClassName="flex-1 max-w-xs"
-                className="h-[41px] w-full"
-              />
-              <Button
-                asChild
-                variant="ghost"
-                size="icon"
-                className="group relative rounded-full border border-border bg-background text-secondary hover:bg-primary hover:text-primary transition"
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="group relative rounded-full border border-border bg-background text-secondary hover:bg-primary hover:text-primary transition"
+            >
+              <Link
+                href="/communications/broadcasts"
+                aria-label="Open broadcasts"
               >
-                <Link
-                  href="/communications/broadcasts"
-                  aria-label="Open broadcasts"
-                >
-                  <BellIcon className="h-5 w-5 text-secondary transition group-hover:text-background" />
-                  {hasActiveBroadcast ? (
-                    <span className="absolute right-2 top-2 inline-flex h-2 w-2 rounded-full bg-error" />
-                  ) : null}
-                </Link>
-              </Button>
-            </div>
+                <BellIcon className="h-5 w-5 text-primary transition group-hover:text-background" />
+                {hasActiveBroadcast ? (
+                  <span className="absolute right-2 top-2 inline-flex h-2 w-2 rounded-full bg-error" />
+                ) : null}
+              </Link>
+            </Button>
           </div>
-        </div>
-      </header>
+        </>
+      }
+      scrollableContent={false}
+      contentClassName="md:pr-0"
+    >
+      <div className="mx-auto flex w-full app-content-width flex-col gap-8 px-4 sm:px-12">
+        {isLoading ? (
+          <section className="grid h-64 place-items-center rounded-2xl border border-primary/20 bg-card text-secondary/70">
+            Loading channels…
+          </section>
+        ) : channels.length === 0 ? (
+          <section className="grid h-64 place-items-center rounded-2xl border border-primary/20 bg-card text-secondary/70">
+            No channels match "{search.trim()}".
+          </section>
+        ) : (
+          <section className={gridClassName}>
+            {channels.map((channel, index) => {
+              const metadata = (channel.metadata ?? {}) as ChannelMetadata;
+              const description =
+                metadata.summary ??
+                metadata.description ??
+                "Demo communications channel";
+              const postPermissionLevel =
+                "postPermissionLevel" in channel
+                  ? (channel.postPermissionLevel ?? null)
+                  : null;
+              const iconName = resolveChannelCardIcon(postPermissionLevel);
+              // Prioritize loading the first 3 images for better LCP
+              const isPriority = index < 3;
 
-      {pageTitle ? <h1 className="sr-only">{pageTitle}</h1> : null}
+              // Get pre-fetched image URL or use original if it's a direct path
+              const imageFileId = metadata.imageFileId
+                ? metadata.imageFileId.startsWith("/") ||
+                  metadata.imageFileId.startsWith("http")
+                  ? metadata.imageFileId
+                  : imageUrls.get(metadata.imageFileId)
+                : undefined;
 
-      {isLoading ? (
-        <section className="grid h-64 place-items-center rounded-2xl border border-primary/20 bg-card text-secondary/70">
-          Loading channels…
-        </section>
-      ) : channels.length === 0 ? (
-        <section className="grid h-64 place-items-center rounded-2xl border border-primary/20 bg-card text-secondary/70">
-          No channels match “{search.trim()}”.
-        </section>
-      ) : (
-        <section className={gridClassName}>
-          {channels.map((channel, index) => {
-            const metadata = (channel.metadata ?? {}) as ChannelMetadata;
-            const description =
-              metadata.summary ??
-              metadata.description ??
-              "Demo communications channel";
-            const iconName = resolveIconName(metadata.icon);
-            // Prioritize loading the first 3 images for better LCP
-            const isPriority = index < 3;
-
-            // Get pre-fetched image URL or use original if it's a direct path
-            const imageFileId = metadata.imageFileId
-              ? metadata.imageFileId.startsWith("/") ||
-                metadata.imageFileId.startsWith("http")
-                ? metadata.imageFileId
-                : imageUrls.get(metadata.imageFileId)
-              : undefined;
-
-            return (
-              <div
-                key={channel.channelId}
-                className="flex w-full justify-center"
-              >
-                <ChannelCard
-                  href={`/communications/${channel.channelId}`}
-                  title={channel.name}
-                  description={description}
-                  iconName={iconName}
-                  imageFileId={imageFileId}
-                  priority={isPriority}
-                />
-              </div>
-            );
-          })}
-        </section>
-      )}
-    </div>
+              return (
+                <div
+                  key={channel.channelId}
+                  className="flex w-full justify-center"
+                >
+                  <ChannelCard
+                    href={`/communications/${channel.channelId}`}
+                    title={channel.name}
+                    description={description}
+                    iconName={iconName}
+                    imageFileId={imageFileId}
+                    priority={isPriority}
+                  />
+                </div>
+              );
+            })}
+          </section>
+        )}
+      </div>
+    </TitleShell>
   );
 }

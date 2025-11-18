@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { RoleKey } from "../roles.js";
 
 // Enums
 export const permissionEnum = pgEnum("permission_enum", [
@@ -42,8 +43,10 @@ export const roleNamespaceEnum = pgEnum("role_namespace_enum", [
   "global",
   "channel",
   "mentor",
-  "feature",
+  "broadcast",
+  "reporting",
 ]);
+export type RoleNamespace = (typeof roleNamespaceEnum.enumValues)[number];
 
 export const channelPostPermissionEnum = pgEnum(
   "channel_post_permission_enum",
@@ -161,6 +164,7 @@ export const channels = pgTable(
  * - Use subjectId to express the logical area the role controls; combine with namespace and action
  *   (and channelId when relevant) to form a stable roleKey.
  */
+
 export const roles = pgTable(
   "roles",
   {
@@ -168,7 +172,7 @@ export const roles = pgTable(
     namespace: roleNamespaceEnum("namespace").notNull(),
     subjectId: text("subject_id"),
     action: text("action").notNull(),
-    roleKey: text("role_key").notNull(),
+    roleKey: text("role_key").notNull().$type<RoleKey>(),
     channelId: integer("channel_id").references(() => channels.channelId, {
       onDelete: "cascade",
     }),
@@ -346,7 +350,9 @@ export const mentors = pgTable(
     mentorshipPreferences: text("mentorship_preferences"),
     rank: text("rank"),
     yearsOfService: integer("years_of_service"),
-    eligibilityData: jsonb("eligibility_data"),
+    eligibilityData: jsonb("eligibility_data").$type<
+      Record<string, unknown> | null | undefined
+    >(),
     status: mentorStatusEnum("status").default("requested").notNull(),
   },
   (table) => [
@@ -544,6 +550,37 @@ export const reportAttachments = pgTable(
   ],
 );
 
+// INVITE CODES - for managing user invitations with role assignments
+export const inviteCodes = pgTable(
+  "invite_codes",
+  {
+    codeId: integer("code_id").primaryKey().generatedAlwaysAsIdentity(),
+    code: text("code").notNull(),
+    roleKeys: jsonb("role_keys").$type<RoleKey[]>().notNull(),
+    createdBy: text("created_by")
+      .references(() => users.id, { onDelete: "set null" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: false }).notNull(),
+    usedBy: text("used_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    usedAt: timestamp("used_at", { withTimezone: false }),
+    revokedBy: text("revoked_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    revokedAt: timestamp("revoked_at", { withTimezone: false }),
+  },
+  (table) => [
+    uniqueIndex("ux_invite_codes_code").on(table.code),
+    index("ix_invite_codes_created_by").on(table.createdBy),
+    index("ix_invite_codes_used_by").on(table.usedBy),
+    index("ix_invite_codes_expires_at").on(table.expiresAt),
+  ],
+);
+
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
 export type Role = typeof roles.$inferSelect;
@@ -558,3 +595,5 @@ export type Report = typeof reports.$inferSelect;
 export type NewReport = typeof reports.$inferInsert;
 export type ReportAttachment = typeof reportAttachments.$inferSelect;
 export type NewReportAttachment = typeof reportAttachments.$inferInsert;
+export type InviteCode = typeof inviteCodes.$inferSelect;
+export type NewInviteCode = typeof inviteCodes.$inferInsert;
