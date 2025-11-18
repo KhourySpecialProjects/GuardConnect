@@ -8,6 +8,7 @@ import {
   ChevronRight,
   CircleQuestionMark,
   EllipsisVertical,
+  ExternalLink,
   GripVertical,
   Lock,
   Megaphone,
@@ -61,6 +62,7 @@ export const icons = {
   user: User,
   drag: GripVertical,
   help: CircleQuestionMark,
+  externalLink: ExternalLink,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof icons;

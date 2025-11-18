@@ -9,7 +9,7 @@ type LinkedCardProps = {
 };
 
 export const LinkedCard = ({ children, href }: LinkedCardProps) => {
-  const Icon = icons.arrowRight;
+  const Icon = icons.externalLink;
 
   return (
     <a
@@ -23,7 +23,7 @@ export const LinkedCard = ({ children, href }: LinkedCardProps) => {
           <div className="text-secondary text-subheader font-semibold group-hover:text-white flex-1">
             {children}
           </div>
-          <Icon className="text-accent w-10 h-10 shrink-0" />
+          <Icon className="text-accent w-6 h-6 shrink-0" />
         </div>
       </Card>
     </a>
