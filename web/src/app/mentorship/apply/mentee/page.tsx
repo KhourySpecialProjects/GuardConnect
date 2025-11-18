@@ -195,11 +195,10 @@ export default function MentorshipApplyMenteePage() {
 
   return (
     <div className="flex flex-col flex-wrap w-full">
-      <BackgroundGradient variant="mentee" />
-      <div className="relative mx-4 flex w-full flex-col items-left justify-center sm:gap-16 px-8 sm:px-10 lg:px-20 py-10 gap-8">
+      <div className="relative mx-4 flex w-full flex-col items-left justify-center sm:gap-16 px-8 sm:px-10 lg:px-20 py-10">
         {/* Page Intro */}
-        <div className="flex flex-col items-left gap-2">
-          <h1 className="text-3xl font-semibold text-secondary sm:text-4xl lg:text-5xl">
+        <div className="flex flex-col items-left space-y-8">
+          <h1 className="text-3xl font-semibold text-secondary sm:text-4xl lg:text-5xl mt-4">
             Mentee Onboarding Application
           </h1>
           <h1 className="text-left text-xs text-secondary sm:text-sm">
@@ -208,14 +207,14 @@ export default function MentorshipApplyMenteePage() {
             responses will help us match you with a mentor who can best support
             your goals.
           </h1>
-          <h1 className="text-left text-xs text-accent sm:text-sm">
+          <h1 className="text-left text-xs text-accent sm:text-sm -mt-4">
             *Required Information
           </h1>
         </div>
 
-        <div className="flex flex-col items-start space-y-2 -mt-4">
+        <div className="flex flex-col items-start space-y-8 -mt-4">
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
+            <h1 className="max-w-3xl mb-1 text-left text-xs font-large text-secondary sm:text-sm">
               1. What is your current position in the MA National Guard?*
             </h1>
             <SingleSelectButtonGroup
@@ -227,7 +226,7 @@ export default function MentorshipApplyMenteePage() {
           </section>
 
           <section>
-            <h1 className="max-w-3xl mt-3 mb-3 text-left text-xs font-large text-secondary sm:text-sm">
+            <h1 className="max-w-3xl mb-1 text-left text-xs font-large text-secondary sm:text-sm">
               2. What is your current rank in the MA National Guard?*
             </h1>
             <SingleSelectButtonGroup
@@ -239,7 +238,7 @@ export default function MentorshipApplyMenteePage() {
           </section>
 
           <section>
-            <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3">
+            <h1 className="max-w-3xl mb-3 text-left text-xs font-large text-secondary sm:text-sm mb-3">
               3. Upload a resume to share with mentors once matched.
             </h1>
             <Dropzone
@@ -254,7 +253,7 @@ export default function MentorshipApplyMenteePage() {
           </section>
 
           <section>
-            <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
+            <span className="max-w-3xl mb-3 text-left text-xs font-large text-secondary sm:text-sm">
               4. What are your personal interests*{" "}
               <span className="text-accent">(Select all that apply)</span>
             </span>

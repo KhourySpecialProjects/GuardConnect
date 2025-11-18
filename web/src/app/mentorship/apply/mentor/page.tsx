@@ -224,7 +224,6 @@ export default function MentorshipApplyMentorPage() {
 
   return (
     <div className="relative w-full min-h-screen">
-      <BackgroundGradient variant="mentor" />
       <div className="relative mx-4 flex w-full flex-col items-start justify-center gap-4 sm:gap-8 px-4 sm:px-10 lg:px-20 py-6">
         {" "}
         <div className="flex flex-col gap-3">
@@ -241,7 +240,7 @@ export default function MentorshipApplyMentorPage() {
             *Required Information
           </p>
         </div>
-        <div className="flex flex-col items-start w-full">
+        <div className="flex flex-col items-start w-full space-y-8">
           <section>
             <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
               1. What is your current position in the MA National Guard?*
