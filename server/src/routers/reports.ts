@@ -23,10 +23,8 @@ const getReports = roleProcedure([reportingRole("read")])
   .meta({ description: "Returns the list of reports" })
   .mutation(({ ctx, input }) =>
     withErrorHandling("getReports", () => {
-      const canViewAll = PolicyEngine.validateList(
-        ctx.roles,
-        ADMIN_REPORT_ROLES,
-      );
+      const roleSet = ctx.roles ?? new Set();
+      const canViewAll = PolicyEngine.validateList(roleSet, ADMIN_REPORT_ROLES);
 
       if (canViewAll) {
         return reportService.getAllReports();
