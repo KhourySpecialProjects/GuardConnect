@@ -1,4 +1,5 @@
 "use client";
+import type React from "react";
 import { useState } from "react";
 import { icons } from "@/components/icons";
 import { Modal } from "@/components/modal/index";
@@ -119,6 +120,7 @@ type ListViewProps<T extends ListViewItem> = {
   title?: string;
   items?: T[];
   className?: string;
+  rowOptions?: (item: T) => React.ReactNode;
   modalContent?: (item: T) => React.ReactNode;
 };
 
@@ -134,37 +136,45 @@ const Avatar = () => (
 const ListViewRow = <T extends ListViewItem>({
   item,
   onClick,
+  rowOptions,
 }: {
   item: T;
   onClick: () => void;
+  rowOptions?: React.ReactNode;
 }) => {
   return (
-    <li
-      className="flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-neutral/10 transition-colors"
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-    >
-      <Avatar />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-body font-semibold text-secondary">
-            {item.name}
+    <li className="flex items-center gap-4 px-6 py-4 hover:bg-neutral/10 transition-colors">
+      <button
+        type="button"
+        className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer text-left bg-transparent border-none p-0"
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+      >
+        <Avatar />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-body font-semibold text-secondary">
+              {item.name}
+            </p>
+            {item.isCurrentUser ? (
+              <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground">
+                You
+              </span>
+            ) : null}
+          </div>
+          <p className="truncate text-sm italic text-secondary/70">
+            {item.rank}, {item.role}
           </p>
-          {item.isCurrentUser ? (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground">
-              You
-            </span>
-          ) : null}
         </div>
-        <p className="truncate text-sm italic text-secondary/70">
-          {item.rank}, {item.role}
-        </p>
-      </div>
+      </button>
+      {rowOptions && (
+        <div className="flex items-center gap-2 ml-auto">{rowOptions}</div>
+      )}
     </li>
   );
 };
@@ -172,6 +182,7 @@ const ListViewRow = <T extends ListViewItem>({
 export function ListView<T extends ListViewItem = ListViewItem>({
   title,
   items = fallbackItems as T[],
+  rowOptions,
   modalContent,
 }: ListViewProps<T>) {
   const [selectedItem, setSelectedItem] = useState<T | null>(null);
@@ -200,6 +211,7 @@ export function ListView<T extends ListViewItem = ListViewItem>({
                     key={item.id}
                     item={item}
                     onClick={() => setSelectedItem(item)}
+                    rowOptions={rowOptions ? rowOptions(item) : undefined}
                   />
                 ))}
               </ul>

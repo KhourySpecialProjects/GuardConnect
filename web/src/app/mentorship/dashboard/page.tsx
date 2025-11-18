@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { CollapsibleCardProps } from "@/components/expanding-card";
 import CollapsibleCard from "@/components/expanding-card";
+import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
 import LinkedCard from "@/components/linked-card";
 import ListView, {
@@ -14,6 +15,9 @@ import { Card } from "@/components/ui/card";
 
 // MentorshipDashboard placeholder lives at the URL mentees/mentors will eventually use once matching flows are implemented.
 export default function MentorshipDashboard() {
+  const AcceptIcon = icons.done;
+  const RejectIcon = icons.clear;
+
   // Your Mentor section
   const mentorInformation: CollapsibleCardProps = {
     name: "Catherine Murray",
@@ -46,7 +50,28 @@ export default function MentorshipDashboard() {
     },
   ];
 
-  const renderMentorModalContent = (mentor: MentorListViewItem) => {
+  const renderSuggestedMentorRowOptions = (
+    _mentorInformation: MentorListViewItem,
+  ) => {
+    const requested = true;
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className={`inline-flex items-center gap-1 disabled:opacity-100 ${
+          requested
+            ? "bg-primary text-white border-primary cursor-not-allowed hover:bg-primary"
+            : ""
+        }`}
+        disabled={requested}
+      >
+        {requested ? "Requested" : "Send Request"}
+      </Button>
+    );
+  };
+
+  const renderSuggestedMentorModal = (mentor: MentorListViewItem) => {
     return (
       <div className="space-y-4">
         <div>
@@ -107,7 +132,32 @@ export default function MentorshipDashboard() {
     },
   ];
 
-  const renderMenteeModalContent = (mentee: MenteeListViewItem) => {
+  const renderMenteeRequestRowOptions = (
+    _menteeInformation: MenteeListViewItem,
+  ) => {
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="rounded-full border-primary hover:bg-primary group"
+        >
+          <AcceptIcon className="h-5 w-5 text-primary group-hover:text-white transition-colors" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="rounded-full border-accent"
+        >
+          <RejectIcon className="h-5 w-5 text-accent" />
+        </Button>
+      </div>
+    );
+  };
+
+  const renderMenteeRequestModal = (mentee: MenteeListViewItem) => {
     return (
       <div className="space-y-4">
         <div>
@@ -231,9 +281,10 @@ export default function MentorshipDashboard() {
 
             {/* User hasn't been matched with a mentor. */}
             <ListView
-              title="Pending Requests"
-              items={menteeRequests}
-              modalContent={renderMenteeModalContent}
+              title="Suggested Mentors"
+              items={suggestedMentors}
+              rowOptions={renderSuggestedMentorRowOptions}
+              modalContent={renderSuggestedMentorModal}
             />
 
             {/* User has been matched with a mentor. */}
@@ -266,9 +317,10 @@ export default function MentorshipDashboard() {
 
             {/* User hasn't been matched with a mentor. */}
             <ListView
-              title="Suggested Mentors"
-              items={suggestedMentors}
-              modalContent={renderMentorModalContent}
+              title="Pending Requests"
+              items={menteeRequests}
+              modalContent={renderMenteeRequestModal}
+              rowOptions={renderMenteeRequestRowOptions}
             />
 
             {/* User has been matched with a mentee. */}
