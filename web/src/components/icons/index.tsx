@@ -29,6 +29,7 @@ import {
   UserPlus,
   Users,
   X,
+  ArrowRightLeft,
 } from "lucide-react";
 
 export const icons = {
@@ -61,6 +62,7 @@ export const icons = {
   user: User,
   drag: GripVertical,
   help: CircleQuestionMark,
+  sort: ArrowRightLeft,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof icons;
