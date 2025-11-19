@@ -34,6 +34,7 @@ export function SingleSelectButtonGroup({
   const [dropdownValues, setDropdownValues] = useState<Record<string, string>>(
     {},
   );
+
   const [otherTextValues, setOtherTextValues] = useState<
     Record<string, string>
   >({});
@@ -46,13 +47,11 @@ export function SingleSelectButtonGroup({
 
       {options.map((option) => {
         const isActive = option.value === value;
-        const hasDropdown =
-          option.dropdownOptions && option.dropdownOptions.length > 0;
+        const hasDropdown = option.dropdownOptions?.length;
         const dropdownValue = dropdownValues[option.value] || "";
 
         return (
-          <div key={option.value} className="w-full">
-            {/* Parent option button */}
+          <div key={option.value} className="flex flex-col w-full">
             <Button
               type="button"
               variant="ghost"
@@ -62,7 +61,11 @@ export function SingleSelectButtonGroup({
                   ? "bg-primary/10 text-primary hover:bg-primary/20"
                   : "text-muted-foreground hover:bg-primary/5 hover:text-primary",
               )}
-              onClick={() => onChange(option.value)}
+              onClick={() => {
+                onChange(option.value);
+                setDropdownValues({});
+                setOtherTextValues({});
+              }}
               title={option.label}
             >
               <span
@@ -73,14 +76,12 @@ export function SingleSelectButtonGroup({
                     : "border-muted-foreground",
                 )}
               />
-              <span className="truncate whitespace-nowrap overflow-hidden">
-                {option.label}
-              </span>
+              <span className="break-words">{option.label}</span>
             </Button>
 
             {/* Child dropdown & optional "Other" text input */}
             {isActive && hasDropdown && option.dropdownOptions && (
-              <div className="mt-2 flex w-full flex-col gap-2 pl-6">
+              <div className="mt-2 -mb-2 flex w-full flex-col pl-6">
                 <DropdownSelect
                   options={option.dropdownOptions}
                   value={dropdownValue}
@@ -95,7 +96,7 @@ export function SingleSelectButtonGroup({
 
                 {dropdownValue === "other" && (
                   <TextInput
-                    className="mt-2 bg-neutral-100"
+                    className="mt-2"
                     placeholder="Please specify your position"
                     value={otherTextValues[option.value] || ""}
                     onChange={(text) =>
