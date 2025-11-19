@@ -589,7 +589,12 @@ export default function CreateReportPage() {
               ) : null}
 
               <div className="flex flex-wrap justify-end gap-3">
-                <Button type="submit" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  disabled={
+                    isSubmitting || !title.trim() || !description.trim()
+                  }
+                >
                   {isSubmitting ? "Submitting…" : "Submit"}
                 </Button>
                 <Button
