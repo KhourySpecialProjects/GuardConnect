@@ -51,7 +51,9 @@ export const channelUpdateMetadata = z.object({
 });
 
 export const updateChannelSchema = z.object({
+  channelName: z.string().min(1),
   channelId: z.coerce.number().int().positive(),
+  description: z.string().min(1),
   metadata: channelUpdateMetadata,
 });
 
@@ -106,3 +108,16 @@ export type GetChannelMembersInput = z.infer<typeof getChannelMembersSchema>;
 export type UpdateChannelInput = z.infer<typeof updateChannelSchema>;
 export type CreateChannelInput = z.infer<typeof createChannelSchema>;
 export type ChannelUpdateMetadata = z.infer<typeof channelUpdateMetadata>;
+
+export type UpdateChannelSettingsOutput = {
+  name: string,
+  channel_id: number,
+  description?: string,
+  metadata?: ChannelUpdateMetadata,
+};
+
+export type UpdateSubscriptionSettingOutput = {
+  channelId: number,
+  userId: string,
+  notificationsEnabled: boolean
+};

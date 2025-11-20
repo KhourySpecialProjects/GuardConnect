@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { channels } from "@/data/db/schema.js";
+import { and, eq } from "drizzle-orm";
+import { channelSubscriptions, channels } from "@/data/db/schema.js";
 import type {
   CommsRepository,
   Transaction,
@@ -13,6 +13,7 @@ import {
   InternalServerError,
 } from "@/types/errors.js";
 import log from "@/utils/logger.js";
+import { not } from "drizzle-orm/gel-core/expressions";
 
 /**
  * Service for communication-related business logic (channels, messages, subscriptions)
@@ -203,6 +204,28 @@ export class CommsService {
     return this.commsRepo.getChannelDataByID(channel_id);
   }
 
+  async updateSubscriptionSettings(
+    subscription_id: number,
+    channel_id: number,
+    user_id: string,
+    notifications_enabled: boolean
+  ) {
+    const updateData: Partial<typeof channelSubscriptions.$inferInsert> = {
+      channelId: channel_id,
+      userId: user_id,
+    }
+
+    if (notifications_enabled !== undefined) updateData.notificationsEnabled = notifications_enabled;
+
+    const result = await this.commsRepo.updateChannelSubscriptionSettings(user_id, subscription_id, updateData);
+    if (result) {
+      return this.commsRepo.updateChannelSubscriptionSettings(user_id, channel_id, updateData);
+    }
+    throw new InternalServerError(
+      "Something went wrong updating channel settings",
+    );
+  }
+
   /**
    * Update channel settings (name, posting permissions, description)
    * @param channel_id Channel ID
@@ -211,39 +234,19 @@ export class CommsService {
    * @throws InternalServerError if update fails
    */
   async updateChannelSettings(
+    channel_name: string,
     channel_id: number,
-    metadata: ChannelUpdateMetadata,
+    channel_description?: string,
+    metadata?: ChannelUpdateMetadata,
   ) {
-    await this.getChannelById(channel_id);
-    const updates: ((tx: Transaction) => Promise<unknown>)[] = [];
+    const updateData: Partial<typeof channels.$inferInsert> = {
+      name: channel_name
+    };
 
-    if (metadata.name) {
-      updates.push((tx: Transaction) =>
-        tx
-          .update(channels)
-          .set({ name: metadata.name })
-          .where(eq(channels.channelId, channel_id)),
-      );
-    }
+    if (channel_description !== undefined) updateData.description = channel_description;
+    if (metadata !== undefined) updateData.metadata = metadata;
 
-    if (metadata.postingPermissions) {
-      updates.push((tx) =>
-        tx
-          .update(channels)
-          .set({ postPermissionLevel: metadata.postingPermissions })
-          .where(eq(channels.channelId, channel_id)),
-      );
-    }
-
-    if (metadata.description) {
-      updates.push((tx) =>
-        tx
-          .update(channels)
-          .set({ description: metadata.description })
-          .where(eq(channels.channelId, channel_id)),
-      );
-    }
-    const result = await this.commsRepo.updateChannelSettings(updates);
+    const result = await this.commsRepo.updateChannelSettings(channel_id, updateData);
     if (result) {
       return this.commsRepo.getChannelDataByID(channel_id);
     }
@@ -325,8 +328,8 @@ export class CommsService {
     // Check if channel is public (default is public if not specified)
     const channelType =
       channelData?.metadata &&
-      typeof channelData.metadata === "object" &&
-      "type" in channelData.metadata
+        typeof channelData.metadata === "object" &&
+        "type" in channelData.metadata
         ? channelData.metadata.type
         : "public";
 

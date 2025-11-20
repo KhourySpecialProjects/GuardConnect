@@ -1,14 +1,16 @@
 "use client";
 
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { use, useId, useState } from "react";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useId, useState } from "react";
 import DropdownSelect from "@/components/dropdown-select";
 import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
+import { LeaveChannelModal } from "@/components/modal/leave-channel-modal";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
-
-//import { useTRPC } from "@/lib/trpc";
+import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
 type ChannelSettingsPageProps = {
   params: Promise<{
@@ -16,22 +18,152 @@ type ChannelSettingsPageProps = {
   }>;
 };
 
+// Convert channel id into a number
+function parseChannelId(channelId: string): number | null {
+  const numericId = Number(channelId);
+  if (Number.isNaN(numericId) || numericId <= 0) {
+    return null;
+  }
+  return numericId;
+}
+
 export default function ChannelSettingsPage({
   params,
 }: ChannelSettingsPageProps) {
-  //const trpc = useTRPC();
+  const trpc = useTRPC();
+  const trpcClient = useTRPCClient();
+  const router = useRouter();
+
   const ArrowRightIcon = icons.arrowRight;
   const LockIcon = icons.lock;
+
   const { channel_id: channelId } = use(params);
+  const parsedChannelId = parseChannelId(channelId);
 
   const [channelName, setChannelName] = useState("");
   const [channelDescription, setChannelDescription] = useState("");
-  const [notificationSetting, setNotificationSetting] = useState("muted");
+  const [notificationSetting, setNotificationSetting] = useState("option2");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const nameFieldId = useId();
   const descFieldId = useId();
   const notifFieldId = useId();
 
+  // Run when the user clicks the "Leave Channel" button
+  const handleSelect = async () => {
+    setModalOpen(true);
+  };
+
+  // Run when the user leaves the "Leave Channel" modal
+  const handleModalClose = async () => {
+    setModalOpen(false);
+  };
+
+  /* ============ GETTING INFO FROM SUBSCRIPTION ============ */
+  // Fetch all user subscriptions
+  const { data: subscriptions } = useQuery({
+    queryKey: ["userSubscriptions"],
+    queryFn: async () => {
+      return await trpcClient.comms.getUserSubscriptions.query();
+    },
+  });
+
+  // Find subscription ID for this channel
+  useEffect(() => {
+    if (subscriptions && parsedChannelId) {
+      // Find the subscription that matches this channel
+      const channelSubscription = subscriptions.find(
+        (sub) => sub.channelId === parsedChannelId,
+      );
+
+      // Set saved values
+      if (channelSubscription) {
+        setNotificationSetting(
+          channelSubscription.notificationsEnabled ? "option2" : "option1",
+        );
+      } else {
+        console.log("No subscription found for channel ID:", parsedChannelId);
+      }
+    }
+  }, [subscriptions, parsedChannelId]);
+
+  /* ============ GETTING INFO FROM CHANNEL ============ */
+  // Fetch all the channels this user has access to
+  const { data: channels } = useQuery({
+    queryKey: ["channels"],
+    queryFn: async () => {
+      if (!parsedChannelId) return null;
+      return await trpcClient.comms.getAllChannels.query();
+    },
+  });
+
+  // Load channel data when it arrives
+  useEffect(() => {
+    const channel = channels?.find((ch) => ch.channelId === parsedChannelId);
+
+    // Set saved values
+    if (channel) {
+      setChannelName(channel.name || "");
+      setChannelDescription(
+        typeof channel.metadata?.description === "string"
+          ? channel.metadata.description
+          : "",
+      );
+      setIsAdmin(channel.userPermission === "admin");
+    }
+  }, [channels, parsedChannelId]);
+
+  /* ============ LEAVING THE CHANNEL ============ */
+  const leaveChannelMutation = useMutation(
+    trpc.comms.leaveChannel.mutationOptions(),
+  );
+
+  const handleLeave = async () => {
+    try {
+      await leaveChannelMutation.mutateAsync({ channelId: parsedChannelId });
+
+      // Return to the communications hub
+      router.push("/communications");
+    } catch (error) {
+      console.error("Failed to leave channel:", error);
+      alert("Failed to leave channel. Please try again.");
+    }
+  };
+
+  /* ============ UPDATING SETTINGS ============ */
+  const updateChannelMutation = useMutation(
+    trpc.comms.updateChannelSettings.mutationOptions(),
+  );
+
+  const handleSaveChanges = async () => {
+    if (!parsedChannelId) return;
+
+    try {
+      if (isAdmin) {
+        // Admin is able to change channel name, description, notif preferences
+        await updateChannelMutation.mutateAsync({
+        });
+      } else {
+        // Non-admin can only change notif preferences
+        await updateChannelMutation.mutateAsync({
+        });
+      }
+
+      // Show successful save message
+      setShowSuccessMessage(true);
+
+      // Hide after 5 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to save settings: ", error);
+    }
+  };
+
+  /* ============ CREATING THE SETTINGS PAGE ============ */
   return (
     <TitleShell
       title="Settings"
@@ -48,15 +180,27 @@ export default function ChannelSettingsPage({
             Channel Name
           </label>
           <div className="w-72 relative">
-            <div className="flex items-center gap-2 rounded-lg border-2 border-border bg-muted px-4 h-10">
-              <span className="text-xl text-accent font-semibold">#</span>
-              <TextInput
-                id={nameFieldId}
-                value={channelName}
-                onChange={setChannelName}
-                className="flex-1 bg-transparent border-none p-0 font-semibold !text-base"
-              />
-              <LockIcon className="h-5 w-5 text-accent" />
+            <div className="rounded-lg border-2 border-border">
+              <div
+                className="flex items-center gap-2 rounded-md px-4 h-10"
+                style={{
+                  background: isAdmin
+                    ? "linear-gradient(to right, var(--primary) 15%, var(--background) 15%)"
+                    : "linear-gradient(to right, var(--primary) 15%, var(--muted) 15%)",
+                }}
+              >
+                <span className="text-xl text-accent font-semibold mr-5.5">
+                  #
+                </span>
+                <TextInput
+                  id={nameFieldId}
+                  value={channelName}
+                  onChange={setChannelName}
+                  className="flex-1 bg-transparent border-none p-0 font-semibold !text-base"
+                  disabled={!isAdmin}
+                />
+                {!isAdmin && <LockIcon className="h-6 w-6 text-accent" />}
+              </div>
             </div>
           </div>
         </div>
@@ -70,7 +214,12 @@ export default function ChannelSettingsPage({
             Channel Description
           </label>
           <div className="flex-1 relative">
-            <div className="flex items-start gap-2 rounded-lg border-2 border-border bg-muted px-4 py-3">
+            <div
+              className={
+                "flex items-start gap-2 rounded-lg border-2 border-border px-4 py-3 " +
+                (isAdmin ? "bg-background" : "bg-muted")
+              }
+            >
               <TextInput
                 id={descFieldId}
                 value={channelDescription}
@@ -78,8 +227,9 @@ export default function ChannelSettingsPage({
                 className="bg-transparent border-none p-0 w-144 font-semibold !text-base"
                 multiline
                 rows={3}
+                disabled={!isAdmin}
               />
-              <LockIcon className="h-5 w-5 text-accent mt-1" />
+              {!isAdmin && <LockIcon className="h-5 w-5 text-accent mt-1" />}
             </div>
           </div>
         </div>
@@ -119,7 +269,6 @@ export default function ChannelSettingsPage({
               options={[
                 { label: "Always Muted", value: "option1" },
                 { label: "All Notifications", value: "option2" },
-                { label: "Mute for 1 hour", value: "option3" },
               ]}
               value={notificationSetting}
               onChange={setNotificationSetting}
@@ -129,17 +278,50 @@ export default function ChannelSettingsPage({
         </div>
       </div>
 
-      {/* Leave Channel Button */}
+      {/* Save Changes Button */}
       <div className="flex justify-end px-4 py-8">
         <Button
           type="button"
           variant="outline"
           size="lg"
-          className="text-neutral font-semibold bg-transparent hover:border-primary"
+          className="text-neutral text-base font-semibold bg-transparent hover:border-primary"
+          onClick={handleSaveChanges}
+        >
+          Save Changes
+        </Button>
+
+        {/* Leave Channel Button */}
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="text-neutral text-base font-semibold bg-transparent hover:border-primary ml-4"
+          onClick={handleSelect}
         >
           Leave Channel
         </Button>
       </div>
+
+      <LeaveChannelModal
+        open={modalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleModalClose();
+          } else {
+            setModalOpen(true);
+          }
+        }}
+        onLeave={async () => {
+          handleLeave();
+        }}
+      />
+
+      {/* Success message */}
+      {showSuccessMessage && (
+        <div className="text-sm font-medium text-center text-primary">
+          Changes successfully saved
+        </div>
+      )}
     </TitleShell>
   );
 }
