@@ -17,6 +17,7 @@ import {
   joinChannelSchema,
   leaveChannelSchema,
   postPostSchema,
+  removeMemberSchema,
   toggleReactionSchema,
   updateChannelSchema,
 } from "@/types/comms-types.js";
@@ -206,7 +207,6 @@ const updateChannelSettings = protectedProcedure
   .mutation(({ ctx, input }) =>
     withErrorHandling("updateChannel", async () => {
       ensureHasRole(ctx, [channelRole("admin", input.channelId)]);
-
       return await commsService.updateChannelSettings(
         input.channelId,
         input.metadata,
@@ -308,6 +308,26 @@ const joinChannel = protectedProcedure
     }),
   );
 
+// Remove member endpoint (admin only)
+const removeMember = protectedProcedure
+  .input(removeMemberSchema)
+  .mutation(({ ctx, input }) =>
+    withErrorHandling("removeMember", async () => {
+      const userId = ctx.auth.user.id;
+
+      log.debug(
+        { userId, targetUserId: input.userId, channelId: input.channelId },
+        "Removing member from channel",
+      );
+
+      return await commsService.removeUserFromChannel(
+        userId,
+        input.channelId,
+        input.userId,
+      );
+    }),
+  );
+
 export const commsRouter = router({
   createPost,
   getAllChannels,
@@ -325,4 +345,5 @@ export const commsRouter = router({
   deleteChannel,
   leaveChannel,
   joinChannel,
+  removeMember,
 });
