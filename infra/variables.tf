@@ -132,6 +132,12 @@ variable "db_publicly_accessible" {
   default     = true # true for dev (easier access), false for prod
 }
 
+variable "domain_name" {
+  description = "Domain name for the application (e.g., dev.example.com)"
+  type        = string
+  default     = "" # Set this in terraform.tfvars
+}
+
 # ------------------------------------------------------------
 # Default VPC Subnet Group
 # ------------------------------------------------------------
