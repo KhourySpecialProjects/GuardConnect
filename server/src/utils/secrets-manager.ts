@@ -1,6 +1,6 @@
 import {
-  SecretsManagerClient,
   GetSecretValueCommand,
+  SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
 import log from "@/utils/logger.js";
 
@@ -15,22 +15,25 @@ class SecretsManager {
   private secretId: string | null = null;
   private cachedSecret: DatabaseCredentials | null = null;
   private refreshInterval: NodeJS.Timeout | null = null;
-  private onSecretRotate: ((credentials: DatabaseCredentials) => Promise<void>) | null = null;
+  private onSecretRotate:
+    | ((credentials: DatabaseCredentials) => Promise<void>)
+    | null = null;
 
   constructor() {
     // Only initialize if running in AWS environment
-    const awsRegion = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
+    const awsRegion =
+      process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
     const secretId = process.env.DB_SECRET_ID;
 
     if (awsRegion && secretId) {
       this.client = new SecretsManagerClient({ region: awsRegion });
       this.secretId = secretId;
       log.info(
-        `Secrets Manager initialized for secret: ${secretId} in region: ${awsRegion}`
+        `Secrets Manager initialized for secret: ${secretId} in region: ${awsRegion}`,
       );
     } else {
       log.info(
-        "Secrets Manager not initialized - using environment variables directly"
+        "Secrets Manager not initialized - using environment variables directly",
       );
     }
   }
@@ -55,7 +58,9 @@ class SecretsManager {
       }
 
       const secret = JSON.parse(response.SecretString) as DatabaseCredentials;
-      log.debug("Successfully fetched database credentials from Secrets Manager");
+      log.debug(
+        "Successfully fetched database credentials from Secrets Manager",
+      );
       return secret;
     } catch (error) {
       log.error(error, "Failed to fetch secret from Secrets Manager");
@@ -70,7 +75,7 @@ class SecretsManager {
    */
   async startAutoRefresh(
     intervalMs: number = 5 * 60 * 1000,
-    callback?: (credentials: DatabaseCredentials) => Promise<void>
+    callback?: (credentials: DatabaseCredentials) => Promise<void>,
   ): Promise<void> {
     if (!this.client || !this.secretId) {
       log.info("Auto-refresh not started - Secrets Manager not initialized");
@@ -118,7 +123,7 @@ class SecretsManager {
     }, intervalMs);
 
     log.info(
-      `Auto-refresh started - checking for secret rotation every ${intervalMs / 1000} seconds`
+      `Auto-refresh started - checking for secret rotation every ${intervalMs / 1000} seconds`,
     );
   }
 

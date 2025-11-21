@@ -114,11 +114,11 @@ export async function connectPostgres() {
 
         // Start auto-refresh (check every 5 minutes by default)
         const refreshIntervalMs = Number(
-          process.env.DB_SECRET_REFRESH_INTERVAL_MS ?? 5 * 60 * 1000
+          process.env.DB_SECRET_REFRESH_INTERVAL_MS ?? 5 * 60 * 1000,
         );
         await secretsManager.startAutoRefresh(
           refreshIntervalMs,
-          refreshDatabaseConnection
+          refreshDatabaseConnection,
         );
 
         log.info("Database secret auto-refresh enabled");
@@ -127,9 +127,9 @@ export async function connectPostgres() {
       log.warn(
         {
           errorMessage: error instanceof Error ? error.message : String(error),
-          errorName: error instanceof Error ? error.name : 'Unknown',
+          errorName: error instanceof Error ? error.name : "Unknown",
         },
-        "Failed to initialize Secrets Manager, falling back to environment variables"
+        "Failed to initialize Secrets Manager, falling back to environment variables",
       );
     }
   }
