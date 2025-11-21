@@ -19,6 +19,17 @@ export class MenteeRepository {
    * @param experienceLevel Optional experience level
    * @param preferredMentorType Optional preferred mentor type
    * @param status Mentee status (default: "active")
+   * @param positionType Optional position type (active, guard, reserve)
+   * @param serviceType Optional service type (enlisted, officer)
+   * @param detailedPosition Optional detailed position name
+   * @param detailedRank Optional detailed rank
+   * @param resumeFileId Optional resume file ID
+   * @param personalInterests Optional personal interests
+   * @param roleModelInspiration Optional text response to role model question
+   * @param hopeToGainResponses Optional ordered responses to hope to gain question
+   * @param mentorQualities Optional array of mentor qualities
+   * @param preferredMeetingFormat Optional preferred meeting format
+   * @param hoursPerMonthCommitment Optional hours per month commitment
    * @returns Created mentee profile
    * @throws ConflictError if profile already exists or creation fails
    */
@@ -28,6 +39,17 @@ export class MenteeRepository {
     experienceLevel?: string,
     preferredMentorType?: string,
     status: "active" | "inactive" | "matched" = "active",
+    positionType?: "active" | "guard" | "reserve",
+    serviceType?: "enlisted" | "officer",
+    detailedPosition?: string,
+    detailedRank?: string,
+    resumeFileId?: string,
+    personalInterests?: string,
+    roleModelInspiration?: string,
+    hopeToGainResponses?: string[],
+    mentorQualities?: string[],
+    preferredMeetingFormat?: "in-person" | "virtual" | "hybrid" | "no-preference",
+    hoursPerMonthCommitment?: number,
   ): Promise<CreateMenteeOutput> {
     // Check if mentee already exists for this user
     const existingMentee = await db
@@ -48,6 +70,17 @@ export class MenteeRepository {
         experienceLevel,
         preferredMentorType,
         status,
+        positionType,
+        serviceType,
+        detailedPosition,
+        detailedRank,
+        resumeFileId,
+        personalInterests,
+        roleModelInspiration,
+        hopeToGainResponses,
+        mentorQualities,
+        preferredMeetingFormat,
+        hoursPerMonthCommitment,
       })
       .returning({
         menteeId: mentees.menteeId,
@@ -56,6 +89,17 @@ export class MenteeRepository {
         experienceLevel: mentees.experienceLevel,
         preferredMentorType: mentees.preferredMentorType,
         status: mentees.status,
+        positionType: mentees.positionType,
+        serviceType: mentees.serviceType,
+        detailedPosition: mentees.detailedPosition,
+        detailedRank: mentees.detailedRank,
+        resumeFileId: mentees.resumeFileId,
+        personalInterests: mentees.personalInterests,
+        roleModelInspiration: mentees.roleModelInspiration,
+        hopeToGainResponses: mentees.hopeToGainResponses,
+        mentorQualities: mentees.mentorQualities,
+        preferredMeetingFormat: mentees.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
       });
@@ -82,6 +126,17 @@ export class MenteeRepository {
         experienceLevel: mentees.experienceLevel,
         preferredMentorType: mentees.preferredMentorType,
         status: mentees.status,
+        positionType: mentees.positionType,
+        serviceType: mentees.serviceType,
+        detailedPosition: mentees.detailedPosition,
+        detailedRank: mentees.detailedRank,
+        resumeFileId: mentees.resumeFileId,
+        personalInterests: mentees.personalInterests,
+        roleModelInspiration: mentees.roleModelInspiration,
+        hopeToGainResponses: mentees.hopeToGainResponses,
+        mentorQualities: mentees.mentorQualities,
+        preferredMeetingFormat: mentees.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
       })
@@ -110,6 +165,17 @@ export class MenteeRepository {
         experienceLevel: mentees.experienceLevel,
         preferredMentorType: mentees.preferredMentorType,
         status: mentees.status,
+        positionType: mentees.positionType,
+        serviceType: mentees.serviceType,
+        detailedPosition: mentees.detailedPosition,
+        detailedRank: mentees.detailedRank,
+        resumeFileId: mentees.resumeFileId,
+        personalInterests: mentees.personalInterests,
+        roleModelInspiration: mentees.roleModelInspiration,
+        hopeToGainResponses: mentees.hopeToGainResponses,
+        mentorQualities: mentees.mentorQualities,
+        preferredMeetingFormat: mentees.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
       })
@@ -127,6 +193,17 @@ export class MenteeRepository {
    * @param experienceLevel Optional experience level
    * @param preferredMentorType Optional preferred mentor type
    * @param status Optional mentee status
+   * @param positionType Optional position type
+   * @param serviceType Optional service type
+   * @param detailedPosition Optional detailed position
+   * @param detailedRank Optional detailed rank
+   * @param resumeFileId Optional resume file ID
+   * @param personalInterests Optional personal interests
+   * @param roleModelInspiration Optional role model inspiration
+   * @param hopeToGainResponses Optional hope to gain responses
+   * @param mentorQualities Optional mentor qualities
+   * @param preferredMeetingFormat Optional preferred meeting format
+   * @param hoursPerMonthCommitment Optional hours per month commitment
    * @returns Updated mentee profile
    * @throws NotFoundError if mentee not found
    */
@@ -136,6 +213,17 @@ export class MenteeRepository {
     experienceLevel?: string,
     preferredMentorType?: string,
     status?: "active" | "inactive" | "matched",
+    positionType?: "active" | "guard" | "reserve",
+    serviceType?: "enlisted" | "officer",
+    detailedPosition?: string,
+    detailedRank?: string,
+    resumeFileId?: string,
+    personalInterests?: string,
+    roleModelInspiration?: string,
+    hopeToGainResponses?: string[],
+    mentorQualities?: string[],
+    preferredMeetingFormat?: "in-person" | "virtual" | "hybrid" | "no-preference",
+    hoursPerMonthCommitment?: number,
   ): Promise<UpdateMenteeOutput> {
     const updateData: Partial<typeof mentees.$inferInsert> = {
       updatedAt: new Date(),
@@ -147,6 +235,24 @@ export class MenteeRepository {
     if (preferredMentorType !== undefined)
       updateData.preferredMentorType = preferredMentorType;
     if (status !== undefined) updateData.status = status;
+    if (positionType !== undefined) updateData.positionType = positionType;
+    if (serviceType !== undefined) updateData.serviceType = serviceType;
+    if (detailedPosition !== undefined)
+      updateData.detailedPosition = detailedPosition;
+    if (detailedRank !== undefined) updateData.detailedRank = detailedRank;
+    if (resumeFileId !== undefined) updateData.resumeFileId = resumeFileId;
+    if (personalInterests !== undefined)
+      updateData.personalInterests = personalInterests;
+    if (roleModelInspiration !== undefined)
+      updateData.roleModelInspiration = roleModelInspiration;
+    if (hopeToGainResponses !== undefined)
+      updateData.hopeToGainResponses = hopeToGainResponses;
+    if (mentorQualities !== undefined)
+      updateData.mentorQualities = mentorQualities;
+    if (preferredMeetingFormat !== undefined)
+      updateData.preferredMeetingFormat = preferredMeetingFormat;
+    if (hoursPerMonthCommitment !== undefined)
+      updateData.hoursPerMonthCommitment = hoursPerMonthCommitment;
 
     const [updated] = await db
       .update(mentees)
@@ -159,6 +265,17 @@ export class MenteeRepository {
         experienceLevel: mentees.experienceLevel,
         preferredMentorType: mentees.preferredMentorType,
         status: mentees.status,
+        positionType: mentees.positionType,
+        serviceType: mentees.serviceType,
+        detailedPosition: mentees.detailedPosition,
+        detailedRank: mentees.detailedRank,
+        resumeFileId: mentees.resumeFileId,
+        personalInterests: mentees.personalInterests,
+        roleModelInspiration: mentees.roleModelInspiration,
+        hopeToGainResponses: mentees.hopeToGainResponses,
+        mentorQualities: mentees.mentorQualities,
+        preferredMeetingFormat: mentees.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
       });
@@ -202,6 +319,17 @@ export class MenteeRepository {
         experienceLevel: mentees.experienceLevel,
         preferredMentorType: mentees.preferredMentorType,
         status: mentees.status,
+        positionType: mentees.positionType,
+        serviceType: mentees.serviceType,
+        detailedPosition: mentees.detailedPosition,
+        detailedRank: mentees.detailedRank,
+        resumeFileId: mentees.resumeFileId,
+        personalInterests: mentees.personalInterests,
+        roleModelInspiration: mentees.roleModelInspiration,
+        hopeToGainResponses: mentees.hopeToGainResponses,
+        mentorQualities: mentees.mentorQualities,
+        preferredMeetingFormat: mentees.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
       })
