@@ -30,7 +30,7 @@ variable "project_name" {
 variable "enable_infrastructure_scheduler" {
   description = "Enable automatic shutdown/startup of infrastructure (6 PM - 8 AM EST)"
   type        = bool
-  default     = true # Set to false to disable the scheduler
+  default     = false # Set to false to disable the scheduler
 }
 
 # ------------------------------------------------------------
