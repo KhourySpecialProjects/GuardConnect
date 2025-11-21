@@ -57,14 +57,10 @@ export default function ChannelSettingsPage({
   const notifFieldId = useId();
 
   // Run when the user clicks the "Leave Channel" button
-  const handleSelect = async () => {
-    setModalOpen(true);
-  };
+  const handleSelect = () => setModalOpen(true);
 
   // Run when the user clicks out of the "Leave Channel" modal
-  const handleModalClose = async () => {
-    setModalOpen(false);
-  };
+  const handleModalClose = () => setModalOpen(false);
 
   /* ============ GETTING INFO FROM SUBSCRIPTION ============ */
 
@@ -125,13 +121,18 @@ export default function ChannelSettingsPage({
   }, [channels, parsedChannelId]);
 
   /* ============ LEAVING THE CHANNEL ============ */
-  const leaveChannelMutation = useMutation(
-    trpc.comms.leaveChannel.mutationOptions(),
-  );
-
   const handleLeave = async () => {
     try {
-      //await leaveChannelMutation.mutateAsync({ channelId: parsedChannelId });
+      await trpcClient.comms.leaveChannel.mutate({ channelId: parsedChannelId });
+
+      // Invalidate cache so channel list updates
+      await queryClient.invalidateQueries({
+        queryKey: ["channels"],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["channelSubscriptions"],
+      });
 
       // Return to the communications hub
       router.push("/communications");
@@ -143,19 +144,21 @@ export default function ChannelSettingsPage({
 
   /* ============ UPDATING SETTINGS ============ */
   const handleSaveChanges = async () => {
-    if (!parsedChannelId || Number.isNaN(parsedChannelId)) {
-      console.error("Invalid channel ID");
-      return;
-    }
-
     try {
-      await trpcClient.comms.updateChannelSettings.mutate({
-        channelId: parsedChannelId,
-        metadata: {
-          name: channelName,
-          description: channelDescription,
-        },
-      });
+      if (isAdmin) {
+        await trpcClient.comms.updateChannelSettings.mutate({
+          channelId: parsedChannelId,
+          metadata: {
+            name: channelName,
+            description: channelDescription,
+          },
+        });
+
+        // Invalidate the cache to ensure the most recent data is used
+        await queryClient.invalidateQueries({
+          queryKey: ["channels"],
+        });
+      }
 
       await trpcClient.comms.updateSubscriptionSettings.mutate({
         channelId: parsedChannelId,
@@ -163,10 +166,7 @@ export default function ChannelSettingsPage({
         notificationsEnabled: notificationSetting === "option2",
       });
 
-      // invalidate the cache to ensure the most recent data is used
-      await queryClient.invalidateQueries({
-        queryKey: ["channels"],
-      });
+      // Invalidate the cache to ensure the most recent data is used
       await queryClient.invalidateQueries({
         queryKey: ["channelSubscriptions"],
       });
