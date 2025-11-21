@@ -3,11 +3,18 @@ import { Pool, type PoolConfig } from "pg";
 import log from "@/utils/logger.js";
 import { secretsManager } from "@/utils/secrets-manager.js";
 
+type ConnectionCredentials = {
+  user: string;
+  password: string;
+};
+
 /**
  * Get database configuration from environment or Secrets Manager
  */
-function getPoolConfig(): PoolConfig {
-  return {
+function getPoolConfig(
+  overrides?: Partial<ConnectionCredentials>,
+): PoolConfig {
+  const config: PoolConfig = {
     host: process.env.POSTGRES_HOST ?? "localhost",
     port: Number(process.env.POSTGRES_PORT ?? 5432),
     database: process.env.POSTGRES_DB ?? "comm_ng",
@@ -19,15 +26,89 @@ function getPoolConfig(): PoolConfig {
         : false,
     max: Number(process.env.POSTGRES_POOL_SIZE ?? 20),
   };
+
+  if (overrides?.user !== undefined) {
+    config.user = overrides.user;
+  }
+  if (overrides?.password !== undefined) {
+    config.password = overrides.password;
+  }
+
+  return config;
 }
 
-export let pool = new Pool(getPoolConfig());
+const initialPoolConfig = getPoolConfig();
+const initialPassword =
+  typeof initialPoolConfig.password === "function"
+    ? ""
+    : initialPoolConfig.password ?? "";
+
+let activeCredentials: ConnectionCredentials = {
+  user: initialPoolConfig.user ?? "",
+  password: initialPassword,
+};
+
+export let pool = new Pool(initialPoolConfig);
 
 pool.on("error", (err) => {
   log.error(err, "Postgres error");
 });
 
-export let db = drizzle(pool);
+// keep a stable exported object reference for consumers (like better-auth)
+// so that swapping the underlying connection doesn't break references.
+let internalDb = drizzle(pool);
+
+export const db: any = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      // forward property access to the current internalDb
+      const v = (internalDb as any)[prop];
+      if (typeof v === "function") {
+        return (...args: any[]) => v.apply(internalDb, args);
+      }
+      return v;
+    },
+  },
+);
+
+function credentialsChanged(next: ConnectionCredentials): boolean {
+  return (
+    next.user !== activeCredentials.user ||
+    next.password !== activeCredentials.password
+  );
+}
+
+async function swapPool(next: ConnectionCredentials): Promise<void> {
+  log.debug("swapPool called");
+  const newPool = new Pool(
+    getPoolConfig({ user: next.user, password: next.password }),
+  );
+
+  newPool.on("error", (err) => {
+    log.error(err, "Postgres error");
+  });
+
+  const testClient = await newPool.connect();
+  testClient.release();
+
+  const oldPool = pool;
+  pool = newPool;
+  // replace the internal underlying db instance while keeping the exported
+  // "db" reference stable so adapters that captured it continue to work.
+  internalDb = drizzle(newPool);
+  activeCredentials = next;
+
+  // Gracefully close old pool after a delay to allow in-flight queries to complete
+  setTimeout(async () => {
+    try {
+      await oldPool.end();
+      log.info("Old database pool closed gracefully after swap");
+    } catch (err) {
+      log.warn({ err }, "Failed to close old database pool");
+    }
+  }, 30000); // 30 second grace period
+}
 
 /**
  * Refresh database connection with new credentials
@@ -42,37 +123,17 @@ async function refreshDatabaseConnection(credentials: {
   try {
     // Create new pool with updated credentials from Secrets Manager
     // Connection details (host, port, database) come from environment variables
-    const newPool = new Pool({
-      host: process.env.POSTGRES_HOST ?? "localhost",
-      port: Number(process.env.POSTGRES_PORT ?? 5432),
-      database: process.env.POSTGRES_DB ?? "comm_ng",
+    const nextCredentials: ConnectionCredentials = {
       user: credentials.username,
       password: credentials.password,
-      ssl:
-        process.env.POSTGRES_SSL === "true"
-          ? { rejectUnauthorized: false }
-          : false,
-      max: Number(process.env.POSTGRES_POOL_SIZE ?? 20),
-    });
+    };
 
-    newPool.on("error", (err) => {
-      log.error(err, "Postgres error");
-    });
+    if (!credentialsChanged(nextCredentials)) {
+      log.debug("Skipping pool refresh - credentials unchanged");
+      return;
+    }
 
-    // Test the new connection
-    const testClient = await newPool.connect();
-    testClient.release();
-
-    // Close old pool gracefully
-    const oldPool = pool;
-    pool = newPool;
-    db = drizzle(newPool);
-
-    // Allow existing queries to complete before closing
-    setTimeout(async () => {
-      await oldPool.end();
-      log.info("Old database pool closed");
-    }, 30000); // 30 second grace period
+    await swapPool(nextCredentials);
 
     log.info("Database connection successfully refreshed with new credentials");
   } catch (error) {
@@ -90,27 +151,18 @@ export async function connectPostgres() {
       if (credentials) {
         log.info("Using credentials from AWS Secrets Manager");
 
-        // Update pool with fetched credentials from Secrets Manager
-        // Connection details (host, port, database) always come from environment variables
-        await pool.end();
-        pool = new Pool({
-          host: process.env.POSTGRES_HOST ?? "localhost",
-          port: Number(process.env.POSTGRES_PORT ?? 5432),
-          database: process.env.POSTGRES_DB ?? "comm_ng",
+        const nextCredentials: ConnectionCredentials = {
           user: credentials.username,
           password: credentials.password,
-          ssl:
-            process.env.POSTGRES_SSL === "true"
-              ? { rejectUnauthorized: false }
-              : false,
-          max: Number(process.env.POSTGRES_POOL_SIZE ?? 20),
-        });
+        };
 
-        pool.on("error", (err) => {
-          log.error(err, "Postgres error");
-        });
-
-        db = drizzle(pool);
+        if (credentialsChanged(nextCredentials)) {
+          await swapPool(nextCredentials);
+        } else {
+          log.info(
+            "Secrets Manager credentials match existing pool - no swap performed",
+          );
+        }
 
         // Start auto-refresh (check every 5 minutes by default)
         const refreshIntervalMs = Number(
