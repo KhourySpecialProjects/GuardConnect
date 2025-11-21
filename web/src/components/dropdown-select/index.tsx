@@ -23,9 +23,7 @@ export const DropdownSelect = ({
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  React.useEffect(() => setMounted(true), []);
 
   const handleOpenChange = (open: boolean) => {
     if (open && triggerRef.current) {
@@ -63,13 +61,11 @@ export const DropdownSelect = ({
             className="z-[9999] rounded-b-xl rounded-t-none w-[var(--radix-select-trigger-width)] max-w-[332px] border-1 border-primary bg-white"
           >
             <SelectGroup>
-              {options.map((option, index) => (
+              {options.map((option, idx) => (
                 <SelectItem
                   key={option.value}
                   value={option.value}
-                  className={`text-subheader font-semibold text-primary py-3 rounded-none ${
-                    index > 0 ? "border-t-1 border-neutral" : ""
-                  }`}
+                  className={`text-subheader font-semibold text-primary py-2 px-3 ${idx > 0 ? "border-t border-neutral" : ""}`}
                 >
                   {option.label}
                 </SelectItem>
@@ -81,5 +77,4 @@ export const DropdownSelect = ({
     </Select>
   );
 };
-
 export default DropdownSelect;
