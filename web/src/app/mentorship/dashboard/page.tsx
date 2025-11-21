@@ -236,7 +236,7 @@ export default function MentorshipDashboard() {
     },
     {
       title:
-        "Mentoring for the First Time? 14 Tips to Start off on the Right Foot",
+        "Mentoring For The First Time? 14 Tips To Start Off On The Right Foot",
       author: "Forbes",
       link: "https://www.forbes.com/councils/forbescoachescouncil/2020/03/24/mentoring-for-the-first-time-14-tips-to-start-off-on-the-right-foot/",
     },
@@ -253,7 +253,7 @@ export default function MentorshipDashboard() {
       }
       scrollableContent={false}
     >
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="flex flex-col">
           {/* Mentor information section */}
           <div className="mb-10">
