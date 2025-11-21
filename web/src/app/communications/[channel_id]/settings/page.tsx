@@ -8,6 +8,7 @@ import DropdownSelect from "@/components/dropdown-select";
 import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
 import { LeaveChannelModal } from "@/components/modal/leave-channel-modal";
+import { DeleteChannelModal } from "@/components/modal/delete-channel-modal";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
@@ -132,7 +133,7 @@ export default function ChannelSettingsPage({
           channelId: parsedChannelId
         });
       }
-      
+
       // Invalidate cache so channel list updates
       await queryClient.invalidateQueries({
         queryKey: ["channels"],
@@ -328,20 +329,36 @@ export default function ChannelSettingsPage({
         </Button>
       </div>
 
-      <LeaveChannelModal
-        open={modalOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            handleModalClose();
-          } else {
-            setModalOpen(true);
-          }
-        }}
-        onLeave={async () => {
-          handleLeave();
-        }}
-      />
-
+      {isAdmin ? (
+        <DeleteChannelModal
+          open={modalOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleModalClose();
+            } else {
+              setModalOpen(true);
+            }
+          }}
+          onLeave={async () => {
+            handleLeave();
+          }}
+        />
+      ) : (
+        <LeaveChannelModal
+          open={modalOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleModalClose();
+            } else {
+              setModalOpen(true);
+            }
+          }}
+          onLeave={async () => {
+            handleLeave();
+          }}
+        />
+      )}
+      
       {/* Success message */}
       {showSuccessMessage && (
         <div className="text-sm font-medium text-center text-primary">
