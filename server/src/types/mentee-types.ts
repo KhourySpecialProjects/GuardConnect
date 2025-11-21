@@ -36,6 +36,19 @@ export const createMenteeInputSchema = z.object({
     .enum(["active", "inactive", "matched"])
     .optional()
     .default("active"),
+  positionType: z.enum(["active", "guard", "reserve"]).optional(),
+  serviceType: z.enum(["enlisted", "officer"]).optional(),
+  detailedPosition: z.string().optional(),
+  detailedRank: z.string().optional(),
+  resumeFileId: z.string().uuid().optional(),
+  personalInterests: z.string().optional(),
+  roleModelInspiration: z.string().optional(),
+  hopeToGainResponses: z.array(z.string()).optional(),
+  mentorQualities: z.array(z.string()).optional(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .optional(),
+  hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
 
 export const updateMenteeInputSchema = z.object({
@@ -66,6 +79,22 @@ export type CreateMenteeOutput = {
   experienceLevel?: string | null;
   preferredMentorType?: string | null;
   status: "active" | "inactive" | "matched";
+  positionType?: "active" | "guard" | "reserve" | null;
+  serviceType?: "enlisted" | "officer" | null;
+  detailedPosition?: string | null;
+  detailedRank?: string | null;
+  resumeFileId?: string | null;
+  personalInterests?: string | null;
+  roleModelInspiration?: string | null;
+  hopeToGainResponses?: string[] | null;
+  mentorQualities?: string[] | null;
+  preferredMeetingFormat?:
+    | "in-person"
+    | "virtual"
+    | "hybrid"
+    | "no-preference"
+    | null;
+  hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
@@ -77,6 +106,22 @@ export type GetMenteeOutput = {
   experienceLevel?: string | null;
   preferredMentorType?: string | null;
   status: "active" | "inactive" | "matched";
+  positionType?: "active" | "guard" | "reserve" | null;
+  serviceType?: "enlisted" | "officer" | null;
+  detailedPosition?: string | null;
+  detailedRank?: string | null;
+  resumeFileId?: string | null;
+  personalInterests?: string | null;
+  roleModelInspiration?: string | null;
+  hopeToGainResponses?: string[] | null;
+  mentorQualities?: string[] | null;
+  preferredMeetingFormat?:
+    | "in-person"
+    | "virtual"
+    | "hybrid"
+    | "no-preference"
+    | null;
+  hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
@@ -88,6 +133,22 @@ export type UpdateMenteeOutput = {
   experienceLevel?: string | null;
   preferredMentorType?: string | null;
   status: "active" | "inactive" | "matched";
+  positionType?: "active" | "guard" | "reserve" | null;
+  serviceType?: "enlisted" | "officer" | null;
+  detailedPosition?: string | null;
+  detailedRank?: string | null;
+  resumeFileId?: string | null;
+  personalInterests?: string | null;
+  roleModelInspiration?: string | null;
+  hopeToGainResponses?: string[] | null;
+  mentorQualities?: string[] | null;
+  preferredMeetingFormat?:
+    | "in-person"
+    | "virtual"
+    | "hybrid"
+    | "no-preference"
+    | null;
+  hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
