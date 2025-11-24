@@ -86,7 +86,7 @@ export const careerStageEnum = pgEnum("career_stage_enum", [
 // pgvector support - custom type for vector columns
 const vector = customType<{ data: number[]; driverData: string }>({
   dataType() {
-    return "vector(1536)"; // OpenAI embeddings are 1536 dimensions
+    return "vector(512)"; // Amazon Titan v2 embeddings are 512 dimensions
   },
   toDriver(value: number[]): string {
     return `[${value.join(",")}]`;

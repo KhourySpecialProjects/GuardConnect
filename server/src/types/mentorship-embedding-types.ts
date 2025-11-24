@@ -4,9 +4,9 @@ export const mentorshipEmbeddingSchema = z.object({
   embeddingId: z.number().int().positive(),
   userId: z.string(),
   userType: z.enum(["mentor", "mentee"]),
-  whyInterestedEmbedding: z.array(z.number()).nullable().optional(), // 1536-dimensional vector
-  hopeToGainEmbedding: z.array(z.number()).nullable().optional(), // 1536-dimensional vector
-  profileEmbedding: z.array(z.number()).nullable().optional(), // 1536-dimensional vector
+  whyInterestedEmbedding: z.array(z.number()).nullable().optional(), // 512-dimensional vector
+  hopeToGainEmbedding: z.array(z.number()).nullable().optional(), // 512-dimensional vector
+  profileEmbedding: z.array(z.number()).nullable().optional(), // 512-dimensional vector
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -18,9 +18,9 @@ export type MentorshipEmbeddingSchema = z.infer<
 export const createMentorshipEmbeddingInputSchema = z.object({
   userId: z.string(),
   userType: z.enum(["mentor", "mentee"]),
-  whyInterestedEmbedding: z.array(z.number()).length(1536).optional(),
-  hopeToGainEmbedding: z.array(z.number()).length(1536).optional(),
-  profileEmbedding: z.array(z.number()).length(1536).optional(),
+  whyInterestedEmbedding: z.array(z.number()).length(512).optional(),
+  hopeToGainEmbedding: z.array(z.number()).length(512).optional(),
+  profileEmbedding: z.array(z.number()).length(512).optional(),
 });
 
 export type CreateMentorshipEmbeddingInput = z.infer<
@@ -30,9 +30,9 @@ export type CreateMentorshipEmbeddingInput = z.infer<
 export const updateMentorshipEmbeddingInputSchema = z.object({
   userId: z.string(),
   userType: z.enum(["mentor", "mentee"]),
-  whyInterestedEmbedding: z.array(z.number()).length(1536).optional(),
-  hopeToGainEmbedding: z.array(z.number()).length(1536).optional(),
-  profileEmbedding: z.array(z.number()).length(1536).optional(),
+  whyInterestedEmbedding: z.array(z.number()).length(512).optional(),
+  hopeToGainEmbedding: z.array(z.number()).length(512).optional(),
+  profileEmbedding: z.array(z.number()).length(512).optional(),
 });
 
 export type UpdateMentorshipEmbeddingInput = z.infer<

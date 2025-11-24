@@ -20,9 +20,9 @@ CREATE TABLE "mentorship_embeddings" (
 	"embedding_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "mentorship_embeddings_embedding_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"user_id" text NOT NULL,
 	"user_type" text NOT NULL,
-	"why_interested_embedding" vector(1536),
-	"hope_to_gain_embedding" vector(1536),
-	"profile_embedding" vector(1536),
+	"why_interested_embedding" vector(512),
+	"hope_to_gain_embedding" vector(512),
+	"profile_embedding" vector(512),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
