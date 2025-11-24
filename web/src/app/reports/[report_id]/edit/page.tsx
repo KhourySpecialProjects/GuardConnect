@@ -346,7 +346,14 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                         </div>
                     </form>
                     <p className="mt-4 text-right text-xs text-secondary/70">
-                        Last edited: {new Date(updatedAt).toLocaleString()}
+                        Last edited: {new Date(updatedAt).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false, 
+                        })} EST
                     </p>
                 </div>
             </section>
