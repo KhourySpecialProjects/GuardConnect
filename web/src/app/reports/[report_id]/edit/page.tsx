@@ -3,9 +3,9 @@
 import type { ReportCategory } from "@server/types/reports-types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useId, useState } from "react";
+import { use, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { icons } from "@/components/icons";
+//import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
 import { Modal } from "@/components/modal";
 import { TextInput } from "@/components/text-input";
@@ -22,8 +22,11 @@ import {
     DropzoneContent,
     DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { authClient } from "@/lib/auth-client";
+import { hasRole } from "@/lib/rbac";
 import { useTRPCClient } from "@/lib/trpc";
+import type { RoleKey } from "@/types/roles";
 
 const CATEGORY_OPTIONS: { label: string; value: ReportCategory }[] = [
     { label: "Communications", value: "Communication" },
@@ -33,7 +36,8 @@ const CATEGORY_OPTIONS: { label: string; value: ReportCategory }[] = [
     { label: "Logistics", value: "Logistics" },
 ];
 
-const MAX_ATTACHMENTS = 10;
+//const MAX_ATTACHMENTS = 10;
+const REPORTING_ASSIGN_ROLE = "reporting:assign" as RoleKey;
 
 type AttachmentState = {
     id: string;
@@ -43,8 +47,8 @@ type AttachmentState = {
     error?: string;
 };
 
-const RemoveIcon = icons.clear;
-const SuccessIcon = icons.done;
+//const RemoveIcon = icons.clear;
+//const SuccessIcon = icons.done;
 
 type EditReportPageProps = {
     params: Promise<{
@@ -60,12 +64,29 @@ export default function EditReportPage({ params }: EditReportPageProps) {
     const { report_id: reportId } = use(params);
     const { data: sessionData } = authClient.useSession();
     const userId = sessionData?.user?.id;
+    const {
+        roles,
+        //isLoading: rolesLoading,
+        //isError: rolesRequestFailed,
+        //refetch: refetchRoles,
+    } = useUserRoles();
+
+    const normalizedRoles = useMemo<RoleKey[]>(() => {
+        return Array.isArray(roles) ? (roles as RoleKey[]) : [];
+    }, [roles]);
+
+    const hasAssignAccess = useMemo(() => {
+        if (!roles) return false;
+        return hasRole(normalizedRoles, REPORTING_ASSIGN_ROLE);
+    }, [roles, normalizedRoles]);
 
     const [category, setCategory] = useState<ReportCategory | null>(null);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [attachments, setAttachments] = useState<AttachmentState[]>([]);
-    const [updatedAt, setUpdatedAt] = useState<string | number | Date | null>(null);
+    const [updatedAt, setUpdatedAt] = useState<string | number | Date | null>(
+        null,
+    );
 
     const [initialCategory, setInitialCategory] = useState<ReportCategory | null>(
         null,
@@ -74,7 +95,9 @@ export default function EditReportPage({ params }: EditReportPageProps) {
     const [initialDescription, setInitialDescription] = useState<string | null>(
         null,
     );
-    const [initialAttachments, setInitialAttachments] = useState<AttachmentState[]>([]);
+    const [initialAttachments, setInitialAttachments] = useState<
+        AttachmentState[]
+    >([]);
 
     const categoryId = useId();
     const categoryLabelId = useId();
@@ -126,7 +149,8 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         // Check category, title, description, attachments
         (initialTitle !== null && title !== initialTitle) ||
         (initialDescription !== null && description !== initialDescription) ||
-        (initialCategory !== null && category !== initialCategory);
+        (initialCategory !== null && category !== initialCategory); // ||
+    //(initialAttachments !== null && attachments !== initialAttachments);
 
     /* ============ UPDATING REPORTS ============ */
 
@@ -286,6 +310,27 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                                 No attachments added yet.
                             </p>
                         </div>
+
+                        {hasAssignAccess && (
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-secondary">
+                                    Assign To{" "}
+                                </label>
+                                <Select>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select a user to assign..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <div className="p-2">
+                                            <TextInput placeholder="Search users..." className="mb-2" />
+                                        </div>
+                                        <div className="p-2 text-sm text-secondary/70 ">
+                                            Type to search users...
+                                        </div>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
 
                         <div className="flex flex-wrap justify-end gap-3">
                             <Button
