@@ -3,10 +3,16 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useId, useState } from "react";
 import { toast } from "sonner";
-import DropdownSelect from "@/components/dropdown-select";
 import { TitleShell } from "@/components/layouts/title-shell";
 import { TextInput } from "@/components/text-input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { useTRPCClient } from "@/lib/trpc";
@@ -318,40 +324,50 @@ export default function ProfileSettingsPage() {
           <div className="flex-1 max-w-xl space-y-6">
             <div className="space-y-2">
               <p className="text-sm font-medium text-secondary">Signal</p>
-              <DropdownSelect
-                id="signal-visibility"
-                options={[
-                  { label: "Visible to only me", value: "private" },
-                  { label: "Visible to anyone", value: "public" },
-                ]}
+              <Select
                 value={signalVisibility}
-                onChange={async (value) => {
+                onValueChange={(value) => {
                   const nextSignal = value as "private" | "public";
                   setSignalVisibility(nextSignal);
-                  await saveVisibility(nextSignal, emailVisibility);
+                  void saveVisibility(nextSignal, emailVisibility);
                 }}
-                className="w-full sm:min-w-64"
                 disabled={isSavingVisibility}
-              />
+              >
+                <SelectTrigger
+                  id="signal-visibility"
+                  className="w-full sm:min-w-64"
+                >
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Visible to only me</SelectItem>
+                  <SelectItem value="public">Visible to anyone</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-secondary">Email</p>
-              <DropdownSelect
-                id="email-visibility"
-                options={[
-                  { label: "Visible to only me", value: "private" },
-                  { label: "Visible to anyone", value: "public" },
-                ]}
+              <Select
                 value={emailVisibility}
-                onChange={async (value) => {
+                onValueChange={(value) => {
                   const nextEmail = value as "private" | "public";
                   setEmailVisibility(nextEmail);
-                  await saveVisibility(signalVisibility, nextEmail);
+                  void saveVisibility(signalVisibility, nextEmail);
                 }}
-                className="w-full sm:min-w-64"
                 disabled={isSavingVisibility}
-              />
+              >
+                <SelectTrigger
+                  id="email-visibility"
+                  className="w-full sm:min-w-64"
+                >
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Visible to only me</SelectItem>
+                  <SelectItem value="public">Visible to anyone</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
