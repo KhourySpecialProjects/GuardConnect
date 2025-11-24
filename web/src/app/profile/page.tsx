@@ -156,7 +156,7 @@ export default function ProfilePage() {
     unit,
     location,
     avatarSrc,                             
-    avatarAlt: `${name} profile photo`,     
+    avatarAlt: `${name} profile photo`, 
     interests,
     about,
     contactActions,
