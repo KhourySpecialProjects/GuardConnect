@@ -241,9 +241,9 @@ resource "aws_acm_certificate_validation" "main" {
   count           = var.domain_name != "" ? 1 : 0
   certificate_arn = aws_acm_certificate.main[0].arn
 
-  timeouts {
-    create = "5m"  # Short timeout - will fail fast if CNAME not added
-  }
+  # timeouts {
+  #   create = "30m"
+  # }
 
   lifecycle {
     create_before_destroy = true

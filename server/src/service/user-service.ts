@@ -2,7 +2,7 @@ import { getRedisClientInstance } from "@/data/db/redis.js";
 import { FileRepository } from "@/data/repository/file-repo.js";
 import type { UserRepository } from "@/data/repository/user-repo.js";
 import { NotFoundError } from "@/types/errors.js";
-import { Cache } from "@/utils/cache.js";
+// import { Cache } from "@/utils/cache.js";
 import log from "@/utils/logger.js";
 
 const USER_CACHE_TTL_SECONDS = 60 * 60; // keep in sync with Cache decorator default
@@ -27,7 +27,7 @@ export class UserService {
    * @param user_id User ID
    * @returns User data object
    */
-  @Cache((user_id: string) => `user:${user_id}:data`)
+  // @Cache((user_id: string) => `user:${user_id}:data`)
   async getUserData(user_id: string) {
     return this.usersRepo.getUserData(user_id);
   }

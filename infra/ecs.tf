@@ -94,7 +94,7 @@ resource "aws_ecs_task_definition" "server" {
         },
         {
           name  = "BEDROCK_MODEL_ID"
-          value = "amazon.titan-embed-v2"
+          value = "amazon.titan-embed-text-v2:0"
         },
         {
           name  = "DB_SECRET_ID"
