@@ -1,9 +1,9 @@
 "use client";
 
-import type { ReportCategory } from "@server/types/reports-types";
+import type { ReportCategory } from "@server/data/db/schema";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useId, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
@@ -33,7 +33,6 @@ const CATEGORY_OPTIONS: { label: string; value: ReportCategory }[] = [
     { label: "Mentorship", value: "Mentorship" },
     { label: "Training", value: "Training" },
     { label: "Resources", value: "Resources" },
-    { label: "Logistics", value: "Logistics" },
 ];
 
 const MAX_ATTACHMENTS = 10;
@@ -49,6 +48,26 @@ type AttachmentState = {
 
 const RemoveIcon = icons.clear;
 const SuccessIcon = icons.done;
+
+const formatFileSize = (bytes: number) => {
+    if (!Number.isFinite(bytes)) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let size = bytes;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex++;
+    }
+
+    const precision = unitIndex === 0 ? 0 : 1;
+    return `${size.toFixed(precision)} ${units[unitIndex]}`;
+};
+
+const createLocalId = () =>
+    typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 type EditReportPageProps = {
     params: Promise<{
@@ -84,11 +103,21 @@ export default function EditReportPage({ params }: EditReportPageProps) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [attachments, setAttachments] = useState<AttachmentState[]>([]);
+    const [attachmentNotice, setAttachmentNotice] = useState<string | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
+    const dropzoneFiles = useMemo(
+        () =>
+            attachments.length
+                ? attachments.map((attachment) => attachment.file)
+                : undefined,
+        [attachments],
+    );
+    const [assignedTo, setAssignedTo] = useState<string | null>(null);
     const [updatedAt, setUpdatedAt] = useState<string | number | Date | null>(
         null,
     );
     const [searchQuery, setSearchQuery] = useState("");
-    const [assignedTo, setAssignedTo] = useState<string | null>(null);
+
 
     const [initialCategory, setInitialCategory] = useState<ReportCategory | null>(
         null,
@@ -100,6 +129,8 @@ export default function EditReportPage({ params }: EditReportPageProps) {
     const [initialAttachments, setInitialAttachments] = useState<
         AttachmentState[]
     >([]);
+    const [initialAssignedTo, setInitialAssignedTo] = useState<string | null>(null); // seems like nowhere to get assigned to in reports
+
 
     const categoryId = useId();
     const categoryLabelId = useId();
@@ -134,8 +165,6 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                 setTitle(report.title || "");
                 setDescription(report.description || "");
                 setCategory(report.category || null);
-                console.log("UOOO");
-                console.log("ehehehe: " + report.attachments);
                 setAttachments(report.attachments);
                 setUpdatedAt(report.updatedAt || null);
 
@@ -153,8 +182,9 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         // Check category, title, description, attachments
         (initialTitle !== null && title !== initialTitle) ||
         (initialDescription !== null && description !== initialDescription) ||
-        (initialCategory !== null && category !== initialCategory); // ||
-    //(initialAttachments !== null && attachments !== initialAttachments);
+        (initialCategory !== null && category !== initialCategory) ||
+        (initialAttachments !== null && attachments !== initialAttachments) ||
+        (assignedTo !== initialAssignedTo);
 
     const { data: users } = useQuery({
         queryKey: ["users", searchQuery],
@@ -165,6 +195,137 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         },
         enabled: searchQuery.length >= 2,
     });
+
+    const hasUploadingAttachments = useMemo(
+        () => attachments.some((attachment) => attachment.status === "uploading"),
+        [attachments],
+    );
+
+    const hasAttachmentErrors = useMemo(
+        () => attachments.some((attachment) => attachment.status === "error"),
+        [attachments],
+    );
+
+    const attachmentsAtLimit = attachments.length >= MAX_ATTACHMENTS;
+
+    const uploadAttachment = useCallback(
+        async (attachmentId: string, file: File) => {
+            try {
+                const presign = await trpcClient.files.createPresignedUpload.mutate({
+                    fileName: file.name,
+                    contentType: file.type,
+                    fileSize: file.size,
+                });
+
+                const uploadResponse = await fetch(presign.uploadUrl, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": file.type || "application/octet-stream",
+                    },
+                    body: file,
+                });
+
+                if (!uploadResponse.ok) {
+                    throw new Error("We couldn't upload that file. Please try again.");
+                }
+
+                await trpcClient.files.confirmUpload.mutate({
+                    fileId: presign.fileId,
+                    fileName: file.name,
+                    storedName: presign.storedName,
+                    contentType: file.type || undefined,
+                });
+
+                setAttachments((prev) =>
+                    prev.map((attachment) =>
+                        attachment.id === attachmentId
+                            ? {
+                                ...attachment,
+                                status: "uploaded",
+                                fileId: presign.fileId,
+                                error: undefined,
+                            }
+                            : attachment,
+                    ),
+                );
+            } catch (error) {
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "We couldn't upload that file.";
+                setAttachments((prev) =>
+                    prev.map((attachment) =>
+                        attachment.id === attachmentId
+                            ? { ...attachment, status: "error", error: message }
+                            : attachment,
+                    ),
+                );
+            }
+        },
+        [trpcClient],
+    );
+
+    const handleAttachmentDrop = useCallback(
+        (acceptedFiles: File[]) => {
+            setAttachmentNotice(null);
+            if (!acceptedFiles.length) return;
+
+            const availableSlots = MAX_ATTACHMENTS - attachments.length;
+            if (availableSlots <= 0) {
+                setAttachmentNotice(
+                    `You can upload up to ${MAX_ATTACHMENTS} attachments.`,
+                );
+                return;
+            }
+
+            const filesToUpload = acceptedFiles.slice(0, availableSlots);
+            const newEntries = filesToUpload.map((file) => ({
+                id: createLocalId(),
+                file,
+                status: "uploading" as const,
+            }));
+
+            setAttachments((prev) => [...prev, ...newEntries]);
+            newEntries.forEach((entry) => {
+                void uploadAttachment(entry.id, entry.file);
+            });
+
+            if (acceptedFiles.length > filesToUpload.length) {
+                setAttachmentNotice(
+                    `Only ${availableSlots} more attachment${availableSlots === 1 ? "" : "s"
+                    } can be added right now.`,
+                );
+            }
+        },
+        [attachments.length, uploadAttachment],
+    );
+
+    const handleRemoveAttachment = useCallback((attachmentId: string) => {
+        setAttachments((prev) =>
+            prev.filter((attachment) => attachment.id !== attachmentId),
+        );
+        setAttachmentNotice(null);
+    }, []);
+
+    const handleRetryAttachment = useCallback(
+        (attachmentId: string) => {
+            let fileToRetry: File | null = null;
+            setAttachments((prev) =>
+                prev.map((attachment) => {
+                    if (attachment.id === attachmentId) {
+                        fileToRetry = attachment.file;
+                        return { ...attachment, status: "uploading", error: undefined };
+                    }
+                    return attachment;
+                }),
+            );
+
+            if (fileToRetry) {
+                void uploadAttachment(attachmentId, fileToRetry);
+            }
+        },
+        [uploadAttachment],
+    );
 
     /* ============ UPDATING REPORTS ============ */
 
@@ -315,14 +476,97 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                                 </div>
                             </div>
 
-                            <Dropzone multiple aria-label="Upload report attachments">
+                            <Dropzone
+                                onDrop={handleAttachmentDrop}
+                                disabled={attachmentsAtLimit} // || isSubmitting}
+                                src={dropzoneFiles}
+                                multiple
+                                maxFiles={Math.max(1, MAX_ATTACHMENTS - attachments.length)}
+                                aria-label="Upload report attachments"
+                            >
                                 <DropzoneEmptyState />
                                 <DropzoneContent />
                             </Dropzone>
+                            {attachmentsAtLimit ? (
+                                <p className="text-xs text-secondary/70">
+                                    You&apos;ve added the maximum number of attachments.
+                                </p>
+                            ) : null}
+                            {attachmentNotice ? (
+                                <p className="text-xs text-error">{attachmentNotice}</p>
+                            ) : null}
 
-                            <p className="text-xs text-secondary/70">
-                                No attachments added yet.
-                            </p>
+                            {attachments.length > 0 ? (
+                                <ul className="space-y-3">
+                                    {attachments.map((attachment) => {
+                                        const statusText =
+                                            attachment.status === "uploaded"
+                                                ? "Ready to submit"
+                                                : attachment.status === "uploading"
+                                                    ? "Uploading…"
+                                                    : (attachment.error ??
+                                                        "Upload failed. Remove or try again.");
+                                        const statusClass =
+                                            attachment.status === "error"
+                                                ? "text-errir"
+                                                : "text-secondary/70";
+                                        return (
+                                            <li
+                                                key={attachment.id}
+                                                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3"
+                                            >
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-semibold text-secondary">
+                                                        {attachment.file.name}
+                                                    </p>
+                                                    <p className="text-xs text-secondary/60">
+                                                        {formatFileSize(attachment.file.size)}
+                                                    </p>
+                                                    <p className={`text-xs ${statusClass}`}>
+                                                        {statusText}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-shrink-0 items-center gap-2">
+                                                    {attachment.status === "uploading" ? (
+                                                        <Spinner className="text-secondary" />
+                                                    ) : attachment.status === "uploaded" ? (
+                                                        <SuccessIcon className="h-4 w-4 text-primary" />
+                                                    ) : null}
+                                                    {attachment.status === "error" ? (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleRetryAttachment(attachment.id)
+                                                            }
+                                                        //disabled={isSubmitting}
+                                                        >
+                                                            Retry
+                                                        </Button>
+                                                    ) : null}
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        onClick={() =>
+                                                            handleRemoveAttachment(attachment.id)
+                                                        }
+                                                        //disabled={isSubmitting}
+                                                        aria-label={`Remove ${attachment.file.name}`}
+                                                    >
+                                                        <RemoveIcon className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            ) : (
+                                <p className="text-xs text-secondary/70">
+                                    No attachments added yet.
+                                </p>
+                            )}
                         </div>
 
                         {hasAssignAccess && (
@@ -338,14 +582,19 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                                         <SelectValue placeholder="Select a user to assign..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <div className="p-2" onKeyDown={(e) => e.stopPropagation()}>
+                                        <div
+                                            className="p-2"
+                                            onKeyDown={(e) => e.stopPropagation()}
+                                        >
                                             <TextInput
                                                 placeholder="Search users..."
                                                 value={searchQuery}
                                                 onChange={(value) => {
                                                     console.log("Search query changed:", value);
                                                     setSearchQuery(value);
-                                                }} className="mb-2"
+                                                }} 
+                                                className="mb-2"
+                                                autoFocus
                                             />
                                         </div>
                                         {users && users.length > 0 ? (
@@ -381,15 +630,16 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                             </Button>
                         </div>
                     </form>
-                    <p className="mt-4 text-right text-xs text-secondary/70">
-                        Last edited: {new Date(updatedAt).toLocaleString('en-US', {
+                    <p className="mt-4 text-right text-xs text-secondary/70" suppressHydrationWarning>
+                        Last edited: {updatedAt && new Date(updatedAt).toLocaleString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
+                        })} {updatedAt && new Date(updatedAt).toLocaleTimeString('en-US', {
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false,
-                        })} EST
+                        }).replace(':', '')} EST
                     </p>
                 </div>
             </section>
