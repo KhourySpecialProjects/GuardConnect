@@ -156,6 +156,17 @@ export default function Page() {
                   disabled={stage === "password"}
                   className="w-full"
                 />
+
+                <label>
+                  Don't have an account?{" "}
+                  <Link
+                    href={`/sign-up`}
+                  >
+                    <span className="cursor-pointer text-primary underline-offset-4 hover:underline">
+                      Sign up
+                    </span>
+                  </Link>
+                </label>
               </div>
 
               {stage === "password" ? (
