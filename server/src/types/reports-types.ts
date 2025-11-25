@@ -1,22 +1,20 @@
 import { z } from "zod";
+import { reportCategoryEnum } from "../data/db/schema.js";
 
-const REPORT_CATEGORY_VALUES = [
-  "Communication",
-  "Mentorship",
-  "Training",
-  "Resources",
-] as const;
-export const reportCategorySchema = z.enum(REPORT_CATEGORY_VALUES);
-export type ReportCategory = z.infer<typeof reportCategorySchema>;
+export const reportCategorySchema = z.enum(reportCategoryEnum.enumValues);
+
+const userIdSchema = z
+  .string()
+  .min(1, "User identifier is required to submit reports.");
 
 export const getReportsSchema = z.object({
-  name: z.string(),
+  name: userIdSchema,
 });
 
 export const assignReportSchema = z.object({
   reportId: z.uuid(),
-  assigneeId: z.uuid(),
-  assignedBy: z.uuid(),
+  assigneeId: userIdSchema,
+  assignedBy: userIdSchema,
 });
 
 export const createReportsSchema = z.object({
@@ -24,7 +22,7 @@ export const createReportsSchema = z.object({
   title: z.string().min(1, "Report title cannot be empty."),
   description: z.string().min(1, "Report description cannot be empty."),
   attachments: z.array(z.uuid()).max(10).default([]),
-  submittedBy: z.uuid(),
+  submittedBy: userIdSchema,
   status: z.enum(["Pending", "Assigned", "Resolved"]).default("Pending"),
 });
 
@@ -46,7 +44,7 @@ export const editReportSchema = z
 
 export const deleteReportSchema = z.object({
   reportId: z.uuid(),
-  deletedBy: z.uuid(),
+  deletedBy: userIdSchema,
 });
 
 export type SendReportInput = z.infer<typeof getReportsSchema>;

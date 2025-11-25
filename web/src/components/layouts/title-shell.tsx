@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { icons } from "@/components/icons";
@@ -5,33 +6,34 @@ import { MobileNavTrigger } from "@/components/layouts/navigation-shell";
 import { cn } from "@/lib/utils";
 
 const ArrowLeftIcon = icons.arrowLeft;
-type LinkHref = Parameters<typeof Link>[0]["href"];
 
-export type TitleShellProps = {
+export type TitleShellProps<T extends string> = {
   title?: ReactNode;
   actions?: ReactNode;
   sidebar?: ReactNode;
   children: ReactNode;
   className?: string;
-  backHref?: LinkHref | string;
+  backHref?: Route<T> | null;
   backAriaLabel?: string;
   contentClassName?: string;
   pinnedContent?: ReactNode;
   scrollableContent?: boolean;
+  onBackClick?: () => void;
 };
 
-export function TitleShell({
+export function TitleShell<T extends string>({
   title,
   actions,
   sidebar,
   children,
   className,
-  backHref,
+  backHref = null,
   backAriaLabel,
   contentClassName,
   pinnedContent,
   scrollableContent = true,
-}: TitleShellProps) {
+  onBackClick,
+}: TitleShellProps<T>) {
   const hasSidebar = Boolean(sidebar);
   const renderTitleContent = () => {
     if (!title) {
@@ -47,9 +49,6 @@ export function TitleShell({
     return title;
   };
 
-  const normalizedBackHref =
-    typeof backHref === "string" ? (backHref as LinkHref) : (backHref ?? null);
-  const hasBackButton = Boolean(normalizedBackHref);
   const headerTitle = renderTitleContent();
 
   return (
@@ -59,14 +58,25 @@ export function TitleShell({
           <div className="flex w-full items-center justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
               <MobileNavTrigger />
-              {hasBackButton && normalizedBackHref ? (
-                <Link
-                  href={normalizedBackHref}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                  aria-label={backAriaLabel ?? "Go back"}
-                >
-                  <ArrowLeftIcon className="h-6 w-6" aria-hidden="true" />
-                </Link>
+              {backHref ? (
+                onBackClick ? (
+                  <button
+                    type="button"
+                    onClick={onBackClick}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                    aria-label={backAriaLabel ?? "Go back"}
+                  >
+                    <ArrowLeftIcon className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                ) : (
+                  <Link
+                    href={backHref}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                    aria-label={backAriaLabel ?? "Go back"}
+                  >
+                    <ArrowLeftIcon className="h-6 w-6" aria-hidden="true" />
+                  </Link>
+                )
               ) : null}
               <div className="min-w-0 flex-1 ml-1">{headerTitle}</div>
             </div>
