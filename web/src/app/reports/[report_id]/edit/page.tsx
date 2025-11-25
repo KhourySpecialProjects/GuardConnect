@@ -87,6 +87,8 @@ export default function EditReportPage({ params }: EditReportPageProps) {
     const [updatedAt, setUpdatedAt] = useState<string | number | Date | null>(
         null,
     );
+    const [searchQuery, setSearchQuery] = useState("");
+    const [assignedTo, setAssignedTo] = useState<string | null>(null);
 
     const [initialCategory, setInitialCategory] = useState<ReportCategory | null>(
         null,
@@ -153,6 +155,16 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         (initialDescription !== null && description !== initialDescription) ||
         (initialCategory !== null && category !== initialCategory); // ||
     //(initialAttachments !== null && attachments !== initialAttachments);
+
+    const { data: users } = useQuery({
+        queryKey: ["users", searchQuery],
+        queryFn: async () => {
+            return await trpcClient.user.searchUsers.query({
+                name: searchQuery
+            });
+        },
+        enabled: searchQuery.length >= 2,
+    });
 
     /* ============ UPDATING REPORTS ============ */
 
@@ -318,17 +330,39 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                                 <label className="block text-sm font-medium text-secondary">
                                     Assign To{" "}
                                 </label>
-                                <Select>
+                                <Select
+                                    value={assignedTo || ""}
+                                    onValueChange={setAssignedTo}
+                                >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select a user to assign..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <div className="p-2">
-                                            <TextInput placeholder="Search users..." className="mb-2" />
+                                        <div className="p-2" onKeyDown={(e) => e.stopPropagation()}>
+                                            <TextInput
+                                                placeholder="Search users..."
+                                                value={searchQuery}
+                                                onChange={(value) => {
+                                                    console.log("Search query changed:", value);
+                                                    setSearchQuery(value);
+                                                }} className="mb-2"
+                                            />
                                         </div>
-                                        <div className="p-2 text-sm text-secondary/70 ">
-                                            Type to search users...
-                                        </div>
+                                        {users && users.length > 0 ? (
+                                            users.map((user) => (
+                                                <SelectItem key={user.id} value={user.id}>
+                                                    {user.name} ({user.email})
+                                                </SelectItem>
+                                            ))
+                                        ) : searchQuery.length >= 2 ? (
+                                            <div className="p-2 text-sm text-secondary/70">
+                                                No users found
+                                            </div>
+                                        ) : (
+                                            <div className="p-2 text-sm text-secondary/70">
+                                                Type to search users...
+                                            </div>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -354,7 +388,7 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                            hour12: false, 
+                            hour12: false,
                         })} EST
                     </p>
                 </div>
