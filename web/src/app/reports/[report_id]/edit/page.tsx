@@ -107,6 +107,7 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         null,
     );
     const [searchQuery, setSearchQuery] = useState("");
+    const [relevantUsersQuery, setRelevantUsersQuery] = useState(searchQuery);
 
 
     const [initialCategory, setInitialCategory] = useState<ReportCategory | null>(
@@ -131,6 +132,22 @@ export default function EditReportPage({ params }: EditReportPageProps) {
             Edit Report
         </span>
     );
+
+    /* ============ SEARCH FOR USERS ============ */
+    // Add a delay to avoid flickering
+    useEffect(() => {
+        const handler = setTimeout(() => setRelevantUsersQuery(searchQuery), 300);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
+    // Search whenever relevantUsersQuery changes
+    const { data: users = [], isFetching } = useQuery({
+        queryKey: ["users", relevantUsersQuery],
+        queryFn: async () => {
+            return await trpcClient.user.searchUsers.query({ name: relevantUsersQuery });
+        },
+        enabled: relevantUsersQuery.length >= 2,
+    });
 
     /* ============ GETTING INFO FROM REPORTS ============ */
     // Fetch all reports
@@ -169,16 +186,6 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         (initialDescription !== null && description !== initialDescription) ||
         (initialCategory !== null && category !== initialCategory) ||
         (assignedTo !== initialAssignedTo);
-
-    const { data: users } = useQuery({
-        queryKey: ["users", searchQuery],
-        queryFn: async () => {
-            return await trpcClient.user.searchUsers.query({
-                name: searchQuery
-            });
-        },
-        enabled: searchQuery.length >= 2,
-    });
 
     /* ============ UPDATING REPORTS ============ */
 
@@ -342,7 +349,7 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                         {hasAssignAccess && (
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-secondary">
-                                    Assign To{" "}
+                                    Assign To
                                 </label>
                                 <Select
                                     value={assignedTo || ""}
@@ -359,21 +366,23 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                                             <TextInput
                                                 placeholder="Search users..."
                                                 value={searchQuery}
-                                                onChange={(value) => {
-                                                    console.log("Search query changed:", value);
-                                                    setSearchQuery(value);
-                                                }}
+                                                onChange={(value) => setSearchQuery(value)}
                                                 className="mb-2"
                                                 autoFocus
                                             />
                                         </div>
-                                        {users && users.length > 0 ? (
+
+                                        {isFetching ? (
+                                            <div className="p-2 text-sm text-secondary/70">
+                                                Searching...
+                                            </div>
+                                        ) : users.length > 0 ? (
                                             users.map((user) => (
                                                 <SelectItem key={user.id} value={user.id}>
                                                     {user.name} ({user.email})
                                                 </SelectItem>
                                             ))
-                                        ) : searchQuery.length >= 2 ? (
+                                        ) : relevantUsersQuery.length >= 2 ? (
                                             <div className="p-2 text-sm text-secondary/70">
                                                 No users found
                                             </div>
