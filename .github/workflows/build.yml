@@ -25,6 +25,9 @@ jobs:
         with:
           version: 2.2.5
 
+      - name: Run typecheck
+        run: npx tsc --noEmit
+
       - name: Run Biome
         run: biome ci .
 
@@ -47,6 +50,9 @@ jobs:
         uses: biomejs/setup-biome@v2
         with:
           version: 2.2.5
+
+      - name: Run typecheck
+        run: npx tsc --noEmit
 
       - name: Run Biome
         run: biome ci .
