@@ -9,7 +9,9 @@ import {
   getUserDataInputSchema,
   updateUserProfileInputSchema,
   updateUserVisibilityInputSchema,
+  searchUsersInputSchema,
 } from "../types/user-types.js";
+
 
 const userService = new UserService(new UserRepository());
 const authRepository = new AuthRepository();
@@ -88,6 +90,19 @@ const getUserRoles = protectedProcedure
     });
   });
 
+const searchUsers = protectedProcedure
+.input(searchUsersInputSchema)
+.meta({
+  description:
+    "Search for users with names that include the given name",
+})
+.query(async ({ input }) => {
+  return userService.searchUsers(input.name);
+});
+
+console.log("========== USERS ROUTER LOADED ==========");
+console.log("searchUsers procedure exists:", typeof searchUsers);
+
 export const userRouter = router({
   getUserData,
   checkEmailExists,
@@ -95,4 +110,5 @@ export const userRouter = router({
   updateUserProfile,
   updateUserVisibility, // ⬅️ NEW
   getUserRoles,
+  searchUsers,
 });

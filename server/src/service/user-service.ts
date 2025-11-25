@@ -33,6 +33,10 @@ export class UserService {
     return this.usersRepo.getUserData(user_id);
   }
 
+  async searchUsers(name: string) {
+    return this.usersRepo.searchUsers(name);
+  }
+
   /**
    * Check if a user exists by email
    * @param email User email
