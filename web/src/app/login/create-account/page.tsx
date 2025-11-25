@@ -5,6 +5,19 @@ import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { DropdownSelect } from "@/components/dropdown-select";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import TextInput from "@/components/text-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useTRPCClient } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function CreateAccountPage() {
   const [email, _setEmail] = useState("");
@@ -480,6 +493,79 @@ export default function CreateAccountPage() {
   ];
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
+  const [signalVisibility, setSignalVisibility] = useState<
+    "private" | "public"
+  >("private");
+  const [emailVisibility, setEmailVisibility] = useState<"private" | "public">(
+    "private"
+  );
+  const router = useRouter();
+  const trpc = useTRPCClient();
+  const [isSavingVisibility, setIsSavingVisibility] = useState(false);
+  const saveVisibility = async (
+    nextSignal: "private" | "public",
+    nextEmail: "private" | "public"
+  ) => {
+    try {
+      setIsSavingVisibility(true);
+      await trpc.user.updateUserVisibility.mutate({
+        signal_visibility: nextSignal,
+        email_visibility: nextEmail,
+      });
+      toast.success("Visibility updated.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to update visibility. Please try again.");
+    } finally {
+      setIsSavingVisibility(false);
+    }
+  };
+
+  const [isCreateAccount, setIsCreateAccount] = useState(false);
+  const handleSignOut = async () => {
+    setIsCreateAccount(true);
+    const res = await authClient.signOut();
+
+    if (res.error) {
+      const message = res.error.message ?? "Unable to sign out right now.";
+      toast.error(`${message} Please try again.`);
+      setIsCreateAccount(false);
+      return;
+    }
+
+    router.replace("/login");
+  };
+
+  const handleCreateAccount = async () => {
+    setIsCreateAccount(true);
+
+    const createFn =
+      (authClient as any).createAccount ??
+      (authClient as any).signUp ??
+      (authClient as any).register ??
+      null;
+
+    if (!createFn) {
+      toast.error(
+        "Account creation is not available. Please try again or contact support."
+      );
+      setIsCreateAccount(false);
+      return;
+    }
+
+    const res = await createFn();
+
+    if (res?.error) {
+      const message =
+        res.error.message ?? "Unable to create account right now.";
+      toast.error(`${message} Please try again.`);
+      setIsCreateAccount(false);
+      return;
+    }
+
+    router.replace("/login");
+  };
+
   return (
     <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-left px-6 py-16 sm:gap-0 sm:px-10 lg:pr-16lg:px-16 ">
       <h1 className="text-3xl font-semibold text-secondary sm:text-4xl lg:text-3xl mb-3">
@@ -492,10 +578,10 @@ export default function CreateAccountPage() {
         *Required Information
       </h1>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex-1 max-w-lg space-y-6">
         <label
           htmlFor="login-fullname"
-          className="text-sm font-semibold text-secondary"
+          className="text-sm font-semibold text-secondary space-y-2"
         >
           Full Name*
         </label>
@@ -606,6 +692,66 @@ export default function CreateAccountPage() {
           onChange={setSelectedInterests}
           maxSelections={9}
         />
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-secondary">
+            Signal Visibility
+          </p>
+          <Select
+            value={signalVisibility}
+            onValueChange={(value) => {
+              const nextSignal = value as "private" | "public";
+              setSignalVisibility(nextSignal);
+              void saveVisibility(nextSignal, emailVisibility);
+            }}
+            disabled={isSavingVisibility}
+          >
+            <SelectTrigger
+              id="signal-visibility"
+              className="w-full sm:min-w-64"
+            >
+              <SelectValue placeholder="Select visibility" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="private">Visible to only me</SelectItem>
+              <SelectItem value="public">Visible to anyone</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-secondary">Email Visibility</p>
+          <Select
+            value={emailVisibility}
+            onValueChange={(value) => {
+              const nextEmail = value as "private" | "public";
+              setEmailVisibility(nextEmail);
+              void saveVisibility(signalVisibility, nextEmail);
+            }}
+            disabled={isSavingVisibility}
+          >
+            <SelectTrigger id="email-visibility" className="w-full sm:min-w-64">
+              <SelectValue placeholder="Select visibility" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="private">Visible to only me</SelectItem>
+              <SelectItem value="public">Visible to anyone</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex-1 max-w-xl">
+          <Button
+            type="button"
+            className="inline-flex items-center gap-2 px-6"
+            disabled={isCreateAccount}
+            onClick={handleCreateAccount}
+            aria-label="Create a new account"
+          >
+            {isCreateAccount && <Spinner />}
+            Create Account
+          </Button>
+        </div>
       </div>
     </div>
   );
