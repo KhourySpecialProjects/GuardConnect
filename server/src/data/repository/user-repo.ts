@@ -1,4 +1,4 @@
-import { and, eq, or, like } from "drizzle-orm";
+import { and, eq, or, ilike } from "drizzle-orm";
 import { users } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { NotFoundError } from "../../types/errors.js";
@@ -10,21 +10,18 @@ export class UserRepository {
 
   async searchUsers(name: string) {
     const searchTerm = name.trim().toLowerCase();
-
-    if (!searchTerm) {
-      return [];
-    }
+    if (!searchTerm) return [];
 
     const words = searchTerm.split(/\s+/);
 
     const conditions = words.map(word =>
       or(
-        like(users.name, `%${word}%`),
-        like(users.email, `%${word}%`)
+        ilike(users.name, `%${word}%`),
+        ilike(users.email, `%${word}%`)
       )
     );
 
-    const allUsers = await db
+    const results = await db
       .select({
         id: users.id,
         name: users.name,
@@ -37,8 +34,9 @@ export class UserRepository {
       .where(and(...conditions))
       .limit(10);
 
-    return allUsers;
+    return results;
   }
+
 
   /**
    * Get user data by user ID
