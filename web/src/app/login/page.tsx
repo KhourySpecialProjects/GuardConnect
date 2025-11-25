@@ -190,41 +190,6 @@ export default function Page() {
                   </Link>
                 </div>
               </div>
-
-              {/* {stage === "password" ? (
-                <div>
-                  <label
-                    htmlFor="login-password"
-                    className="mb-2 block text-sm font-semibold text-secondary"
-                  >
-                    Password
-                  </label>
-                  <TextInput
-                    id="login-password"
-                    name="password"
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(value) => {
-                      setPassword(value);
-                      setErrorMessage(null);
-                    }}
-                    className="w-full"
-                  />
-                  <Link href="/forgot-password">
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        variant="link"
-                        className="text-xs text-primary underline-offset-4 p-0"
-                      >
-                        Forgot password?
-                      </Button>
-                    </div>
-                  </Link>
-                </div>
-              ) : null}
-            */}
             </div>
 
             {errorMessage ? (
