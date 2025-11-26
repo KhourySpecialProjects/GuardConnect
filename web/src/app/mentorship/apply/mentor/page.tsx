@@ -1,5 +1,8 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
+import { TRPCClientError } from "@trpc/client";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { SelectableButton } from "@/components/buttons";
@@ -11,7 +14,8 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { useTRPCClient } from "@/lib/trpc";
+import { authClient } from "@/lib/auth-client";
+import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
 type ResumeState = null | {
   file: File;
@@ -155,13 +159,19 @@ const rankOptions = [
 ];
 
 export default function MentorshipApplyMentorPage() {
+  const trpc = useTRPC();
   const trpcClient = useTRPCClient();
+  const router = useRouter();
+  const { data: sessionData } = authClient.useSession();
+  const userId = sessionData?.user?.id ?? null;
+
   const [positionSelection, setPositionSelection] = useState<string>("");
   const [rankSelection, setRankSelection] = useState<string>("");
   const [resume, setResume] = useState<ResumeState>(null);
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [multiLineText, setMultiLineText] = useState("");
+  const [whyInterestedOrder, setWhyInterestedOrder] = useState<string[]>([]);
   const [selectedCareerStages, setSelectedCareerStages] = useState<string[]>(
     [],
   );
@@ -170,6 +180,10 @@ export default function MentorshipApplyMentorPage() {
   >([]);
   const [desiredMentorHours, setDesiredMentorHours] = useState("");
   const [availableMentorHours, setAvailableMentorHours] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createMentor = useMutation(trpc.mentors.createMentor.mutationOptions());
 
   const uploadResume = useCallback(
     async (file: File) => {
@@ -223,6 +237,82 @@ export default function MentorshipApplyMentorPage() {
     },
     [trpcClient],
   );
+
+  const handleSubmit = useCallback(async () => {
+    if (!userId) {
+      setFormError("You must be logged in to submit this application.");
+      return;
+    }
+
+    setFormError(null);
+    setIsSubmitting(true);
+
+    // Check if resume is still uploading
+    if (resume?.status === "uploading") {
+      setFormError("Please wait for the resume upload to complete.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Check if resume upload failed
+    if (resume?.status === "error") {
+      setFormError("Please fix the resume upload error before submitting.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      await createMentor.mutateAsync({
+        userId,
+        resumeFileId: resume?.status === "uploaded" ? resume.fileId : undefined,
+        strengths: selectedQualities,
+        personalInterests:
+          selectedInterests.length > 0
+            ? selectedInterests.join(", ")
+            : undefined,
+        whyInterestedResponses:
+          whyInterestedOrder.length > 0 ? whyInterestedOrder : undefined,
+        careerAdvice: multiLineText.trim() || undefined,
+        preferredMenteeCareerStages:
+          selectedCareerStages.length > 0 ? selectedCareerStages : undefined,
+        preferredMeetingFormat:
+          selectedMeetingFormats.length > 0
+            ? (selectedMeetingFormats[0] as
+                | "in-person"
+                | "virtual"
+                | "hybrid"
+                | "no-preference")
+            : undefined,
+        hoursPerMonthCommitment: availableMentorHours
+          ? parseInt(availableMentorHours, 10)
+          : undefined,
+      });
+
+      router.push("/mentorship");
+    } catch (error) {
+      if (error instanceof TRPCClientError) {
+        setFormError(error.message);
+      } else if (error instanceof Error) {
+        setFormError(error.message);
+      } else {
+        setFormError("Failed to submit application. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    userId,
+    resume,
+    selectedQualities,
+    selectedInterests,
+    whyInterestedOrder,
+    multiLineText,
+    selectedCareerStages,
+    selectedMeetingFormats,
+    availableMentorHours,
+    createMentor,
+    router,
+  ]);
 
   const mentorQualityOptions: MultiSelectOption[] = [
     { label: "Adaptability", value: "adaptability" },
@@ -405,7 +495,7 @@ export default function MentorshipApplyMentorPage() {
                 value: "diversity",
               },
             ]}
-            onChange={() => {}}
+            onChange={setWhyInterestedOrder}
           />
         </section>
 
@@ -484,7 +574,17 @@ export default function MentorshipApplyMentorPage() {
           />
         </section>
 
-        <SelectableButton text="Submit" className="mb-4 bg-accent text-white" />
+        <div className="flex flex-col gap-2">
+          {formError && (
+            <p className="text-sm text-red-600 mb-2">{formError}</p>
+          )}
+          <SelectableButton
+            text={isSubmitting ? "Submitting..." : "Submit"}
+            className="mb-4 bg-accent text-white"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          />
+        </div>
       </div>
     </div>
   );
