@@ -74,7 +74,7 @@ export function DragReorderFrame({
               className={cn(
                 "flex flex-row items-center gap-3 cursor-grab active:cursor-grabbing px-4 py-3 text-sm font-medium min-w-0",
                 isDragging && "opacity-50",
-                isDragOver && "border-primary"
+                isDragOver && "border-primary",
               )}
             >
               {/* DRAG HANDLE ICON */}
