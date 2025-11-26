@@ -9,17 +9,10 @@ import { policyEngine } from "./service/policy-engine.js";
 import { appRouter } from "./trpc/app_router.js";
 import { createContext } from "./trpc/trpc.js";
 import log from "./utils/logger.js";
+import { allowedOrigins } from "./cors.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-
-// Configure allowed origins for CORS
-export const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "https://commng.nunext.dev",
-  process.env.BACKEND_URL || "",
-].filter(Boolean);
 
 app.use(
   cors({
@@ -62,17 +55,23 @@ app.get("/api/health", (_req, res) => {
     log.warn("Health check: Connections still initializing");
     return res.status(200).json({
       status: "initializing",
-      postgres: isPostgresConnected,
-      redis: isRedisConnected,
+      db: {
+        postgres: isPostgresConnected,
+        redis: isRedisConnected,
+      },
       timestamp: new Date().toISOString(),
+      image: process.env.IMAGE_TAG || 'unknown'
     });
   }
 
   res.status(200).json({
     status: "healthy",
-    postgres: isPostgresConnected,
-    redis: isRedisConnected,
+    db: {
+      postgres: isPostgresConnected,
+      redis: isRedisConnected,
+    },
     timestamp: new Date().toISOString(),
+    image: process.env.IMAGE_TAG || 'unknown'
   });
 });
 
