@@ -332,10 +332,7 @@ export default function MentorshipApplyMentorPage() {
             className="mb-3 max-w-3xl"
             onDrop={(files) => {
               if (files.length > 0) {
-                setResume({
-                  file: files[0],
-                  status: "uploading",
-                });
+                void uploadResume(files[0]);
               }
             }}
             src={resume ? [resume.file] : undefined}
