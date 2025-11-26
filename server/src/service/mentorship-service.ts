@@ -1,15 +1,15 @@
 import { eq, or, and, notInArray } from "drizzle-orm";
-import { mentorshipMatches, mentors } from "@/data/db/schema.js";
-import { db } from "@/data/db/sql.js";
-import type { MenteeRepository } from "@/data/repository/mentee-repo.js";
-import type { MentorRepository } from "@/data/repository/mentor-repo.js";
+import { mentorshipMatches, mentors } from "../data/db/schema.js";
+import { db } from "../data/db/sql.js";
+import type { MenteeRepository } from "../data/repository/mentee-repo.js";
+import type { MentorRepository } from "../data/repository/mentor-repo.js";
 import type {
   MentorshipDataOutput,
   SuggestedMentor,
   MatchedMentor,
   PendingMenteeRequest,
   MatchedMentee,
-} from "@/types/mentorship-types.js";
+} from "../types/mentorship-types.js";
 
 /**
  * Service to handle mentorship data aggregation

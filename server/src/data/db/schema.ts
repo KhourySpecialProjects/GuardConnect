@@ -13,7 +13,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { RoleKey } from "@/data/roles.js";
+import type { RoleKey } from "../../data/roles.js";
 
 // Enums
 export const permissionEnum = pgEnum("permission_enum", [
@@ -53,6 +53,9 @@ export const roleNamespaceEnum = pgEnum("role_namespace_enum", [
   "broadcast",
   "reporting",
 ]);
+
+export const visibilityEnum = pgEnum("visibility_enum", ["private", "public"]);
+
 export type RoleNamespace = (typeof roleNamespaceEnum.enumValues)[number];
 
 export const channelPostPermissionEnum = pgEnum(
@@ -123,6 +126,14 @@ export const users = pgTable(
     location: text("location"),
     about: text("about"),
     interests: jsonb("interests"),
+
+    signalVisibility: visibilityEnum("signal_visibility")
+      .notNull()
+      .default("private"),
+    emailVisibility: visibilityEnum("email_visibility")
+      .notNull()
+      .default("private"),
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -572,13 +583,6 @@ export const messageBlasts = pgTable(
   ],
 );
 
-// const roleKeys = await db
-//   .select({ roleKey: roles.roleKey })
-//   .from(userRoles)
-//   .innerJoin(roles, eq(userRoles.roleId, roles.roleId))
-//   .where(eq(userRoles.userId, userId));
-// engine.hasAccess(roleKeys, `channel:${channelId}:read`);
-
 // Reports
 export const reportStatusEnum = pgEnum("report_status_enum", [
   "Pending",
@@ -592,6 +596,7 @@ export const reportCategoryEnum = pgEnum("report_category_enum", [
   "Training",
   "Resources",
 ]);
+export type ReportCategory = (typeof reportCategoryEnum.enumValues)[number];
 
 export const reports = pgTable("reports", {
   reportId: uuid("report_id").primaryKey().defaultRandom(),
