@@ -1,10 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { DropdownSelect } from "@/components/dropdown-select";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import TextInput from "@/components/text-input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -12,15 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { useTRPCClient } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
 import { Spinner } from "@/components/ui/spinner";
-import { time } from "console";
+import { authClient } from "@/lib/auth-client";
+import { useTRPCClient } from "@/lib/trpc";
 
 export default function CreateAccountPage() {
+  const router = useRouter();
+  const trpc = useTRPCClient();
   const [email, _setEmail] = useState("");
   const [phone, _setPhone] = useState("");
   const [fullname, _setFullname] = useState("");
@@ -91,7 +92,7 @@ export default function CreateAccountPage() {
   const [rankSelection, setRankSelection] = useState<string>("");
   const [multiLineText, setMultiLineText] = useState<string>("");
   const [locationSelection, setLocationSelection] = useState<string>("");
-  const [singleLineText, setSingleLineText] = useState("");
+  const [careerField, setCareerField] = useState<string>("");
 
   const locationOptions = [
     { label: "Abington", value: "abington-ma" },
@@ -476,22 +477,19 @@ export default function CreateAccountPage() {
     { label: "Personal Fitness", value: "personal-fitness" },
   ];
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [careerField, setCareerField] = useState("");
   const [dutySelection, setDutySelection] = useState<string>("");
-  
-
   const [signalVisibility, setSignalVisibility] = useState<
     "private" | "public"
   >("private");
   const [emailVisibility, setEmailVisibility] = useState<"private" | "public">(
-    "private"
+    "private",
   );
-  const router = useRouter();
-  const trpc = useTRPCClient();
+
   const [isSavingVisibility, setIsSavingVisibility] = useState(false);
+
   const saveVisibility = async (
     nextSignal: "private" | "public",
-    nextEmail: "private" | "public"
+    nextEmail: "private" | "public",
   ) => {
     try {
       setIsSavingVisibility(true);
@@ -509,40 +507,11 @@ export default function CreateAccountPage() {
   };
 
   const [isCreateAccount, setIsCreateAccount] = useState(false);
-  const handleSignOut = async () => {
+  const handleCreateAccount = async () => {
     setIsCreateAccount(true);
     const res = await authClient.signOut();
 
     if (res.error) {
-      const message = res.error.message ?? "Unable to sign out right now.";
-      toast.error(`${message} Please try again.`);
-      setIsCreateAccount(false);
-      return;
-    }
-
-    router.replace("/login");
-  };
-
-  const handleCreateAccount = async () => {
-    setIsCreateAccount(true);
-
-    const createFn =
-      (authClient as any).createAccount ??
-      (authClient as any).signUp ??
-      (authClient as any).register ??
-      null;
-
-    if (!createFn) {
-      toast.error(
-        "Account creation is not available. Please try again or contact support."
-      );
-      setIsCreateAccount(false);
-      return;
-    }
-
-    const res = await createFn();
-
-    if (res?.error) {
       const message =
         res.error.message ?? "Unable to create account right now.";
       toast.error(`${message} Please try again.`);
@@ -641,7 +610,7 @@ export default function CreateAccountPage() {
           placeholder="Your branch"
           value={branch}
           className="w-full"
-          onChange={setSingleLineText}
+          onChange={setBranch}
         />
 
         <label htmlFor="login-career-field">What is your career field?</label>
@@ -651,7 +620,7 @@ export default function CreateAccountPage() {
           placeholder="Your career field"
           value={careerField}
           className="w-full"
-          onChange={setSingleLineText}
+          onChange={setCareerField}
         />
 
         <label
@@ -703,65 +672,71 @@ export default function CreateAccountPage() {
           maxSelections={9}
         />
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-secondary">
-            Signal Visibility
-          </p>
-          <Select
-            value={signalVisibility}
-            onValueChange={(value) => {
-              const nextSignal = value as "private" | "public";
-              setSignalVisibility(nextSignal);
-              void saveVisibility(nextSignal, emailVisibility);
-            }}
-            disabled={isSavingVisibility}
-          >
-            <SelectTrigger
-              id="signal-visibility"
-              className="w-full sm:min-w-64"
+        <div className="text-base font-semibold text-secondary sm:w-48 shrink-0 pt-1">
+          Visibility
+        </div>
+        <div className="flex-1 max-w-xl space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-secondary">Signal</p>
+            <Select
+              value={signalVisibility}
+              onValueChange={(value) => {
+                const nextSignal = value as "private" | "public";
+                setSignalVisibility(nextSignal);
+                void saveVisibility(nextSignal, emailVisibility);
+              }}
+              disabled={isSavingVisibility}
             >
-              <SelectValue placeholder="Select visibility" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="private">Visible to only me</SelectItem>
-              <SelectItem value="public">Visible to anyone</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+              <SelectTrigger
+                id="signal-visibility"
+                className="w-full sm:min-w-64"
+              >
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">Visible to only me</SelectItem>
+                <SelectItem value="public">Visible to anyone</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-secondary">Email Visibility</p>
-          <Select
-            value={emailVisibility}
-            onValueChange={(value) => {
-              const nextEmail = value as "private" | "public";
-              setEmailVisibility(nextEmail);
-              void saveVisibility(signalVisibility, nextEmail);
-            }}
-            disabled={isSavingVisibility}
-          >
-            <SelectTrigger id="email-visibility" className="w-full sm:min-w-64">
-              <SelectValue placeholder="Select visibility" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="private">Visible to only me</SelectItem>
-              <SelectItem value="public">Visible to anyone</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-secondary">Email</p>
+            <Select
+              value={emailVisibility}
+              onValueChange={(value) => {
+                const nextEmail = value as "private" | "public";
+                setEmailVisibility(nextEmail);
+                void saveVisibility(signalVisibility, nextEmail);
+              }}
+              disabled={isSavingVisibility}
+            >
+              <SelectTrigger
+                id="email-visibility"
+                className="w-full sm:min-w-64"
+              >
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">Visible to only me</SelectItem>
+                <SelectItem value="public">Visible to anyone</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+      </div>
 
-        <div className="flex-1 max-w-xl">
-          <Button
-            type="button"
-            className="inline-flex items-center gap-2 px-6"
-            disabled={isCreateAccount}
-            onClick={handleCreateAccount}
-            aria-label="Create a new account"
-          >
-            {isCreateAccount && <Spinner />}
-            Create Account
-          </Button>
-        </div>
+      <div className="flex-1 max-w-xl">
+        <Button
+          type="button"
+          className="inline-flex items-center gap-2 px-6"
+          disabled={isCreateAccount}
+          onClick={handleCreateAccount}
+          aria-label="Create a new account"
+        >
+          {isCreateAccount && <Spinner />}
+          Create Account
+        </Button>
       </div>
     </div>
   );

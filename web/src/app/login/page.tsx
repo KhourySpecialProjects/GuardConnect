@@ -213,14 +213,14 @@ export default function Page() {
                 {stage === "email" ? "Continue" : "Sign in"}
               </Button>
 
-              <label className=" block text-sm text-secondary">
+              <p className="text-sm text-secondary">
                 Don't have an account?{" "}
-                <Link href={`/sign-up`}>
+                <Link href="/sign-up">
                   <span className="cursor-pointer text-primary underline-offset-4 hover:underline">
                     Sign up
                   </span>
                 </Link>
-              </label>
+              </p>
 
               {stage === "password" ? (
                 <div className="flex flex-col items-center gap-2">
