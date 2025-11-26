@@ -14,11 +14,11 @@ const app = express();
 const port = Number(process.env.PORT) || 3000;
 
 // Configure allowed origins for CORS
-const allowedOrigins = [
+export const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://commng.nunext.dev",
-  process.env.BACKEND_URL,
+  process.env.BACKEND_URL || "",
 ].filter(Boolean);
 
 app.use(
