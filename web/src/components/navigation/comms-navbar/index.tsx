@@ -7,13 +7,15 @@ import { DEMO_CHANNEL } from "@/lib/demo-channel";
 import { useTRPC } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 
-type Channel<T extends string = string> = {
+type ChannelRoute =
+  | "/communications"
+  | "/communications/all-channels"
+  | "/communications/[channel_id]";
+
+type Channel<T extends string = ChannelRoute> = {
   id: string;
   label: string;
-  href:
-    | Route<`/communications/${T}`>
-    | "/communications"
-    | "/communications/all-channels";
+  href: Route<T>;
   type: "link" | "channel";
   userPermission?: "admin" | "post" | "read" | null;
   postPermissionLevel?: "admin" | "everyone" | "custom";
@@ -93,7 +95,7 @@ export const CommsNavBar = ({
     return channel.userPermission !== null;
   });
 
-  const channels: Channel[] = [
+  const channels: Channel<ChannelRoute>[] = [
     {
       id: "my-channels",
       label: "My Channels",
@@ -109,7 +111,7 @@ export const CommsNavBar = ({
     ...(accessibleChannels.map((channel) => ({
       id: channel.channelId.toString(),
       label: channel.name,
-      href: `/communications/${channel.channelId}` as const,
+      href: `/communications/${channel.channelId}` as Route<"/communications/[channel_id]">,
       type: "channel" as const,
       userPermission:
         "userPermission" in channel
