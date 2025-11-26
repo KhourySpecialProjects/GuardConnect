@@ -672,7 +672,7 @@ export const mentorshipEmbeddings = pgTable(
     ),
     index("ix_mentorship_embeddings_user_id").on(table.userId),
     index("ix_mentorship_embeddings_user_type").on(table.userType),
-    // Vector similarity index will be created in migration SQL
+    sql`CREATE INDEX IF NOT EXISTS ix_mentorship_embeddings_profile_embedding ON mentorship_embeddings USING ivfflat (profile_embedding vector_cosine_ops) WITH (lists = 100)`,
   ],
 );
 
