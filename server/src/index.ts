@@ -3,13 +3,13 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
 import { auth } from "./auth.js";
+import { allowedOrigins } from "./cors.js";
 import { connectRedis, getRedisClientInstance } from "./data/db/redis.js";
 import { connectPostgres } from "./data/db/sql.js";
 import { policyEngine } from "./service/policy-engine.js";
 import { appRouter } from "./trpc/app_router.js";
 import { createContext } from "./trpc/trpc.js";
 import log from "./utils/logger.js";
-import { allowedOrigins } from "./cors.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -60,7 +60,7 @@ app.get("/api/health", (_req, res) => {
         redis: isRedisConnected,
       },
       timestamp: new Date().toISOString(),
-      image: process.env.IMAGE_TAG || 'unknown'
+      image: process.env.IMAGE_TAG || "unknown",
     });
   }
 
@@ -71,7 +71,7 @@ app.get("/api/health", (_req, res) => {
       redis: isRedisConnected,
     },
     timestamp: new Date().toISOString(),
-    image: process.env.IMAGE_TAG || 'unknown'
+    image: process.env.IMAGE_TAG || "unknown",
   });
 });
 
