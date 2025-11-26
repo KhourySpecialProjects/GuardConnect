@@ -53,7 +53,7 @@ export default function ChannelSettingsPage({
   const [modalOpen, setModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [initialChannelName, setInitialChannelName] = useState<string | null>(
-    null,
+    null
   );
   const [initialChannelDescription, setInitialChannelDescription] = useState<
     string | null
@@ -78,7 +78,7 @@ export default function ChannelSettingsPage({
 
   // Fetch all user subscriptions
   const { data: subscriptions } = useQuery({
-    queryKey: ["channelSubscriptions"],
+    queryKey: ["channelSubscriptions", userId],
     queryFn: async () => {
       return await trpcClient.comms.getUserSubscriptions.query();
     },
@@ -90,18 +90,18 @@ export default function ChannelSettingsPage({
       // Find the subscription that matches this channel
       const channelSubscription = subscriptions.find(
         (sub: { channelId: number; notificationsEnabled: boolean }) =>
-          sub.channelId === parsedChannelId,
+          sub.channelId === parsedChannelId
       );
 
       // Set saved values
       if (channelSubscription) {
         setNotificationSetting(
-          channelSubscription.notificationsEnabled ? "option2" : "option1",
+          channelSubscription.notificationsEnabled ? "option2" : "option1"
         );
         setInitialNotificationSetting(
           (prev) =>
             prev ??
-            (channelSubscription.notificationsEnabled ? "option2" : "option1"),
+            (channelSubscription.notificationsEnabled ? "option2" : "option1")
         );
       } else {
         console.log("No subscription found for channel ID:", parsedChannelId);
@@ -113,7 +113,7 @@ export default function ChannelSettingsPage({
 
   // Fetch all the channels this user has access to
   const { data: channels } = useQuery({
-    queryKey: ["channels"],
+    queryKey: ["channels", userId],
     queryFn: async () => {
       if (!parsedChannelId) return null;
       return await trpcClient.comms.getAllChannels.query();
@@ -124,21 +124,29 @@ export default function ChannelSettingsPage({
   useEffect(() => {
     const channel = channels?.find((ch) => ch.channelId === parsedChannelId);
 
-    // Set saved values
-    if (channel) {
-      setChannelName(channel.name || "");
-
-      const description =
-        typeof channel.metadata?.description === "string"
-          ? channel.metadata.description
-          : "";
-      setChannelDescription(description);
-
-      setIsAdmin(channel.userPermission === "admin");
-      setInitialChannelName((prev) => prev ?? (channel.name || ""));
-      setInitialChannelDescription((prev) => prev ?? description);
+    if (!channel) {
+      setIsAdmin(false);
+      return;
     }
+
+    // Set saved values
+    setChannelName(channel.name || "");
+
+    const description =
+      typeof channel.metadata?.description === "string"
+        ? channel.metadata.description
+        : "";
+    setChannelDescription(description);
+
+    setIsAdmin(channel.userPermission === "admin");
+    setInitialChannelName((prev) => prev ?? (channel.name || ""));
+    setInitialChannelDescription((prev) => prev ?? description);
   }, [channels, parsedChannelId]);
+
+  // Reset admin-only affordances when switching users
+  useEffect(() => {
+    setIsAdmin(false);
+  }, [userId]);
 
   const isDirty =
     isAdmin &&
@@ -165,11 +173,11 @@ export default function ChannelSettingsPage({
 
       // Invalidate cache so channel list updates
       await queryClient.invalidateQueries({
-        queryKey: ["channels"],
+        queryKey: ["channels", userId],
       });
 
       await queryClient.invalidateQueries({
-        queryKey: ["channelSubscriptions"],
+        queryKey: ["channelSubscriptions", userId],
       });
 
       // Return to the communications hub
@@ -195,7 +203,7 @@ export default function ChannelSettingsPage({
 
         // Invalidate the cache to ensure the most recent data is used
         await queryClient.invalidateQueries({
-          queryKey: ["channels"],
+          queryKey: ["channels", userId],
         });
       }
 
@@ -207,7 +215,7 @@ export default function ChannelSettingsPage({
 
       // Invalidate the cache to ensure the most recent data is used
       await queryClient.invalidateQueries({
-        queryKey: ["channelSubscriptions"],
+        queryKey: ["channelSubscriptions", userId],
       });
       toast.success("Changes saved");
     } catch (error) {
@@ -345,32 +353,45 @@ export default function ChannelSettingsPage({
         </div>
       </div>
 
-      {/* Save Changes Button */}
-      <div className="border-t border-border mt-8 pt-8 flex flex-col sm:flex-row sm:justify-end items-stretch sm:items-center px-4 pb-8 gap-3">
-        {isAdmin && (
-          <Button
-            type="button"
-            size="lg"
-            className="text-sm font-medium px-6 w-full sm:w-auto"
-            onClick={handleSaveChanges}
-            disabled={!isDirty}
-            aria-label="Save channel changes"
-          >
-            Save Changes
-          </Button>
-        )}
+      {/* Danger Zone + Save Changes */}
+      <div className="border-t border-border px-4 py-8">
+        <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-5 sm:px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-error">Danger Zone</p>
+              <p className="text-sm text-secondary">
+                {isAdmin
+                  ? "Delete this channel permanently. This cannot be undone."
+                  : "Leave this channel and stop receiving notifications."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="destructive"
+              size="lg"
+              className="text-sm font-semibold bg-error text-white hover:bg-error/90 focus-visible:ring-error/30 w-full sm:w-auto"
+              onClick={handleSelect}
+              aria-label={isAdmin ? "Delete channel" : "Leave channel"}
+            >
+              {isAdmin ? "Delete Channel" : "Leave Channel"}
+            </Button>
+          </div>
+        </div>
 
-        {/* Leave/Delete Channel Button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="text-sm font-medium text-primary bg-transparent hover:border-primary px-6 w-full sm:w-auto"
-          onClick={handleSelect}
-          aria-label={isAdmin ? "Delete channel" : "Leave channel"}
-        >
-          {isAdmin ? "Delete Channel" : "Leave Channel"}
-        </Button>
+        {isAdmin && (
+          <div className="border-t border-border mt-8 pt-8 flex flex-col sm:flex-row sm:justify-end items-stretch sm:items-center">
+            <Button
+              type="button"
+              size="lg"
+              className="text-sm font-medium px-6 w-full sm:w-auto"
+              onClick={handleSaveChanges}
+              disabled={!isDirty}
+              aria-label="Save channel changes"
+            >
+              Save Changes
+            </Button>
+          </div>
+        )}
       </div>
 
       {isAdmin ? (
