@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { SelectableButton } from "@/components/buttons";
 import { DragReorderFrame } from "@/components/drag-and-drop";
@@ -329,6 +329,13 @@ export default function MentorshipApplyMentorPage() {
     createMentor,
     router,
   ]);
+
+  // Cleanup unused resume on unmount
+  useEffect(() => {
+    return () => {
+      void cleanupUnusedResume();
+    };
+  }, [cleanupUnusedResume]);
 
   const mentorQualityOptions: MultiSelectOption[] = [
     { label: "Adaptability", value: "adaptability" },
