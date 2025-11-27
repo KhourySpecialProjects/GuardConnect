@@ -100,9 +100,6 @@ const searchUsers = protectedProcedure
   return userService.searchUsers(input.name);
 });
 
-console.log("========== USERS ROUTER LOADED ==========");
-console.log("searchUsers procedure exists:", typeof searchUsers);
-
 export const userRouter = router({
   getUserData,
   checkEmailExists,
