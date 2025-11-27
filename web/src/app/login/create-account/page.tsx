@@ -482,14 +482,14 @@ export default function CreateAccountPage() {
     "private" | "public"
   >("private");
   const [emailVisibility, setEmailVisibility] = useState<"private" | "public">(
-    "private"
+    "private",
   );
 
   const [isSavingVisibility, setIsSavingVisibility] = useState(false);
 
   const saveVisibility = async (
     nextSignal: "private" | "public",
-    nextEmail: "private" | "public"
+    nextEmail: "private" | "public",
   ) => {
     try {
       setIsSavingVisibility(true);
