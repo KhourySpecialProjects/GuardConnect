@@ -3,7 +3,7 @@
 import type { ReportCategory } from "@server/data/db/schema";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useId, useMemo, useState, useCallback } from "react";
+import { use, useEffect, useId, useMemo, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
@@ -322,19 +322,17 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         },
     });
 
-    // Find report ID
+    // Find report ID - use a ref to track if we've initialized
+    const initRef = useRef(false);
+    
     useEffect(() => {
-        if (reports) {
+        if (reports && !initRef.current) {
             const report = reports.find((rep) => {
                 return rep.reportId === reportId;
             });
 
-            console.log("=== LOADING REPORT ===");
-            console.log("Found report:", report);
-            console.log("Report status:", report?.status);
-            console.log("Report assignedTo:", report?.assignedTo);
-
             if (report) {
+                initRef.current = true;
                 setTitle(report.title || "");
                 setDescription(report.description || "");
                 setCategory(report.category || null);
@@ -347,17 +345,14 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                     setExistingAttachments(existing);
                     setInitialExistingAttachments(existing);
                 }
-                console.log("Setting assignedTo to:", report.assignedTo);
-                if (report.status === "Assigned") {
-                    setAssignedTo((prev) => prev ?? (report.assignedTo ?? null));
-                    setInitialAssignedTo((prev) => prev ?? (report.assignedTo ?? null));
+                if (report.status === "Assigned" && report.assignedTo) {
+                    setAssignedTo(report.assignedTo);
+                    setInitialAssignedTo(report.assignedTo);
                 }
 
-                setInitialTitle((prev) => prev ?? (report.title || ""));
-                setInitialDescription((prev) => prev ?? (report.description || ""));
-                setInitialCategory((prev) => prev ?? (report.category || null));
-            } else {
-                console.log("No report found!");
+                setInitialTitle(report.title || "");
+                setInitialDescription(report.description || "");
+                setInitialCategory(report.category || null);
             }
         }
     }, [reports, reportId]);
@@ -387,17 +382,15 @@ export default function EditReportPage({ params }: EditReportPageProps) {
         enabled: relevantUsersQuery.length >= 2,
     });
 
-    //console.log("assignedTo: " + assignedTo);
-
     // Fetch the assigned user when report loads
-    const { data: assignedUser, error: assignedUserError } = useQuery({
+    const { data: assignedUser } = useQuery({
         queryKey: ["assignedUser", assignedTo],
         queryFn: async () => {
-            if (!assignedTo) return null;
-            console.log("Fetching user data for:", assignedTo);
+            if (!assignedTo) {
+                return null;
+            }
             try {
                 const userData = await trpcClient.user.getUserData.query({ user_id: assignedTo });
-                console.log("Got user data:", userData);
                 return userData;
             } catch (error) {
                 console.error("Error fetching assigned user:", error);
@@ -405,19 +398,11 @@ export default function EditReportPage({ params }: EditReportPageProps) {
             }
         },
         enabled: !!assignedTo,
+        staleTime: Infinity,
+        retry: 0,
+        throwOnError: false,
+        gcTime: Infinity,
     });
-
-    useEffect(() => {
-        if (assignedUserError) {
-            console.error("Assigned user query error:", assignedUserError);
-        }
-    }, [assignedUserError]);
-
-    //if (assignedUser) console.log(assignedUser.name);
-    //else console.log("YO NO USER ASSIGNED WHAT THE FEREAK");
-
-    console.log("assignedTo:", assignedTo);
-    console.log("assignedUser:", assignedUser);
 
     /* ============ UPDATING REPORTS ============ */
 
@@ -689,11 +674,22 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                                     Assign To
                                 </label>
                                 <Select
-                                    value={assignedTo ?? undefined}
-                                    onValueChange={setAssignedTo}
+                                    value={assignedTo ?? ""}
+                                    onValueChange={(value) => {
+                                        // Only update if it's a real user ID (not empty string)
+                                        if (value && value.length > 0) {
+                                            setAssignedTo(value);
+                                        }
+                                    }}
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a user to assign..." />
+                                        <div className="flex-1 text-left">
+                                            {assignedUser
+                                                ? `${assignedUser.name} (${assignedUser.email})`
+                                                : assignedTo
+                                                ? "Loading user..."
+                                                : "Select a user to assign..."}
+                                        </div>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <div className="p-2" onKeyDown={(e) => e.stopPropagation()}>
