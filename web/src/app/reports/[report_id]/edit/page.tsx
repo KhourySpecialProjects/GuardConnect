@@ -759,8 +759,8 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                       }
                     }}
                   >
-                    <SelectTrigger id={assignedToId} className="w-full pr-10">
-                      <div className="flex-1 text-left">
+                    <SelectTrigger id={assignedToId} className="w-full pr-10 min-w-0">
+                      <div className="flex-1 text-left min-w-0 truncate">
                         {assignedUser
                           ? `${assignedUser.name} (${assignedUser.email})`
                           : assignedTo
