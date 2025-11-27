@@ -103,7 +103,7 @@ export const userRouter = router({
   checkEmailExists,
   createUserProfile,
   updateUserProfile,
-  updateUserVisibility, // ⬅️ NEW
+  updateUserVisibility,
   getUserRoles,
   searchUsers,
 });
