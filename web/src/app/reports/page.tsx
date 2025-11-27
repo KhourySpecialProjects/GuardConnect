@@ -152,6 +152,39 @@ export default function ReportsPage() {
     return reportsToSort;
   }, [filteredReports, sortOption]);
 
+  const assignedUserIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          sortedReports
+            .map((report) => report.assignedTo)
+            .filter(Boolean) as string[],
+        ),
+      ),
+    [sortedReports],
+  );
+
+  const { data: assignedUsers = {} } = useQuery({
+    queryKey: ["assignedUsers", assignedUserIds],
+    enabled: assignedUserIds.length > 0,
+    queryFn: async () => {
+      const users: Record<string, string> = {};
+      await Promise.all(
+        assignedUserIds.map(async (userId) => {
+          try {
+            const userData = await trpcClient.user.getUserData.query({
+              user_id: userId,
+            });
+            users[userId] = userData.name;
+          } catch (error) {
+            console.error(`Failed to fetch user ${userId}:`, error);
+          }
+        }),
+      );
+      return users;
+    },
+  });
+
   const tableItems = useMemo(
     () =>
       sortedReports.map((report) => ({
@@ -166,9 +199,11 @@ export default function ReportsPage() {
                 report.attachments.length === 1 ? "" : "s"
               }`
             : undefined,
-        issuedTo: report.assignedTo ?? undefined,
+        issuedTo: report.assignedTo
+          ? assignedUsers[report.assignedTo]
+          : undefined,
       })),
-    [sortedReports],
+    [sortedReports, assignedUsers],
   );
 
   const activeSortLabel = useMemo(() => {
