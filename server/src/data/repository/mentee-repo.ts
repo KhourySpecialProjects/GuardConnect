@@ -336,7 +336,10 @@ export class MenteeRepository {
    * @param userId Mentee user ID
    * @returns Object with mentee profile and array of active mentors
    */
-  async getMenteeWithActiveMentors(userId: string): Promise<{ mentee: GetMenteeOutput | null, activeMentors: GetMentorOutput[] }> {
+  async getMenteeWithActiveMentors(userId: string): Promise<{
+    mentee: GetMenteeOutput | null;
+    activeMentors: GetMentorOutput[];
+  }> {
     // Get mentee profile
     const mentee = await this.getMenteeByUserId(userId);
 
@@ -365,8 +368,8 @@ export class MenteeRepository {
       .where(
         and(
           eq(mentorshipMatches.requestorUserId, userId),
-          eq(mentorshipMatches.status, "accepted")
-        )
+          eq(mentorshipMatches.status, "accepted"),
+        ),
       );
 
     return { mentee, activeMentors };

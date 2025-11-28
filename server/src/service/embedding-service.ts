@@ -41,7 +41,7 @@ class EmbeddingService {
   /**
    * Send text to the Bedrock embedding model and return a float[] embedding.
    */
-  async embed(text: string): Promise<number[]> {
+  async embed(_text: string): Promise<number[]> {
     // const json = await this.invokeModel<EmbedResponse>(this.model, text);
     // return json.embedding;
     return new Array(512).fill(0);

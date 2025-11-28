@@ -1,12 +1,12 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { mentors, mentees, mentorshipMatches } from "../../data/db/schema.js";
+import { mentees, mentors, mentorshipMatches } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
+import type { GetMenteeOutput } from "../../types/mentee-types.js";
 import type {
   CreateMentorOutput,
   GetMentorOutput,
 } from "../../types/mentor-types.js";
-import type { GetMenteeOutput } from "../../types/mentee-types.js";
 
 /**
  * Repository to handle database queries/communication related to mentors
@@ -212,7 +212,10 @@ export class MentorRepository {
    * @param userId Mentor user ID
    * @returns Object with mentor profile and array of active mentees
    */
-  async getMentorWithActiveMentees(userId: string): Promise<{ mentor: GetMentorOutput | null, activeMentees: GetMenteeOutput[] }> {
+  async getMentorWithActiveMentees(userId: string): Promise<{
+    mentor: GetMentorOutput | null;
+    activeMentees: GetMenteeOutput[];
+  }> {
     // Get mentor profile
     const mentor = await this.getMentorByUserId(userId);
 
@@ -240,8 +243,8 @@ export class MentorRepository {
       .where(
         and(
           eq(mentorshipMatches.mentorUserId, userId),
-          eq(mentorshipMatches.status, "accepted")
-        )
+          eq(mentorshipMatches.status, "accepted"),
+        ),
       );
 
     return { mentor, activeMentees };

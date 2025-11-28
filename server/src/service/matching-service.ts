@@ -1,13 +1,14 @@
-import { and, eq, inArray, not, sql, or, isNull } from "drizzle-orm";
-import { MentorshipEmbeddingRepository } from "../data/repository/mentorship-embedding-repo.js";
-import { mentors, mentorshipMatches, mentorRecommendations } from "../data/db/schema.js";
+import {
+  RANDOM_ALGORITHM,
+  recommendationQuery,
+} from "../data/db/recommendation-queries.js";
 import { db } from "../data/db/sql.js";
-import type { SuggestedMentor } from "../types/mentorship-types.js";
+import { MentorshipEmbeddingRepository } from "../data/repository/mentorship-embedding-repo.js";
 import type { CreateMentorshipEmbeddingInput } from "../types/mentorship-embedding-types.js";
+import type { SuggestedMentor } from "../types/mentorship-types.js";
 import { buildText } from "../utils/embedding.js";
 import log from "../utils/logger.js";
 import { embeddingService } from "./embedding-service.js";
-import { RANDOM_ALGORITHM, recommendationQuery } from "../data/db/recommendation-queries.js";
 
 /**
  * Service to handle mentorship matching logic
@@ -29,7 +30,10 @@ export class MatchingService {
       whyInterestedEmbedding: embeddings[0],
       ...(userType === "mentor"
         ? { profileEmbedding: embeddings[1] }
-        : { hopeToGainEmbedding: embeddings[1], profileEmbedding: embeddings[2] }),
+        : {
+            hopeToGainEmbedding: embeddings[1],
+            profileEmbedding: embeddings[2],
+          }),
     };
     await this.embeddingRepo.createOrUpdateEmbedding(data);
   }
@@ -108,7 +112,7 @@ export class MatchingService {
     const result = await db.execute(
       recommendationQuery(RANDOM_ALGORITHM, MatchingService.MAX_MATCH_REQUESTS),
     );
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       mentor: {
         mentorId: row.mentor_id,
         userId: row.user_id,

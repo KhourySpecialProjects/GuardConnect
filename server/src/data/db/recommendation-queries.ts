@@ -1,6 +1,9 @@
-import { SQL, sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
 
-export const recommendationQuery = (algorithm: SQL<unknown>, limit: number) => sql`
+export const recommendationQuery = (
+  algorithm: SQL<unknown>,
+  limit: number,
+) => sql`
 WITH
 -- ------------------------------------------------------------
 -- 1. Mentors user already matched with
@@ -134,8 +137,7 @@ inserted AS (
 -- 11. Final output
 -- ------------------------------------------------------------
 SELECT * FROM combined;
-`
-
+`;
 
 export const RANDOM_ALGORITHM = sql`
     SELECT 
@@ -148,4 +150,4 @@ export const RANDOM_ALGORITHM = sql`
     WHERE m.user_id != $1
       AND m.status = 'active'
       AND m.user_id NOT IN (SELECT mentor_user_id FROM user_existing_matches)
-`
+`;

@@ -1,21 +1,25 @@
 import { and, eq, isNull, notInArray, or, sql } from "drizzle-orm";
-import { mentorRecommendations, mentors, mentorshipMatches, mentees } from "../data/db/schema.js";
+import {
+  mentorRecommendations,
+  mentors,
+  mentorshipMatches,
+} from "../data/db/schema.js";
 import { db } from "../data/db/sql.js";
 import type { MenteeRepository } from "../data/repository/mentee-repo.js";
 import type { MentorRepository } from "../data/repository/mentor-repo.js";
-import type { MatchingService } from "./matching-service.js";
 import type {
-  MatchedMentee,
-  MatchedMentor,
+  CreateMenteeInput,
+  GetMenteeOutput,
+} from "../types/mentee-types.js";
+import type {
+  CreateMentorInput,
+  GetMentorOutput,
+} from "../types/mentor-types.js";
+import type {
   MentorshipDataOutput,
-  PendingMenteeRequest,
-  PendingMentorRequest,
   SuggestedMentor,
 } from "../types/mentorship-types.js";
-import type { CreateMenteeInput } from "../types/mentee-types.js";
-import type { GetMenteeOutput } from "../types/mentee-types.js";
-import type { CreateMentorInput } from "../types/mentor-types.js";
-import type { GetMentorOutput } from "../types/mentor-types.js";
+import type { MatchingService } from "./matching-service.js";
 
 /**
  * Service to handle mentorship data aggregation
@@ -97,7 +101,11 @@ export class MentorshipService {
   /**
    * Request mentorship from a specific mentor
    */
-  async requestMentorship(menteeUserId: string, mentorUserId: string, message?: string) {
+  async requestMentorship(
+    menteeUserId: string,
+    mentorUserId: string,
+    message?: string,
+  ) {
     // Check if request already exists
     const existing = await db
       .select()
@@ -140,7 +148,9 @@ export class MentorshipService {
       .limit(1);
 
     if (match.length === 0) {
-      throw new Error("Mentorship request not found or not authorized to decline");
+      throw new Error(
+        "Mentorship request not found or not authorized to decline",
+      );
     }
 
     await db
@@ -167,7 +177,9 @@ export class MentorshipService {
       .limit(1);
 
     if (match.length === 0) {
-      throw new Error("Mentorship request not found or not authorized to accept");
+      throw new Error(
+        "Mentorship request not found or not authorized to accept",
+      );
     }
 
     await db
@@ -181,14 +193,17 @@ export class MentorshipService {
    */
   private async buildMenteeData(
     userId: string,
-    menteeData: { mentee: GetMenteeOutput | null; activeMentors: GetMentorOutput[] },
+    menteeData: {
+      mentee: GetMenteeOutput | null;
+      activeMentors: GetMentorOutput[];
+    },
   ): Promise<{
     profile: GetMenteeOutput | null;
     activeMentors: GetMentorOutput[];
     mentorRecommendations: SuggestedMentor[];
   } | null> {
     if (!menteeData.mentee) return null;
-    
+
     const allMatches = await db
       .select({
         matchId: mentorshipMatches.matchId,
@@ -220,14 +235,17 @@ export class MentorshipService {
       )
       .limit(1);
     const pendingMentorIds = allMatches
-      .filter(match => match.requestorUserId === userId && match.status === "pending")
-      .map(match => match.mentorUserId)
+      .filter(
+        (match) =>
+          match.requestorUserId === userId && match.status === "pending",
+      )
+      .map((match) => match.mentorUserId)
       .filter((id): id is string => id !== null);
 
     const requestedMentorIds = new Set(
       allMatches
-        .filter(match => match.requestorUserId === userId)
-        .map(match => match.mentorUserId)
+        .filter((match) => match.requestorUserId === userId)
+        .map((match) => match.mentorUserId)
         .filter((id): id is string => id !== null),
     );
 
@@ -244,17 +262,27 @@ export class MentorshipService {
       )
       .limit(10);
 
-    const suggestedMentorIds = suggestedMentorRecords.map(r => r.userId);
+    const suggestedMentorIds = suggestedMentorRecords.map((r) => r.userId);
     let recommendedMentorIds: string[] = [];
     if (userRecommendations.length > 0) {
-      recommendedMentorIds = userRecommendations[0]!.recommendedMentorIds.filter(
-        id => !requestedMentorIds.has(id),
-      );
+      recommendedMentorIds =
+        userRecommendations[0]?.recommendedMentorIds.filter(
+          (id) => !requestedMentorIds.has(id),
+        );
     }
 
-    const allMentorIds = Array.from(new Set([...pendingMentorIds, ...suggestedMentorIds, ...recommendedMentorIds]));
+    const allMentorIds = Array.from(
+      new Set([
+        ...pendingMentorIds,
+        ...suggestedMentorIds,
+        ...recommendedMentorIds,
+      ]),
+    );
     const mentorsMap = new Map(
-      (await this.mentorRepo.getMentorsByUserIds(allMentorIds)).map(m => [m.userId, m])
+      (await this.mentorRepo.getMentorsByUserIds(allMentorIds)).map((m) => [
+        m.userId,
+        m,
+      ]),
     );
 
     const mentorRecs: SuggestedMentor[] = [];
@@ -294,7 +322,10 @@ export class MentorshipService {
 
     return {
       profile: menteeData.mentee,
-      activeMentors: menteeData.activeMentors.map(m => ({ ...m, strengths: m.strengths ?? [] })),
+      activeMentors: menteeData.activeMentors.map((m) => ({
+        ...m,
+        strengths: m.strengths ?? [],
+      })),
       mentorRecommendations: mentorRecs,
     };
   }

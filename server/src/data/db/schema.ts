@@ -460,17 +460,23 @@ export const mentors = pgTable(
 export const mentorRecommendations = pgTable(
   "mentor_recommendations",
   {
-    recommendationId: integer("recommendation_id").primaryKey().generatedAlwaysAsIdentity(),
+    recommendationId: integer("recommendation_id")
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
     userId: text("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    recommendedMentorIds: jsonb("recommended_mentor_ids").$type<string[]>().notNull(),
+    recommendedMentorIds: jsonb("recommended_mentor_ids")
+      .$type<string[]>()
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
   },
-  (table) => [uniqueIndex("ux_mentor_recommendations_user_id").on(table.userId)],
+  (table) => [
+    uniqueIndex("ux_mentor_recommendations_user_id").on(table.userId),
+  ],
 );
 
 // MENTORSHIP MATCHES
