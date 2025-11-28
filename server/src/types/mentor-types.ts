@@ -104,7 +104,7 @@ export type GetMentorOutput = {
   eligibilityData?: Record<string, unknown> | null;
   status: "requested" | "approved" | "active";
   resumeFileId?: string | null;
-  strengths?: string[];
+  strengths?: string[] | null;
   personalInterests?: string | null;
   whyInterestedResponses?: string[] | null;
   careerAdvice?: string | null;

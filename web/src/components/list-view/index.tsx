@@ -7,20 +7,27 @@ import { Modal } from "@/components/modal/index";
 export type ListViewItem = {
   id: string;
   name: string;
-  rank: string;
-  role: string;
+  rank?: string;
+  role?: string;
   avatarUrl?: string;
   isCurrentUser?: boolean;
 };
 
 export type MenteeListViewItem = ListViewItem & {
+  learningGoals?: string;
+  experienceLevel?: string;
+  preferredMentorType?: string;
+  resumeFileId?: string;
   personalInterests?: string[];
-  importantRoleModel?: string;
-  meetingFormat: string;
-  expectedCommitment: number;
+  roleModelInspiration?: string;
+  hopeToGainResponses?: string[];
+  mentorQualities?: string[];
+  preferredMeetingFormat?: string;
+  hoursPerMonthCommitment?: number;
 };
 
 export type MentorListViewItem = ListViewItem & {
+  hasRequested: boolean;
   personalInterests?: string[];
   careerAdvice?: string;
   meetingFormat: string;
@@ -168,7 +175,11 @@ const ListViewRow = <T extends ListViewItem>({
             ) : null}
           </div>
           <p className="truncate text-sm italic text-secondary/70">
-            {item.rank}, {item.role}
+            (
+            {item.rank && item.role
+              ? `${item.rank}, ${item.role}`
+              : "No rank or role available"}
+            )
           </p>
         </div>
       </button>

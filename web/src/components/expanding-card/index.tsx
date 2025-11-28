@@ -13,6 +13,7 @@ export type CollapsibleCardProps = {
   rank: string;
   job: string;
   location: string;
+  personalInterests?: string;
   information: string;
   contact: string;
 };
@@ -31,6 +32,7 @@ export default function CollapsibleCard({
   rank,
   job,
   location,
+  personalInterests,
   information,
   contact,
 }: CollapsibleCardProps) {
@@ -80,6 +82,12 @@ export default function CollapsibleCard({
             <div className="pt-4 border-t">
               <span className="font-semibold">Information: </span> {information}
             </div>
+            {personalInterests && (
+              <div className="pt-4 border-t">
+                <span className="font-semibold">Personal Interests: </span>{" "}
+                {personalInterests}
+              </div>
+            )}
             <div className="pt-4 border-t">
               <span className="font-semibold">Contact: </span> {contact}
             </div>
