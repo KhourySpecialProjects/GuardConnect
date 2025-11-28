@@ -3,6 +3,7 @@ import { mentors, mentorshipMatches } from "../data/db/schema.js";
 import { db } from "../data/db/sql.js";
 import type { MenteeRepository } from "../data/repository/mentee-repo.js";
 import type { MentorRepository } from "../data/repository/mentor-repo.js";
+import type { MatchingService } from "./matching-service.js";
 import type {
   MatchedMentee,
   MatchedMentor,
@@ -10,6 +11,8 @@ import type {
   PendingMenteeRequest,
   SuggestedMentor,
 } from "../types/mentorship-types.js";
+import type { CreateMenteeInput } from "../types/mentee-types.js";
+import type { CreateMentorInput } from "../types/mentor-types.js";
 
 /**
  * Service to handle mentorship data aggregation
@@ -18,7 +21,76 @@ export class MentorshipService {
   constructor(
     private mentorRepo: MentorRepository,
     private menteeRepo: MenteeRepository,
+    private matchingService?: MatchingService,
   ) {}
+
+  /**
+   * Create a new mentor profile and generate embeddings
+   */
+  async createMentor(input: CreateMentorInput) {
+    const mentor = await this.mentorRepo.createMentor(
+      input.userId,
+      input.mentorshipPreferences,
+      input.yearsOfService,
+      input.eligibilityData ?? undefined,
+      input.status,
+      input.resumeFileId,
+      input.strengths,
+      input.personalInterests,
+      input.whyInterestedResponses,
+      input.careerAdvice,
+      input.preferredMenteeCareerStages,
+      input.preferredMeetingFormat,
+      input.hoursPerMonthCommitment,
+    );
+
+    if (this.matchingService) {
+      await this.matchingService.createOrUpdateMentorEmbeddings({
+        userId: input.userId,
+        whyInterestedResponses: input.whyInterestedResponses,
+        strengths: input.strengths,
+        personalInterests: input.personalInterests,
+        careerAdvice: input.careerAdvice,
+      });
+    }
+
+    return mentor;
+  }
+
+  /**
+   * Create a new mentee profile, generate embeddings, and return mentor recommendations
+   */
+  async createMentee(input: CreateMenteeInput) {
+    await this.menteeRepo.createMentee(
+      input.userId,
+      input.learningGoals,
+      input.experienceLevel,
+      input.preferredMentorType,
+      input.status,
+      input.resumeFileId,
+      input.personalInterests,
+      input.roleModelInspiration,
+      input.hopeToGainResponses,
+      input.mentorQualities,
+      input.preferredMeetingFormat,
+      input.hoursPerMonthCommitment,
+    );
+
+    if (this.matchingService) {
+      await this.matchingService.createOrUpdateMenteeEmbeddings({
+        userId: input.userId,
+        learningGoals: input.learningGoals,
+        personalInterests: input.personalInterests,
+        roleModelInspiration: input.roleModelInspiration,
+        hopeToGainResponses: input.hopeToGainResponses,
+        mentorQualities: input.mentorQualities,
+      });
+    }
+
+    return this.matchingService
+      ? await this.matchingService.generateMentorRecommendations(input.userId)
+      : [];
+  }
 
   /**
    * Get mentorship data for a user (mentor profile, mentee profile, and matches)
