@@ -524,7 +524,7 @@ export default function EditReportPage({ params }: EditReportPageProps) {
       });
 
       // Update db to reflect a user has been assigned
-      if (assignedTo !== null) {
+      if (assignedTo !== undefined) {
         await trpcClient.reports.assignReport.mutate({
           reportId: reportId,
           assigneeId: assignedTo,
@@ -801,10 +801,7 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                       }
                     }}
                   >
-                    <SelectTrigger
-                      id={assignedToId}
-                      className="w-full pr-10 min-w-0"
-                    >
+                    <SelectTrigger id={assignedToId} className="w-full min-w-0">
                       <div className="flex-1 text-left min-w-0 truncate">
                         {assignedUser
                           ? `${assignedUser.name} (${assignedUser.email})`
@@ -845,11 +842,16 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                       )}
                     </SelectContent>
                   </Select>
+
+                  {/* Clear button with absolute positioning - outside Select */}
                   {assignedUser && (
                     <button
                       type="button"
-                      onClick={() => setAssignedTo(null)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/70 hover:text-secondary transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setAssignedTo(undefined);
+                      }}
+                      className="absolute right-10 top-1/2 -translate-y-1/2 text-secondary/70 hover:text-secondary transition-colors z-10"
                       aria-label="Remove assigned user"
                     >
                       <RemoveIcon className="h-4 w-4" />
@@ -858,7 +860,6 @@ export default function EditReportPage({ params }: EditReportPageProps) {
                 </div>
               </div>
             )}
-
             {formError ? (
               <p className="text-sm text-error">{formError}</p>
             ) : null}
@@ -881,21 +882,25 @@ export default function EditReportPage({ params }: EditReportPageProps) {
             suppressHydrationWarning
           >
             Last edited:{" "}
-            {updatedAt &&
-              new Date(updatedAt).toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}{" "}
-            {updatedAt &&
-              new Date(updatedAt)
-                .toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })
-                .replace(":", "")}{" "}
-            EST
+            {updatedAt && (
+              <>
+                {new Date(updatedAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  timeZone: "America/New_York",
+                })}{" "}
+                {new Date(updatedAt)
+                  .toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                    timeZone: "America/New_York",
+                  })
+                  .replace(":", "")}{" "}
+                ET
+              </>
+            )}
           </p>
         </div>
       </section>
