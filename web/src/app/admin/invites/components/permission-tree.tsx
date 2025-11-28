@@ -32,27 +32,30 @@ export function PermissionTree({
   }, [selectedRoles, onRolesChange]);
 
   const handleCheckboxChange = (roleKey: RoleKey, checked: boolean) => {
-    const updatedRoles = new Set(selectedRoles);
-
     if (checked) {
+      // Just add the role, useEffect will handle expanding it
+      const updatedRoles = new Set(selectedRoles);
       updatedRoles.add(roleKey);
+      onRolesChange(updatedRoles);
     } else {
-      // Remove the role
-      updatedRoles.delete(roleKey);
+      // When unchecking, just keep everything BELOW this role in the hierarchy
+      // and remove everything at or above it
+      const updatedRoles = new Set<RoleKey>();
 
-      // If removing global:admin, clear everything
+      // Special case: if unchecking global:admin, clear everything
       if (roleKey === "global:admin") {
-        updatedRoles.clear();
-      } else {
-        // Recursively remove all descendants
-        const descendants = getAllDescendants(roleKey);
-        for (const descendant of descendants) {
-          updatedRoles.delete(descendant);
-        }
+        onRolesChange(updatedRoles);
+        return;
       }
-    }
 
-    onRolesChange(updatedRoles);
+      // Get all descendants (everything below the unchecked role)
+      const descendantsToKeep = getAllDescendants(roleKey);
+      for (const descendant of descendantsToKeep) {
+        updatedRoles.add(descendant);
+      }
+
+      onRolesChange(updatedRoles);
+    }
   };
 
   return (
@@ -65,7 +68,7 @@ export function PermissionTree({
               const roleKey = permission.key as RoleKey;
               const isSelected = selectedRoles.has(roleKey);
               const implied = isRoleImplied(roleKey, selectedRoles);
-              const isDisabled = implied && !isSelected;
+              const isDisabled = false; // Allow unchecking implied permissions to "break out"
               const indentLevel = permission.impliedBy ? 1 : 0;
 
               return (
