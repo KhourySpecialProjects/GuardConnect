@@ -265,10 +265,12 @@ export class MentorshipService {
     const suggestedMentorIds = suggestedMentorRecords.map((r) => r.userId);
     let recommendedMentorIds: string[] = [];
     if (userRecommendations.length > 0) {
-      recommendedMentorIds =
-        userRecommendations[0]?.recommendedMentorIds.filter(
+      const rec = userRecommendations[0];
+      if (rec) {
+        recommendedMentorIds = rec.recommendedMentorIds.filter(
           (id) => !requestedMentorIds.has(id),
         );
+      }
     }
 
     const allMentorIds = Array.from(
