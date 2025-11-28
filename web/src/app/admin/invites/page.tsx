@@ -105,7 +105,7 @@ export default function AdminInvitesPage() {
         backHref="/admin"
         backAriaLabel="Back to admin"
       >
-        <div className="mx-auto max-w-4xl space-y-6">
+        <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
           {/* Info Section */}
           {!successResult && (
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">

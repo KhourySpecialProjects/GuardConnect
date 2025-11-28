@@ -59,11 +59,11 @@ export function PermissionTree({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {PERMISSION_GROUPS.map((group) => (
-        <div key={group.namespace} className="space-y-3">
+        <div key={group.namespace} className="space-y-2 sm:space-y-3">
           <h3 className="text-sm font-semibold text-primary">{group.label}</h3>
-          <div className="space-y-2">
+          <div className="space-y-3 sm:space-y-2">
             {group.permissions.map((permission) => {
               const roleKey = permission.key as RoleKey;
               const isSelected = selectedRoles.has(roleKey);
@@ -74,10 +74,13 @@ export function PermissionTree({
               return (
                 <div
                   key={permission.key}
-                  className="flex items-start gap-3"
-                  style={{ paddingLeft: `${indentLevel * 1.5}rem` }}
+                  className="flex items-start gap-2 sm:gap-3"
+                  style={{
+                    paddingLeft:
+                      indentLevel > 0 ? `${indentLevel * 1}rem` : "0",
+                  }}
                 >
-                  <div className="flex items-center gap-3 flex-1">
+                  <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
                     <input
                       type="checkbox"
                       id={permission.key}
@@ -86,29 +89,25 @@ export function PermissionTree({
                       onChange={(e) =>
                         handleCheckboxChange(roleKey, e.target.checked)
                       }
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-4 w-4 mt-0.5 sm:mt-0 flex-shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <div className="flex-1 min-w-0">
                       <label
                         htmlFor={permission.key}
-                        className={`block text-sm font-medium ${
-                          isDisabled
-                            ? "text-secondary/50 cursor-not-allowed"
-                            : "text-secondary cursor-pointer"
-                        }`}
+                        className="block text-sm font-medium break-words text-secondary cursor-pointer"
                       >
                         {permission.label}
                         {implied && !isSelected && (
-                          <span className="ml-2 text-xs text-secondary/60">
+                          <span className="ml-1 sm:ml-2 text-xs text-secondary/60 whitespace-nowrap">
                             (auto-granted)
                           </span>
                         )}
                       </label>
-                      <p className="mt-1 text-xs text-secondary/70">
+                      <p className="mt-1 text-xs text-secondary/70 break-words">
                         {permission.description}
                       </p>
                       {permission.impliedBy && (
-                        <p className="mt-0.5 text-xs text-blue-600/80">
+                        <p className="mt-0.5 text-xs text-blue-600/80 break-words">
                           ↳ Granted by: {getDisplayName(permission.impliedBy)}
                         </p>
                       )}

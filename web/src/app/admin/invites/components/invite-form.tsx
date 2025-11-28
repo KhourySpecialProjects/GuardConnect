@@ -62,7 +62,7 @@ export function InviteForm({
 
   return (
     <form
-      className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm"
+      className="flex flex-col gap-4 sm:gap-6 rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-sm"
       onSubmit={handleSubmit}
     >
       {/* Preset Selection */}
@@ -80,26 +80,26 @@ export function InviteForm({
         >
           <SelectTrigger
             id="invite-preset"
-            className="w-full justify-between py-6"
+            className="w-full justify-between py-3 sm:py-6 h-auto"
             aria-labelledby="invite-preset"
           >
             <SelectValue placeholder="Select a preset">
-              <div className="flex flex-col items-start gap-1">
-                <span className="font-medium">
+              <div className="flex flex-col items-start gap-0.5 sm:gap-1 py-0.5">
+                <span className="text-sm sm:text-base font-medium">
                   {INVITE_PRESETS[preset].label}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="hidden sm:block text-xs text-muted-foreground line-clamp-2">
                   {INVITE_PRESETS[preset].description}
                 </span>
               </div>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-w-[calc(100vw-2rem)]">
             {Object.entries(INVITE_PRESETS).map(([key, config]) => (
-              <SelectItem key={key} value={key}>
-                <div className="flex flex-col items-start gap-0.5">
-                  <span className="font-medium">{config.label}</span>
-                  <span className="text-xs opacity-70 group-data-[highlighted]:opacity-100 group-data-[highlighted]:text-white">
+              <SelectItem key={key} value={key} className="max-w-full">
+                <div className="flex flex-col items-start gap-0.5 pr-2">
+                  <span className="font-medium text-sm">{config.label}</span>
+                  <span className="text-xs opacity-70 group-data-[highlighted]:opacity-100 group-data-[highlighted]:text-white break-words">
                     {config.description}
                   </span>
                 </div>
@@ -116,7 +116,7 @@ export function InviteForm({
       {/* Permission Tree */}
       <div className="flex flex-col gap-2">
         <h3 className="text-sm font-medium text-secondary">Permissions</h3>
-        <div className="rounded-lg border border-border bg-white p-4">
+        <div className="rounded-lg border border-border bg-white p-3 sm:p-4 overflow-x-auto">
           <PermissionTree
             selectedRoles={selectedRoles}
             onRolesChange={setSelectedRoles}
@@ -139,7 +139,7 @@ export function InviteForm({
         >
           <SelectTrigger
             id="invite-expiry"
-            className="w-fit min-w-[10rem] justify-between"
+            className="w-full sm:w-fit sm:min-w-[10rem] justify-between"
             aria-labelledby="invite-expiry"
           >
             <SelectValue placeholder="Choose duration" />
@@ -165,12 +165,16 @@ export function InviteForm({
       ) : null}
 
       {/* Submit Button */}
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
         <div className="text-xs text-secondary/60 self-center">
           {selectedRoles.size} permission{selectedRoles.size !== 1 ? "s" : ""}{" "}
           selected
         </div>
-        <Button type="submit" disabled={isSubmitDisabled}>
+        <Button
+          type="submit"
+          disabled={isSubmitDisabled}
+          className="w-full sm:w-auto"
+        >
           {submitting ? "Creating..." : "Create Invite Code"}
         </Button>
       </div>

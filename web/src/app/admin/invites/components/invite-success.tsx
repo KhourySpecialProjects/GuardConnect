@@ -47,10 +47,10 @@ export function InviteSuccess({
   };
 
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border border-green-200 bg-green-50 p-6 shadow-sm">
+    <div className="flex flex-col gap-4 sm:gap-6 rounded-2xl border border-green-200 bg-green-50 p-4 sm:p-6 shadow-sm">
       {/* Success Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600">
+        <div className="flex shrink-0 h-10 w-10 items-center justify-center rounded-full bg-green-600">
           <Check className="h-6 w-6 text-white" />
         </div>
         <div>
@@ -66,9 +66,9 @@ export function InviteSuccess({
       {/* Invite Code Display */}
       <div className="flex flex-col gap-3">
         <h3 className="text-sm font-medium text-green-900">Invite Code</h3>
-        <div className="flex items-center gap-3">
-          <div className="flex-1 rounded-lg border-2 border-green-300 bg-white px-4 py-3">
-            <code className="text-2xl font-mono font-bold tracking-wider text-green-900">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <div className="flex-1 rounded-lg border-2 border-green-300 bg-white px-3 sm:px-4 py-3 overflow-x-auto">
+            <code className="text-xl sm:text-2xl font-mono font-bold tracking-wider text-green-900 break-all">
               {code}
             </code>
           </div>
@@ -76,7 +76,7 @@ export function InviteSuccess({
             type="button"
             onClick={handleCopy}
             variant={copied ? "default" : "outline"}
-            className="px-6"
+            className="px-4 sm:px-6 w-full sm:w-auto"
           >
             {copied ? (
               <>
@@ -108,11 +108,11 @@ export function InviteSuccess({
         <p className="text-sm font-medium text-green-900">
           Assigned Permissions ({expandedRoleKeys.length})
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {expandedRoleKeys.map((role) => (
             <span
               key={role}
-              className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"
+              className="inline-flex items-center rounded-full bg-green-100 px-2.5 sm:px-3 py-1 text-xs font-medium text-green-800 break-words"
             >
               {getDisplayName(role)}
             </span>
@@ -122,7 +122,12 @@ export function InviteSuccess({
 
       {/* Action Button */}
       <div className="flex justify-end border-t border-green-200 pt-4">
-        <Button type="button" onClick={onCreateAnother} variant="outline">
+        <Button
+          type="button"
+          onClick={onCreateAnother}
+          variant="outline"
+          className="w-full sm:w-auto"
+        >
           Create Another Invite
         </Button>
       </div>
