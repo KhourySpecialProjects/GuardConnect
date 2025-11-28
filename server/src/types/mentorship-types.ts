@@ -16,7 +16,7 @@ export type MentorshipMatch = {
 // For mentee's "Your Mentor" section
 export type SuggestedMentor = {
   mentor: GetMentorOutput;
-  hasRequested: boolean; // Whether the mentee has requested this mentor
+  status: "active" | "pending" | "suggested"; // active means matched
 };
 
 export type MatchedMentor = {
@@ -49,26 +49,15 @@ export type MatchedMentee = {
 };
 
 export type MentorshipDataOutput = {
-  // User's own profiles
-  mentor: GetMentorOutput | null;
-  mentee: GetMenteeOutput | null;
-
-  // Legacy matches array (all matches user is involved in)
-  matches: MentorshipMatch[];
-
-  // MENTEE VIEW: "Your Mentor" section
-  suggestedMentors?: SuggestedMentor[]; // Case 2: Suggested mentors with request status
-  matchedMentors?: MatchedMentor[]; // Case 3: Accepted matches with full mentor info
-
-  // MENTOR VIEW: "Your Mentee" section
-  pendingMenteeRequests?: PendingMenteeRequest[]; // Case 2: Mentees who requested this mentor (status: pending)
-  matchedMentees?: MatchedMentee[]; // Case 3: Accepted mentees (status: accepted, can coexist with pending)
-
-  // New fields for comprehensive view
-  activeMentees?: GetMenteeOutput[]; // All active mentees (for mentors to see)
-  activeMentors?: GetMentorOutput[]; // All active mentors (for mentees to see)
-  pendingMentorRequests?: PendingMentorRequest[]; // Outgoing pending requests from this user
-  mentorRecommendations?: SuggestedMentor[]; // Stored recommendations for this user
+  mentor: {
+    activeMentees: GetMenteeOutput[];
+    profile: GetMentorOutput | null;
+  } | null;
+  mentee: {
+    mentorRecommendations: SuggestedMentor[];
+    activeMentors: GetMentorOutput[];
+    profile: GetMenteeOutput | null;
+  } | null;
 };
 
 export const getMentorshipDataInputSchema = z.object({

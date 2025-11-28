@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { mentees } from "../../data/db/schema.js";
+import { and, eq, inArray } from "drizzle-orm";
+import { mentees, mentors, mentorshipMatches } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import type {
@@ -7,6 +7,7 @@ import type {
   GetMenteeOutput,
   UpdateMenteeOutput,
 } from "../../types/mentee-types.js";
+import type { GetMentorOutput } from "../../types/mentor-types.js";
 
 /**
  * Repository to handle database queries/communication related to mentees
@@ -298,5 +299,76 @@ export class MenteeRepository {
       })
       .from(mentees)
       .where(eq(mentees.status, status));
+  }
+
+  /**
+   * Get mentees by a list of user IDs
+   * @param userIds Array of user IDs
+   * @returns Array of mentee profiles
+   */
+  async getMenteesByUserIds(userIds: string[]): Promise<GetMenteeOutput[]> {
+    if (userIds.length === 0) return [];
+
+    return await db
+      .select({
+        menteeId: mentees.menteeId,
+        userId: mentees.userId,
+        learningGoals: mentees.learningGoals,
+        experienceLevel: mentees.experienceLevel,
+        preferredMentorType: mentees.preferredMentorType,
+        status: mentees.status,
+        resumeFileId: mentees.resumeFileId,
+        personalInterests: mentees.personalInterests,
+        roleModelInspiration: mentees.roleModelInspiration,
+        hopeToGainResponses: mentees.hopeToGainResponses,
+        mentorQualities: mentees.mentorQualities,
+        preferredMeetingFormat: mentees.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        createdAt: mentees.createdAt,
+        updatedAt: mentees.updatedAt,
+      })
+      .from(mentees)
+      .where(inArray(mentees.userId, userIds));
+  }
+
+  /**
+   * Get mentee profile with their active (matched) mentors
+   * @param userId Mentee user ID
+   * @returns Object with mentee profile and array of active mentors
+   */
+  async getMenteeWithActiveMentors(userId: string): Promise<{ mentee: GetMenteeOutput | null, activeMentors: GetMentorOutput[] }> {
+    // Get mentee profile
+    const mentee = await this.getMenteeByUserId(userId);
+
+    // Get active mentors via join
+    const activeMentors = await db
+      .select({
+        mentorId: mentors.mentorId,
+        userId: mentors.userId,
+        mentorshipPreferences: mentors.mentorshipPreferences,
+        yearsOfService: mentors.yearsOfService,
+        eligibilityData: mentors.eligibilityData,
+        status: mentors.status,
+        resumeFileId: mentors.resumeFileId,
+        strengths: mentors.strengths,
+        personalInterests: mentors.personalInterests,
+        whyInterestedResponses: mentors.whyInterestedResponses,
+        careerAdvice: mentors.careerAdvice,
+        preferredMenteeCareerStages: mentors.preferredMenteeCareerStages,
+        preferredMeetingFormat: mentors.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
+        createdAt: mentors.createdAt,
+        updatedAt: mentors.updatedAt,
+      })
+      .from(mentorshipMatches)
+      .innerJoin(mentors, eq(mentors.userId, mentorshipMatches.mentorUserId))
+      .where(
+        and(
+          eq(mentorshipMatches.requestorUserId, userId),
+          eq(mentorshipMatches.status, "accepted")
+        )
+      );
+
+    return { mentee, activeMentors };
   }
 }
