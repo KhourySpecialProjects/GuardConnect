@@ -131,6 +131,7 @@ export class MatchingService {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       },
+      status: "suggested",
       hasRequested: row.has_requested,
     })) as SuggestedMentor[];
   }

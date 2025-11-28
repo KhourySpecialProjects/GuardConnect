@@ -17,6 +17,7 @@ export type MentorshipMatch = {
 export type SuggestedMentor = {
   mentor: GetMentorOutput;
   status: "active" | "pending" | "suggested"; // active means matched
+  hasRequested?: boolean;
 };
 
 export type MatchedMentor = {
