@@ -336,7 +336,7 @@ export default function MentorshipApplyMenteePage() {
         hoursPerMonthCommitment,
       });
 
-      router.push("/mentorship");
+      router.push("/mentorship/dashboard");
     } catch (error) {
       if (error instanceof TRPCClientError) {
         setFormError(error.message);

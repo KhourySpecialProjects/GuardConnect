@@ -318,7 +318,7 @@ export default function MentorshipApplyMentorPage() {
       });
 
       setIsSubmitted(true);
-      router.push("/mentorship");
+      router.push("/mentorship/dashboard");
     } catch (error) {
       if (error instanceof TRPCClientError) {
         setFormError(error.message);
