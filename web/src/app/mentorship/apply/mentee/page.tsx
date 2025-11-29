@@ -326,8 +326,7 @@ export default function MentorshipApplyMenteePage() {
 
       await createMentee.mutateAsync({
         userId,
-        resumeFileId:
-          resume?.status === "uploaded" ? resume.fileId : undefined,
+        resumeFileId: resume?.status === "uploaded" ? resume.fileId : undefined,
         personalInterests:
           selectedInterests.length > 0
             ? selectedInterests.join(", ")
