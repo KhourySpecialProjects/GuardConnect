@@ -535,6 +535,9 @@ export default function HelpPage() {
               <span className="font-semibold">Resolved</span>; admins also see
               the assignee column.
             </li>
+            <li>
+              Click any report row to open and edit your submission directly.
+            </li>
           </ul>
           <div className="flex flex-wrap gap-2 pt-2">
             <CueDisplay
@@ -598,6 +601,11 @@ export default function HelpPage() {
             Use the assignee column to track ownership. If you do not see it,
             request <span className="font-semibold">reporting admin</span>{" "}
             access.
+          </li>
+          <li>
+            Admins can open any report and assign it with the
+            <span className="font-semibold"> Assign </span>
+            dropdown; updates save immediately.
           </li>
           <li>
             If someone updates a report elsewhere (like reassigning it), your
