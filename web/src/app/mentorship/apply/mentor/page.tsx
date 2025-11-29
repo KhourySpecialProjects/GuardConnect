@@ -184,7 +184,10 @@ export default function MentorshipApplyMentorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const createMentor = useMutation(trpc.mentors.createMentor.mutationOptions());
+  // Aligned with server `appRouter.mentorship.createMentor`
+  const createMentor = useMutation(
+    trpc.mentorship.createMentor.mutationOptions(),
+  );
 
   const uploadResume = useCallback(
     async (file: File) => {
@@ -277,6 +280,45 @@ export default function MentorshipApplyMentorPage() {
     }
 
     try {
+      // Map meeting formats to backend enum
+      const preferredMeetingFormat =
+        selectedMeetingFormats.length > 0
+          ? ((selectedMeetingFormats[0] === "online"
+              ? "virtual"
+              : selectedMeetingFormats[0]) as
+              | "in-person"
+              | "virtual"
+              | "hybrid"
+              | "no-preference")
+          : undefined;
+
+      // Map career stages to backend enum (fix transitioning-soldiers -> transitioning)
+      type PreferredMenteeCareerStage =
+        | "new-soldiers"
+        | "junior-ncos"
+        | "senior-ncos"
+        | "junior-officers"
+        | "senior-officers"
+        | "transitioning"
+        | "no-preference";
+
+      const preferredMenteeCareerStages:
+        | PreferredMenteeCareerStage[]
+        | undefined =
+        selectedCareerStages.length > 0
+          ? selectedCareerStages.map((stage) =>
+              stage === "transitioning-soldiers"
+                ? "transitioning"
+                : (stage as PreferredMenteeCareerStage),
+            )
+          : undefined;
+
+      const hoursPerMonthCommitment = (() => {
+        if (!availableMentorHours) return undefined;
+        const parsed = Number.parseInt(availableMentorHours, 10);
+        return Number.isNaN(parsed) ? undefined : parsed;
+      })();
+
       await createMentor.mutateAsync({
         userId,
         resumeFileId: resume?.status === "uploaded" ? resume.fileId : undefined,
@@ -288,26 +330,24 @@ export default function MentorshipApplyMentorPage() {
         whyInterestedResponses:
           whyInterestedOrder.length > 0 ? whyInterestedOrder : undefined,
         careerAdvice: multiLineText.trim() || undefined,
-        preferredMenteeCareerStages:
-          selectedCareerStages.length > 0 ? selectedCareerStages : undefined,
-        preferredMeetingFormat:
-          selectedMeetingFormats.length > 0
-            ? (selectedMeetingFormats[0] as
-                | "in-person"
-                | "virtual"
-                | "hybrid"
-                | "no-preference")
-            : undefined,
-        hoursPerMonthCommitment: availableMentorHours
-          ? parseInt(availableMentorHours, 10)
-          : undefined,
+        preferredMenteeCareerStages,
+        preferredMeetingFormat,
+        hoursPerMonthCommitment,
       });
 
       setIsSubmitted(true);
-      router.push("/mentorship");
+      router.push("/mentorship/dashboard");
     } catch (error) {
       if (error instanceof TRPCClientError) {
-        setFormError(error.message);
+        const message = error.message || "Failed to submit application.";
+
+        if (message.includes("Mentor profile already exists for this user")) {
+          setFormError(
+            "You already have a mentor profile set up. Visit the mentorship dashboard to view it.",
+          );
+        } else {
+          setFormError(message);
+        }
       } else if (error instanceof Error) {
         setFormError(error.message);
       } else {
