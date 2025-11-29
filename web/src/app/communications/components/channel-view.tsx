@@ -8,6 +8,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
@@ -131,6 +132,13 @@ export function ChannelView({ channelId }: ChannelViewProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+  const backHref =
+    from === "all" ? "/communications/all-channels" : "/communications";
+  const backAriaLabel =
+    from === "all" ? "Back to all channels" : "Back to my channels";
+
   const [_isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
@@ -168,7 +176,6 @@ export function ChannelView({ channelId }: ChannelViewProps) {
 
   const messages = Array.isArray(messagesQuery.data) ? messagesQuery.data : [];
 
-  // Check if user is not a member (permission is null)
   const currentChannel = channelList.find(
     (channel) => channel.channelId === parsedChannelId,
   );
@@ -206,7 +213,6 @@ export function ChannelView({ channelId }: ChannelViewProps) {
       ? `${_channelName.slice(0, 18)}…`
       : _channelName;
 
-  // PostedCard consumes a flattened message contract, so this memo keeps the shape consistent regardless of how the backend representation evolves.
   const messageItems: ChannelMessage[] = useMemo(() => {
     if (!messages.length) {
       return [];
@@ -230,7 +236,6 @@ export function ChannelView({ channelId }: ChannelViewProps) {
 
   const hasHydratedFromServerRef = useRef(false);
 
-  // React Query will briefly serve undefined during route transitions; this flag ensures that transient empties do not blow away optimistic local state
   useEffect(() => {
     if (!messagesQuery.isSuccess) {
       return;
@@ -265,7 +270,6 @@ export function ChannelView({ channelId }: ChannelViewProps) {
   const { mutate: joinChannel, isPending: isJoining } = useMutation(
     trpc.comms.joinChannel.mutationOptions({
       onSuccess: () => {
-        // Refetch channel list and messages after joining
         queryClient.invalidateQueries({
           queryKey: trpc.comms.getAllChannels.queryKey(),
         });
@@ -403,13 +407,12 @@ export function ChannelView({ channelId }: ChannelViewProps) {
     );
   }
 
-  // Show "not a member" message if user doesn't have permission
   if (isNotMember) {
     return (
       <TitleShell
         title={displayChannelName}
-        backHref="/communications"
-        backAriaLabel="Back to my channels"
+        backHref={backHref}
+        backAriaLabel={backAriaLabel}
       >
         <div className="flex flex-col items-center justify-center gap-6 rounded-xl border border-border bg-muted/30 p-8 text-center">
           <div className="flex flex-col gap-2">
@@ -440,8 +443,8 @@ export function ChannelView({ channelId }: ChannelViewProps) {
   return (
     <TitleShell
       title={displayChannelName}
-      backHref="/communications"
-      backAriaLabel="Back to my channels"
+      backHref={backHref}
+      backAriaLabel={backAriaLabel}
       actions={
         <>
           <div className="hidden items-center gap-3 sm:flex">
