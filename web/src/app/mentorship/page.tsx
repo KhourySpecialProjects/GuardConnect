@@ -54,7 +54,6 @@ export default function MentorshipLanding() {
               className="
                 inline-flex w-full items-center justify-center gap-3
                 px-12 py-5 text-xl font-semibold sm:text-2xl
-                rounded-xl
                 bg-primary text-white
                 transition-colors
                 hover:bg-accent hover:text-white
@@ -73,7 +72,6 @@ export default function MentorshipLanding() {
               className="
                 inline-flex w-full items-center justify-center gap-3
                 px-12 py-5 text-xl font-semibold sm:text-2xl
-                rounded-xl
                 bg-primary text-white
                 transition-colors
                 hover:bg-accent hover:text-white
