@@ -49,6 +49,14 @@ export type MatchedMentee = {
   matchedAt: string | Date;
 };
 
+/**
+ * Aggregated mentorship data returned to the frontend.
+ *
+ * NOTE: `GetMentorOutput` and `GetMenteeOutput` now include selected fields
+ * from the associated `users` record (name, contact, rank/position, image,
+ * location). Callers can rely on those fields being present when a user
+ * profile exists, without making additional user API calls.
+ */
 export type MentorshipDataOutput = {
   mentor: {
     activeMentees: GetMenteeOutput[];
