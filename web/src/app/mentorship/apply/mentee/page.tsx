@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,14 @@ import {
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
 import { authClient } from "@/lib/auth-client";
-import { useTRPC } from "@/lib/trpc";
+import { useTRPC, useTRPCClient } from "@/lib/trpc";
+
+type ResumeState = null | {
+  file: File;
+  status: "uploading" | "uploaded" | "error";
+  fileId?: string;
+  error?: string;
+};
 
 //Static arrays for select options
 const mentorInterestOptions: MultiSelectOption[] = [
@@ -187,13 +194,14 @@ const rankOptions = [
 
 export default function MentorshipApplyMenteePage() {
   const trpc = useTRPC();
+  const trpcClient = useTRPCClient();
   const router = useRouter();
   const { data: sessionData } = authClient.useSession();
   const userId = sessionData?.user?.id ?? null;
 
   const [positionSelection, setPositionSelection] = useState<string>("");
   const [menteeRankSelection, setMenteeRankSelection] = useState<string>("");
-  const [files, setFiles] = useState<File[] | undefined>();
+  const [resume, setResume] = useState<ResumeState>(null);
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<
@@ -207,9 +215,87 @@ export default function MentorshipApplyMenteePage() {
 
   const createMentee = useMutation(trpc.mentees.createMentee.mutationOptions());
 
+  const uploadResume = useCallback(
+    async (file: File) => {
+      setResume({
+        file,
+        status: "uploading",
+      });
+
+      try {
+        const presign = await trpcClient.files.createPresignedUpload.mutate({
+          fileName: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+        });
+
+        const uploadResponse = await fetch(presign.uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+          },
+          body: file,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("We couldn't upload that file. Please try again.");
+        }
+
+        await trpcClient.files.confirmUpload.mutate({
+          fileId: presign.fileId,
+          fileName: file.name,
+          storedName: presign.storedName,
+          contentType: file.type || undefined,
+        });
+
+        setResume({
+          file,
+          status: "uploaded",
+          fileId: presign.fileId,
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "We couldn't upload that file.";
+        setResume({
+          file,
+          status: "error",
+          error: message,
+        });
+      }
+    },
+    [trpcClient],
+  );
+
+  const cleanupUnusedResume = useCallback(async () => {
+    // Only cleanup if resume was uploaded but form was not submitted
+    if (resume?.status === "uploaded" && resume.fileId) {
+      try {
+        await trpcClient.files.deleteFile.mutate({
+          fileId: resume.fileId,
+        });
+      } catch (error) {
+        // Silently fail - cleanup is best effort
+        console.error("Failed to cleanup unused resume:", error);
+      }
+    }
+  }, [resume, trpcClient]);
+
   const handleSubmit = async () => {
     if (!userId) {
       setFormError("You must be logged in to submit this application.");
+      return;
+    }
+
+    // Block submit if resume is in a bad state
+    if (resume?.status === "uploading") {
+      setFormError("Please wait for the resume upload to complete.");
+      return;
+    }
+
+    if (resume?.status === "error") {
+      setFormError("Please fix the resume upload error before submitting.");
       return;
     }
 
@@ -235,6 +321,8 @@ export default function MentorshipApplyMenteePage() {
 
       await createMentee.mutateAsync({
         userId,
+        resumeFileId:
+          resume?.status === "uploaded" ? resume.fileId : undefined,
         personalInterests:
           selectedInterests.length > 0
             ? selectedInterests.join(", ")
@@ -261,6 +349,13 @@ export default function MentorshipApplyMenteePage() {
       setIsSubmitting(false);
     }
   };
+
+  // Cleanup unused resume on unmount
+  useEffect(() => {
+    return () => {
+      void cleanupUnusedResume();
+    };
+  }, [cleanupUnusedResume]);
 
   return (
     <div className="flex flex-col flex-wrap w-full relative items-left justify-center sm:gap-16 px-8 sm:px-10 lg:px-20 py-10 mx-4">
@@ -310,9 +405,13 @@ export default function MentorshipApplyMenteePage() {
           </h1>
           <Dropzone
             className="max-w-3xl mb-3"
-            onDrop={(files) => setFiles(files)}
-            src={files}
-            maxFiles={5}
+            onDrop={(files) => {
+              if (files.length > 0) {
+                void uploadResume(files[0]);
+              }
+            }}
+            src={resume ? [resume.file] : undefined}
+            maxFiles={1}
           >
             <DropzoneEmptyState />
             <DropzoneContent />
