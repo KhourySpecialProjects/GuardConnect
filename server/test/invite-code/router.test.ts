@@ -245,7 +245,7 @@ describe("inviteCodeRouter", () => {
       });
 
       expect(result).toHaveLength(2);
-      expect(result[0]?.status).toBe("active");
+      expect(result.data[0]?.status).toBe("active");
     });
 
     it("should throw FORBIDDEN for user without permission", async () => {
