@@ -184,7 +184,10 @@ export default function MentorshipApplyMentorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const createMentor = useMutation(trpc.mentors.createMentor.mutationOptions());
+  // Aligned with server `appRouter.mentorship.createMentor`
+  const createMentor = useMutation(
+    trpc.mentorship.createMentor.mutationOptions(),
+  );
 
   const uploadResume = useCallback(
     async (file: File) => {
