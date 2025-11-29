@@ -283,13 +283,13 @@ export default function MentorshipApplyMentorPage() {
       // Map meeting formats to backend enum
       const preferredMeetingFormat =
         selectedMeetingFormats.length > 0
-          ? (selectedMeetingFormats[0] === "online"
+          ? ((selectedMeetingFormats[0] === "online"
               ? "virtual"
               : selectedMeetingFormats[0]) as
               | "in-person"
               | "virtual"
               | "hybrid"
-              | "no-preference"
+              | "no-preference")
           : undefined;
 
       // Map career stages to backend enum (fix transitioning-soldiers -> transitioning)
@@ -302,7 +302,9 @@ export default function MentorshipApplyMentorPage() {
         | "transitioning"
         | "no-preference";
 
-      const preferredMenteeCareerStages: PreferredMenteeCareerStage[] | undefined =
+      const preferredMenteeCareerStages:
+        | PreferredMenteeCareerStage[]
+        | undefined =
         selectedCareerStages.length > 0
           ? selectedCareerStages.map((stage) =>
               stage === "transitioning-soldiers"

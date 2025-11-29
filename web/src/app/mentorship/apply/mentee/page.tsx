@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { SelectableButton } from "@/components/buttons";
 import { DragReorderFrame } from "@/components/drag-and-drop";
@@ -309,13 +309,13 @@ export default function MentorshipApplyMenteePage() {
       // Map meeting formats to backend enum
       const preferredMeetingFormat =
         selectedMeetingFormats.length > 0
-          ? (selectedMeetingFormats[0] === "online"
+          ? ((selectedMeetingFormats[0] === "online"
               ? "virtual"
               : selectedMeetingFormats[0]) as
               | "in-person"
               | "virtual"
               | "hybrid"
-              | "no-preference"
+              | "no-preference")
           : undefined;
 
       const hoursPerMonthCommitment = (() => {
@@ -324,10 +324,10 @@ export default function MentorshipApplyMenteePage() {
         return Number.isNaN(parsed) ? undefined : parsed;
       })();
 
-      await createMentee.mutateAsync({
-        userId,
-        resumeFileId:
-          resume?.status === "uploaded" ? resume.fileId : undefined,
+        await createMentee.mutateAsync({
+          userId,
+          resumeFileId:
+            resume?.status === "uploaded" ? resume.fileId : undefined,
         personalInterests:
           selectedInterests.length > 0
             ? selectedInterests.join(", ")
