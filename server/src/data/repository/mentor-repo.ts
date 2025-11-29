@@ -1,5 +1,10 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { mentees, mentors, mentorshipMatches } from "../../data/db/schema.js";
+import {
+  mentees,
+  mentors,
+  mentorshipMatches,
+  users,
+} from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import type { GetMenteeOutput } from "../../types/mentee-types.js";
@@ -114,6 +119,7 @@ export class MentorRepository {
       .select({
         mentorId: mentors.mentorId,
         userId: mentors.userId,
+        // Mentor profile fields
         mentorshipPreferences: mentors.mentorshipPreferences,
         yearsOfService: mentors.yearsOfService,
         eligibilityData: mentors.eligibilityData,
@@ -128,8 +134,19 @@ export class MentorRepository {
         hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
         createdAt: mentors.createdAt,
         updatedAt: mentors.updatedAt,
+        // Enriched user profile fields
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        imageFileId: users.image,
+        rank: users.rank,
+        positionType: users.positionType,
+        detailedPosition: users.detailedPosition,
+        detailedRank: users.detailedRank,
+        location: users.location,
       })
       .from(mentors)
+      .innerJoin(users, eq(users.id, mentors.userId))
       .where(eq(mentors.mentorId, mentorId))
       .limit(1);
 
@@ -150,6 +167,7 @@ export class MentorRepository {
       .select({
         mentorId: mentors.mentorId,
         userId: mentors.userId,
+        // Mentor profile fields
         mentorshipPreferences: mentors.mentorshipPreferences,
         yearsOfService: mentors.yearsOfService,
         eligibilityData: mentors.eligibilityData,
@@ -164,8 +182,19 @@ export class MentorRepository {
         hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
         createdAt: mentors.createdAt,
         updatedAt: mentors.updatedAt,
+        // Enriched user profile fields
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        imageFileId: users.image,
+        rank: users.rank,
+        positionType: users.positionType,
+        detailedPosition: users.detailedPosition,
+        detailedRank: users.detailedRank,
+        location: users.location,
       })
       .from(mentors)
+      .innerJoin(users, eq(users.id, mentors.userId))
       .where(eq(mentors.userId, userId))
       .limit(1);
 
@@ -188,6 +217,7 @@ export class MentorRepository {
       .select({
         mentorId: mentors.mentorId,
         userId: mentors.userId,
+        // Mentor profile fields
         mentorshipPreferences: mentors.mentorshipPreferences,
         yearsOfService: mentors.yearsOfService,
         eligibilityData: mentors.eligibilityData,
@@ -202,8 +232,19 @@ export class MentorRepository {
         hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
         createdAt: mentors.createdAt,
         updatedAt: mentors.updatedAt,
+        // Enriched user profile fields
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        imageFileId: users.image,
+        rank: users.rank,
+        positionType: users.positionType,
+        detailedPosition: users.detailedPosition,
+        detailedRank: users.detailedRank,
+        location: users.location,
       })
       .from(mentors)
+      .innerJoin(users, eq(users.id, mentors.userId))
       .where(inArray(mentors.userId, userIds));
   }
 
