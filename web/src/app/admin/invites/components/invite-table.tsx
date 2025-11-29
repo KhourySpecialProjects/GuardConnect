@@ -1,4 +1,3 @@
-import type { RoleKey } from "@server/data/roles";
 import { Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

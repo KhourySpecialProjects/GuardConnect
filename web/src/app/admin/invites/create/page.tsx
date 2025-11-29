@@ -7,7 +7,6 @@ import { Info } from "lucide-react";
 import { useState } from "react";
 import NavigationShell from "@/components/layouts/navigation-shell";
 import { TitleShell } from "@/components/layouts/title-shell";
-import { Button } from "@/components/ui/button";
 import { useHasRole } from "@/hooks/useHasRole";
 import { useTRPC } from "@/lib/trpc";
 import { InviteForm, type InviteFormValues } from "../components/invite-form";
