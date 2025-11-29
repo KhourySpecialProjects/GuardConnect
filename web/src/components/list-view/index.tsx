@@ -24,6 +24,7 @@ export type MenteeListViewItem = ListViewItem & {
   mentorQualities?: string[];
   preferredMeetingFormat?: string;
   hoursPerMonthCommitment?: number;
+  matchId: number;
 };
 
 export type MentorListViewItem = ListViewItem & {

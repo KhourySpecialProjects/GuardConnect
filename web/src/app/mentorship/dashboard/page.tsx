@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { mentorshipResources } from "@/app/mentorship/dashboard/resources";
 import type { CollapsibleCardProps } from "@/components/expanding-card";
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useTRPC } from "@/lib/trpc";
 
-// MentorshipDashboard shows a basic view of the user's mentorship state using real backend data.
+// MentorshipDashboard shows a view of the user's mentorship status using real backend data.
 export default function MentorshipDashboard() {
   const trpc = useTRPC();
   const { data, isLoading, isError, error } = useQuery(
@@ -25,6 +25,18 @@ export default function MentorshipDashboard() {
 
   const hasMentorProfile = Boolean(data?.mentor?.profile);
   const hasMenteeProfile = Boolean(data?.mentee?.profile);
+
+  const handleSendRequest = useMutation(
+    trpc.mentorship.requestMentorship.mutationOptions(),
+  );
+
+  const acceptRequest = useMutation(
+    trpc.mentorship.acceptMentorshipRequest.mutationOptions(),
+  );
+
+  const rejectRequest = useMutation(
+    trpc.mentorship.declineMentorshipRequest.mutationOptions(),
+  );
 
   const renderYourMentor = () => {
     // Loading state
@@ -84,10 +96,11 @@ export default function MentorshipDashboard() {
           name: item.name,
           rank: item.rank,
           location: item.location,
-          personalInterests: item.mentor.personalInterests || "",
-          information: item.mentor.hopeToGainResponses || "",
+          personalInterests: item.personalInterests || "",
+          information: item.careerAdvice || "",
           email: item.email,
           phone: item.phone,
+          avatarSrc: item.imageFileId || "",
         }));
 
       return (
@@ -129,11 +142,10 @@ export default function MentorshipDashboard() {
         }));
 
       const renderSuggestedMentorRowOptions = (
-        _mentorInformation: MentorListViewItem,
+        mentorInformation: MentorListViewItem,
       ) => {
-        const requested = true;
+        const requested = mentorInformation.hasRequested;
         return (
-          // TODO: Implement send request functionality
           <Button
             type="button"
             variant="outline"
@@ -144,6 +156,12 @@ export default function MentorshipDashboard() {
                 : ""
             }`}
             disabled={requested}
+            // TODO: check functionality
+            onClick={() =>
+              handleSendRequest.mutate({
+                mentorUserId: mentorInformation.id,
+              })
+            }
           >
             {requested ? "Requested" : "Send Request"}
           </Button>
@@ -281,6 +299,7 @@ export default function MentorshipDashboard() {
             roleModelInspiration: item.roleModelInspiration,
             preferredMeetingFormat: item.preferredMeetingFormat,
             hoursPerMonthCommitment: item.hoursPerMonthCommitment,
+            matchId: item.matchId,
           }))
       : [];
 
@@ -334,24 +353,26 @@ export default function MentorshipDashboard() {
       );
     };
 
-    const renderMenteeRequestRowOptions = () => {
+    const renderMenteeRequestRowOptions = (matchId: number) => {
       return (
         <div className="flex items-center gap-2">
-          {/* TODO: connect with BE matching service */}
+          {/* TODO: check integration */}
           <Button
             type="button"
             variant="outline"
             size="icon"
             className="rounded-full border-primary hover:bg-primary group"
+            onClick={() => acceptRequest.mutate({ matchId })}
           >
             <AcceptIcon className="h-5 w-5 text-primary group-hover:text-white transition-colors" />
           </Button>
-          {/* TODO: connect with BE matching service */}
+          {/* TODO: check integration */}
           <Button
             type="button"
             variant="outline"
             size="icon"
             className="rounded-full border-accent"
+            onClick={() => rejectRequest.mutate({ matchId })}
           >
             <RejectIcon className="h-5 w-5 text-accent" />
           </Button>
@@ -364,7 +385,7 @@ export default function MentorshipDashboard() {
         title="Pending Requests"
         items={pendingRequests}
         modalContent={renderMenteeRequestModal}
-        rowOptions={renderMenteeRequestRowOptions}
+        rowOptions={(request) => renderMenteeRequestRowOptions(request.matchId)}
       />;
     }
 
@@ -375,8 +396,8 @@ export default function MentorshipDashboard() {
           name: item.name,
           rank: item.rank,
           location: item.location,
-          personalInterests: item.mentee.personalInterests || "",
-          information: item.mentee.goals || "",
+          personalInterests: item.personalInterests || "",
+          information: item.goals || "",
           email: item.email,
           phone: item.phone,
         }));

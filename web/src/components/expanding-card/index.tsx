@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import { icons } from "@/components/icons";
 import { Card } from "@/components/ui/card";
@@ -16,16 +17,11 @@ export type CollapsibleCardProps = {
   information: string;
   email: string;
   phone: string;
+  avatarSrc?: string;
 };
 
 const UserIcon = icons.user;
 const ArrowRight = icons.arrowRight;
-
-const Avatar = () => (
-  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-primary-dark/30 bg-neutral/20 text-primary">
-    <UserIcon className="h-7 w-7" />
-  </div>
-);
 
 export default function CollapsibleCard({
   name,
@@ -35,6 +31,7 @@ export default function CollapsibleCard({
   information,
   email,
   phone,
+  avatarSrc,
 }: CollapsibleCardProps) {
   const [Expandable, setExpandable] = useState(false);
 
@@ -50,8 +47,24 @@ export default function CollapsibleCard({
                 : "rounded-xl hover:bg-muted/50"
             }`}
           >
-            <div className="flex items-center gap-4">
-              <Avatar />
+            <div className="flex items-center justify-center">
+              <div className="relative z-10 h-16 w-16 shrink-0 overflow-hidden rounded-full border-3 border-card bg-neutral text-secondary shadow-lg sm:h-16 sm:w-16">
+                {avatarSrc ? (
+                  <Image
+                    src={avatarSrc}
+                    alt={`${name} profile photo`}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 640px) 96px, 80px"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-neutral/10 text-secondary">
+                    <UserIcon className="h-8 w-8" aria-hidden="true" />
+                    <span className="sr-only">{name} avatar</span>
+                  </div>
+                )}
+              </div>
               <div className="text-left">
                 <div
                   className={`font-semibold ${Expandable ? "text-white" : ""}`}
