@@ -22,19 +22,18 @@ const reportSections: Section[] = [
       <>
         <ul className="list-disc space-y-2 pl-5 text-sm text-secondary">
           <li>
-            Use the <span className="font-semibold">Search reports</span>{" "}
-            field to find titles, descriptions, or assignees.
+            Use the <span className="font-semibold">Search reports</span> field
+            to find titles, descriptions, or assignees.
           </li>
           <li>
             Sort by newest, oldest, or title with the{" "}
-            <span className="font-semibold">Sort</span> menu in the upper
-            right.
+            <span className="font-semibold">Sort</span> menu in the upper right.
           </li>
           <li>
             Status chips show <span className="font-semibold">Pending</span>,{" "}
             <span className="font-semibold">Assigned</span>, or{" "}
-            <span className="font-semibold">Resolved</span>; admins also see
-            the assignee column.
+            <span className="font-semibold">Resolved</span>; admins also see the
+            assignee column.
           </li>
           <li>
             Click any report row to open and edit your submission directly.
@@ -99,8 +98,7 @@ const reportSections: Section[] = [
         </li>
         <li>
           Use the assignee column to track ownership. If you do not see it,
-          request <span className="font-semibold">reporting admin</span>{" "}
-          access.
+          request <span className="font-semibold">reporting admin</span> access.
         </li>
         <li>
           Admins can open any report and assign it with the

@@ -26,8 +26,8 @@ const mentorshipSections: Section[] = [
           finish it in one sitting.
         </li>
         <li>
-          Submit to create your profile. You will be routed to the
-          Mentorship dashboard after completion.
+          Submit to create your profile. You will be routed to the Mentorship
+          dashboard after completion.
         </li>
       </ol>
     ),
@@ -38,12 +38,11 @@ const mentorshipSections: Section[] = [
     content: (
       <ul className="list-disc space-y-2 pl-5 text-sm text-secondary">
         <li>
-          The dashboard reflects your mentor and mentee profiles once
-          submitted.
+          The dashboard reflects your mentor and mentee profiles once submitted.
         </li>
         <li>
-          Matches arrive over time; you can view contact info for your
-          mentor or mentee to schedule conversations directly.
+          Matches arrive over time; you can view contact info for your mentor or
+          mentee to schedule conversations directly.
         </li>
       </ul>
     ),
@@ -67,12 +66,12 @@ const mentorshipSections: Section[] = [
     content: (
       <ul className="list-disc space-y-2 pl-5 text-sm text-secondary">
         <li>
-          Use the linked resources in the sidebar to prep for meetings and
-          guide your conversations.
+          Use the linked resources in the sidebar to prep for meetings and guide
+          your conversations.
         </li>
         <li>
-          Contact details for your mentor/mentee are visible so you can
-          reach out and set up sessions.
+          Contact details for your mentor/mentee are visible so you can reach
+          out and set up sessions.
         </li>
       </ul>
     ),

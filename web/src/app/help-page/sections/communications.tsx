@@ -343,8 +343,8 @@ const OnboardingContent = () => (
 const RolesContent = () => (
   <>
     <p className="text-sm text-secondary mb-2">
-      Access is managed behind the scenes, but understanding each role helps
-      you know what to expect on screen.
+      Access is managed behind the scenes, but understanding each role helps you
+      know what to expect on screen.
     </p>
     <div className="grid gap-4 lg:grid-cols-2 w-full max-w-full">
       {roleGuides.map((role) => (
@@ -436,9 +436,9 @@ const communicationsSections: Section[] = [
           <ol className="list-decimal space-y-2 pl-5">
             <li>
               From Communications, open{" "}
-              <span className="font-semibold">Broadcasts</span>, then select
-              the <span className="font-semibold">megaphone</span> action to
-              start a new alert.
+              <span className="font-semibold">Broadcasts</span>, then select the{" "}
+              <span className="font-semibold">megaphone</span> action to start a
+              new alert.
             </li>
             <li>
               Choose the audience, add a clear subject, write the message body,
