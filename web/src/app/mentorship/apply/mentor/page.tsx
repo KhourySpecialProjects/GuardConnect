@@ -321,7 +321,15 @@ export default function MentorshipApplyMentorPage() {
       router.push("/mentorship/dashboard");
     } catch (error) {
       if (error instanceof TRPCClientError) {
-        setFormError(error.message);
+        const message = error.message || "Failed to submit application.";
+
+        if (message.includes("Mentor profile already exists for this user")) {
+          setFormError(
+            "You already have a mentor profile set up. Visit the mentorship dashboard to view it.",
+          );
+        } else {
+          setFormError(message);
+        }
       } else if (error instanceof Error) {
         setFormError(error.message);
       } else {
