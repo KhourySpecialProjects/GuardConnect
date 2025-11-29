@@ -293,10 +293,21 @@ export default function MentorshipApplyMentorPage() {
           : undefined;
 
       // Map career stages to backend enum (fix transitioning-soldiers -> transitioning)
-      const preferredMenteeCareerStages =
+      type PreferredMenteeCareerStage =
+        | "new-soldiers"
+        | "junior-ncos"
+        | "senior-ncos"
+        | "junior-officers"
+        | "senior-officers"
+        | "transitioning"
+        | "no-preference";
+
+      const preferredMenteeCareerStages: PreferredMenteeCareerStage[] | undefined =
         selectedCareerStages.length > 0
           ? selectedCareerStages.map((stage) =>
-              stage === "transitioning-soldiers" ? "transitioning" : stage,
+              stage === "transitioning-soldiers"
+                ? "transitioning"
+                : (stage as PreferredMenteeCareerStage),
             )
           : undefined;
 
