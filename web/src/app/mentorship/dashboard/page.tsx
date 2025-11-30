@@ -45,6 +45,8 @@ type DashboardMentee = {
   roleModelInspiration?: string | null;
   detailedPosition?: string | null;
   positionType?: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
 };
 
 type MentorRecommendation = {
@@ -176,7 +178,10 @@ export default function MentorshipDashboard() {
           id: item.mentor.userId,
           name: item.mentor.name ?? "Unknown mentor",
           rank: item.mentor.rank ?? undefined,
-          role: item.mentor.detailedPosition ?? item.mentor.positionType,
+          role:
+            item.mentor.detailedPosition ??
+            item.mentor.positionType ??
+            undefined,
           personalInterests,
           careerAdvice: item.mentor.careerAdvice || "",
           meetingFormat:
@@ -354,8 +359,11 @@ export default function MentorshipDashboard() {
         return {
           id: item.mentee.userId,
           name: item.mentee.name ?? "Unknown mentee",
-          rank: item.mentee.rank,
-          role: item.mentee.detailedPosition ?? item.mentee.positionType,
+          rank: item.mentee.rank ?? undefined,
+          role:
+            item.mentee.detailedPosition ??
+            item.mentee.positionType ??
+            undefined,
           learningGoals: item.mentee.learningGoals ?? undefined,
           personalInterests,
           hopeToGainResponses: item.mentee.hopeToGainResponses ?? undefined,
@@ -451,7 +459,7 @@ export default function MentorshipDashboard() {
 
     const matchedMentees: CollapsibleCardProps[] =
       data?.mentor?.activeMentees?.map((item: DashboardMentee) => ({
-        name: item.name,
+        name: item.name ?? "Unknown mentee",
         rank: item.rank ?? "Unknown rank",
         location: item.location ?? "Not provided",
         personalInterests: Array.isArray(item.personalInterests)
@@ -511,12 +519,17 @@ export default function MentorshipDashboard() {
         <div className="flex flex-col">
           <div className="mb-10">
             <h1 className="text-2xl text-header font-semibold mb-5">
-              Your Mentor
+              {data?.mentee?.activeMentors &&
+              data.mentee.activeMentors.length > 1
+                ? "Your Mentors"
+                : "Your Mentor"}
             </h1>
             {renderYourMentor()}
           </div>
           <h1 className="text-2xl text-header font-semibold mb-5">
-            Your Mentee
+            {data?.mentor?.activeMentees && data.mentor.activeMentees.length > 1
+              ? "Your Mentees"
+              : "Your Mentee"}
           </h1>
           {renderYourMentee()}
         </div>
