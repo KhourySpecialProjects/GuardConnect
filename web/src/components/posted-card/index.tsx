@@ -391,6 +391,8 @@ export const PostedCard = ({
 
       <Modal
         open={isEditModalOpen}
+        className="max-w-[calc(100%-2rem)] sm:max-w-lg"
+        headerAlign="left"
         onOpenChange={(newOpen) => {
           if (!newOpen) {
             handleCancelEdit();
@@ -429,7 +431,7 @@ export const PostedCard = ({
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
             placeholder="Edit your post..."
-            className="min-h-32 resize-none"
+            className="min-h-32 max-h-[65vh] w-full max-w-full resize-none overflow-y-auto break-words ![field-sizing:fixed] text-left"
             maxLength={maxLength}
             disabled={editPost.isPending}
           />

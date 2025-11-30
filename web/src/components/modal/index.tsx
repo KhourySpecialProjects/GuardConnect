@@ -17,6 +17,7 @@ export type ModalProps = {
   children?: ReactNode;
   footer?: ReactNode;
   className?: string;
+  headerAlign?: "left" | "center";
 };
 
 export function Modal({
@@ -27,12 +28,16 @@ export function Modal({
   children,
   footer,
   className,
+  headerAlign = "center",
 }: ModalProps) {
+  const headerClassName =
+    headerAlign === "left" ? "text-left" : "text-center sm:text-left";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={className}>
         {(title || description) && (
-          <DialogHeader>
+          <DialogHeader className={headerClassName}>
             {title && <DialogTitle>{title}</DialogTitle>}
             {description && (
               <DialogDescription>{description}</DialogDescription>
