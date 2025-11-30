@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Paperclip } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DropdownButtons,
   type DropdownMenuItemConfig,
@@ -36,7 +36,7 @@ type MessageReaction = {
 type PostedCardProps = {
   channelId: number;
   postId: number;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   name: string;
   rank: string;
   content: string;
@@ -53,15 +53,30 @@ type AttachmentStatus = "idle" | "uploading" | "uploaded" | "error";
 
 const UserIcon = icons.user;
 
-const Avatar = () => (
-  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-primary-dark/30 bg-neutral/20 text-primary">
-    <UserIcon className="h-7 w-7" />
-  </div>
-);
+const Avatar = ({ avatarUrl }: { avatarUrl?: string | null }) => {
+  const trpcClient = useTRPCClient();
+  const { data: fileData } = useQuery({
+    queryKey: ['file', avatarUrl],
+    queryFn: () => trpcClient.files.getFile.query({ fileId: avatarUrl! }),
+    enabled: !!avatarUrl,
+  });
+  const imageUrl = fileData?.data;
+
+  return (
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-primary-dark/30 bg-neutral/20 text-primary overflow-hidden">
+      {imageUrl ? (
+        <img src={imageUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+      ) : (
+        <UserIcon className="h-7 w-7" />
+      )}
+    </div>
+  );
+};
 
 export const PostedCard = ({
   channelId,
   postId,
+  avatarUrl,
   name,
   rank,
   content,
@@ -297,7 +312,7 @@ export const PostedCard = ({
         </div>
         <div className="flex items-start gap-4 px-2 pt-6 sm:px-4 sm:pt-4">
           <div className="flex justify-start sm:pt-2">
-            <Avatar />
+            <Avatar avatarUrl={avatarUrl} />
           </div>
           <div className="flex flex-col gap-2 w-full">
             <div className="text-secondary text-base font-semibold sm:text-subheader">
