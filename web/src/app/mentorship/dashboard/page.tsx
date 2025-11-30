@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useMemo } from "react";
 import { mentorshipResources } from "@/app/mentorship/dashboard/resources";
 import type { CollapsibleCardProps } from "@/components/expanding-card";
 import CollapsibleCard from "@/components/expanding-card";
@@ -94,6 +95,11 @@ export default function MentorshipDashboard() {
         queryClient.invalidateQueries({ queryKey: mentorshipQueryKey });
       },
     }),
+  );
+
+  const hasAnyProfile = useMemo(
+    () => hasMentorProfile || hasMenteeProfile,
+    [hasMentorProfile, hasMenteeProfile],
   );
 
   const renderYourMentor = () => {
@@ -488,7 +494,7 @@ export default function MentorshipDashboard() {
             items={pendingRequests}
             modalContent={renderMenteeRequestModal}
             rowOptions={(request) =>
-              renderMenteeRequestRowOptions(request.matchId)
+              renderMenteeRequestRowOptions(request.matchId as number)
             }
           />
         )}
@@ -503,6 +509,35 @@ export default function MentorshipDashboard() {
       </div>
     );
   };
+
+  if (!isLoading && !isError && !hasAnyProfile) {
+    return (
+      <TitleShell
+        title={
+          <div className="flex flex-col gap-2">
+            <h1 className="text-[1.75rem] font-semibold leading-tight text-secondary sm:text-[2.25rem]">
+              Mentorship Dashboard
+            </h1>
+          </div>
+        }
+        scrollableContent={false}
+      >
+        <Card className="flex flex-col items-center gap-4 p-8">
+          <div className="text-lg font-semibold text-secondary text-center">
+            You need a mentor or mentee profile before viewing the dashboard.
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link href="/mentorship/apply/mentee">
+              <Button variant="outline">Apply as Mentee</Button>
+            </Link>
+            <Link href="/mentorship/apply/mentor">
+              <Button variant="outline">Apply as Mentor</Button>
+            </Link>
+          </div>
+        </Card>
+      </TitleShell>
+    );
+  }
 
   return (
     <TitleShell

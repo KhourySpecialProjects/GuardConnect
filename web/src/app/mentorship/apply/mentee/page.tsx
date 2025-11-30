@@ -193,7 +193,7 @@ const rankOptions = [
 ];
 
 export default function MentorshipApplyMenteePage() {
-  const trpc = useTRPC();
+  const _trpc = useTRPC();
   const trpcClient = useTRPCClient();
   const router = useRouter();
   const { data: sessionData } = authClient.useSession();
@@ -214,9 +214,11 @@ export default function MentorshipApplyMenteePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Aligned with server `appRouter.mentorship.createMentee`
-  const createMentee = useMutation(
-    trpc.mentorship.createMentee.mutationOptions(),
-  );
+  const createMentee = useMutation({
+    mutationFn: async (
+      input: Parameters<typeof trpcClient.mentorship.createMentee.mutate>[0],
+    ) => trpcClient.mentorship.createMentee.mutate(input),
+  });
 
   const uploadResume = useCallback(
     async (file: File) => {
