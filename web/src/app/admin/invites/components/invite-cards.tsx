@@ -103,7 +103,10 @@ export function InviteCards({ inviteCodes, onRevoke }: InviteCardsProps) {
                   <Clock className="h-3 w-3" />
                   <span className="font-medium">Created</span>
                 </div>
-                <div className="text-foreground">
+                <div
+                  className="text-foreground"
+                  aria-label={`Created ${formatFullDateTime(inviteCode.createdAt)}`}
+                >
                   {formatRelativeTime(inviteCode.createdAt)}
                 </div>
                 <div className="text-[10px] text-muted-foreground/70 mt-0.5">
@@ -115,7 +118,10 @@ export function InviteCards({ inviteCodes, onRevoke }: InviteCardsProps) {
                   <Calendar className="h-3 w-3" />
                   <span className="font-medium">Expires</span>
                 </div>
-                <div className="text-foreground">
+                <div
+                  className="text-foreground"
+                  aria-label={`Expires ${formatFullDateTime(inviteCode.expiresAt)}`}
+                >
                   {formatRelativeTime(inviteCode.expiresAt)}
                 </div>
                 <div className="text-[10px] text-muted-foreground/70 mt-0.5">

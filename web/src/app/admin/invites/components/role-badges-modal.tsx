@@ -43,12 +43,14 @@ export function RoleBadgesModal({
           </Badge>
         ))}
         {remainingCount > 0 && (
-          <Badge
-            variant="outline"
-            className="text-xs cursor-pointer hover:bg-accent"
-            onClick={() => setIsOpen(true)}
-          >
-            +{remainingCount} more
+          <Badge variant="outline" className="text-xs cursor-pointer hover:bg-accent" asChild>
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              aria-label={`View all ${expandedRoles.length} permissions`}
+            >
+              +{remainingCount} more
+            </button>
           </Badge>
         )}
       </div>
