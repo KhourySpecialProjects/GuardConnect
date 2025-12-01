@@ -303,7 +303,7 @@ export const PostedCard = ({
             </div>
           </div>
 
-          <div className="flex w-full flex-col gap-2 pl-0 sm:pl-[calc(theme(spacing.14)+theme(spacing.1))]">
+          <div className="flex w-full flex-col gap-2 pl-0 sm:pl-[calc(theme(spacing.14)+theme(spacing.3))]">
             <div className="text-secondary text-sm font-normal break-words text-left">
               {content}
             </div>
