@@ -378,9 +378,9 @@ export class CommsService {
 
     // Check if user already has explicit channel roles (not via global admin)
     const userRoles = await policyEngine.getUserRoles(user_id);
-    const hasExplicitChannelRole = 
-      userRoles.has(roleKey) || 
-      userRoles.has(channelRole("post", channel_id)) || 
+    const hasExplicitChannelRole =
+      userRoles.has(roleKey) ||
+      userRoles.has(channelRole("post", channel_id)) ||
       userRoles.has(adminRoleKey);
 
     if (!hasExplicitChannelRole) {
