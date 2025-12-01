@@ -295,18 +295,23 @@ export const PostedCard = ({
             triggerClassName="scale-90 sm:scale-100"
           />
         </div>
-        <div className="flex items-start gap-4 px-2 pt-6 sm:px-4 sm:pt-4">
-          <div className="flex justify-start sm:pt-2">
-            <Avatar />
-          </div>
-          <div className="flex flex-col gap-2 w-full">
-            <div className="text-secondary text-base font-semibold sm:text-subheader">
-              {name}
-              <div className="text-secondary text-xs font-semibold italic sm:text-sm">
-                {rank}
+        <div className="flex flex-col gap-3 px-2 pt-6 sm:gap-4 sm:px-4 sm:pt-4">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="flex-shrink-0 self-start">
+              <Avatar />
+            </div>
+            <div className="min-w-0 self-center">
+              <div className="text-secondary text-base font-semibold leading-tight text-left sm:text-subheader">
+                <span className="block">{name}</span>
+                <div className="text-secondary text-xs font-semibold italic sm:text-sm">
+                  {rank}
+                </div>
               </div>
             </div>
-            <div className="text-secondary text-sm font-normal break-words">
+          </div>
+
+          <div className="flex w-full flex-col gap-2 pl-0 sm:pl-[calc(theme(spacing.14)+theme(spacing.1))]">
+            <div className="text-secondary text-sm font-normal break-words text-left">
               {content}
             </div>
 
@@ -340,7 +345,7 @@ export const PostedCard = ({
             ) : null}
 
             {reactions.length ? (
-              <div className="flex flex-wrap items-center gap-2 mt-2">
+              <div className="mt-1 flex flex-wrap items-center gap-2">
                 {reactions.map((reaction, index) => (
                   <Reaction
                     key={`${postId}-${reaction.emoji}-${index}`}
@@ -368,7 +373,7 @@ export const PostedCard = ({
                 />
               </div>
             ) : (
-              <div className="flex items-center gap-2 mt-2">
+              <div className="mt-1 flex items-center gap-2">
                 <AddReaction
                   disabled={!onReactionToggle}
                   onSelect={(emoji) =>
