@@ -5,8 +5,9 @@
  * Optionally includes channel-scoped roles when a channel ID is provided.
  *
  * Usage:
- *   npx dotenv -e .env -- tsx scripts/grant-all-roles.ts -f emails.txt
- *   npx dotenv -e .env -- tsx scripts/grant-all-roles.ts -c 13 alice@example.com bob@example.com
+ *   npx tsx --env-file=.env scripts/grant-all-roles.ts -f emails.txt
+ *   npx tsx --env-file=.env scripts/grant-all-roles.ts admin@admin.admin
+ *   npx tsx --env-file=.env scripts/grant-all-roles.ts -c 13 alice@example.com bob@example.com
  */
 
 import { spawn } from "node:child_process";
@@ -57,11 +58,8 @@ async function grantRole(email: string, role: string): Promise<boolean> {
     const child = spawn(
       "npx",
       [
-        "dotenv",
-        "-e",
-        ".env",
-        "--",
         "tsx",
+        "--env-file=.env",
         "scripts/grant-role.ts",
         email,
         role,

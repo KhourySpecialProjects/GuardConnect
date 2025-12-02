@@ -151,3 +151,16 @@ export const RANDOM_ALGORITHM = sql`
       AND m.status = 'active'
       AND m.user_id NOT IN (SELECT mentor_user_id FROM user_existing_matches)
 `;
+
+export const THE_ALGORITHM = sql`
+    SELECT 
+        m.*,
+        false AS has_requested,
+        2 AS priority,
+        false AS from_existing,
+        RANDOM() AS score
+    FROM mentors m
+    WHERE m.user_id != $1
+      AND m.status = 'active'
+      AND m.user_id NOT IN (SELECT mentor_user_id FROM user_existing_matches)
+`;
