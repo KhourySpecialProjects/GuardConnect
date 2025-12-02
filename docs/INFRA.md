@@ -2,7 +2,7 @@
   <table role="presentation" style="border:none;border-radius:18px;background:#0f172a;padding:1.5rem 2rem;box-shadow:0 10px 30px rgba(15,23,42,0.35);color:#f8fafc;width:100%;max-width:1200px;">
     <tr>
       <td style="vertical-align:middle;padding-right:1.5rem;">
-        <img src="../web/public/favicon_yellow.svg" alt="CommNG Favicon" width="72">
+        <img src="../web/public/icons/favicon_yellow.svg" alt="CommNG Favicon" width="72">
       </td>
       <td style="vertical-align:middle;">
         <h1 style="margin:0;font-size:2rem;color:#f8fafc;">🏗️ Infrastructure Guide</h1>
