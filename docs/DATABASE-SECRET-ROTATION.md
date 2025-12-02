@@ -1,8 +1,44 @@
+<div align="center" style="margin: 1.5rem auto;">
+  <table role="presentation" style="border:none;border-radius:18px;background:#0f172a;padding:1.5rem 2rem;box-shadow:0 10px 30px rgba(15,23,42,0.35);color:#f8fafc;width:100%;max-width:1200px;">
+    <tr>
+      <td style="vertical-align:middle;padding-right:1.5rem;">
+        <img src="../web/public/icons/favicon_yellow.svg" alt="CommNG Favicon" width="72">
+      </td>
+      <td style="vertical-align:middle;">
+        <h1 style="margin:0;font-size:2rem;color:#f8fafc;">🔄 Database Secret Rotation</h1>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p align="center">
+  <a href="#overview">Overview</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#system-flow">System Flow</a> •
+  <a href="#rotation-timeline">Timeline</a> •
+  <a href="#secret-rotation-event-sequence">Event Sequence</a> •
+  <a href="#environment-configuration">Environment</a> •
+  <a href="#iam-permissions-flow">IAM</a> •
+  <a href="#environment-variables">Env Vars</a> •
+  <a href="#infrastructure-setup">Infrastructure</a> •
+  <a href="#testing-secret-rotation">Testing</a> •
+  <a href="#architecture-comparison">Architecture</a> •
+  <a href="#monitoring">Monitoring</a> •
+  <a href="#troubleshooting">Troubleshooting</a> •
+  <a href="#local-development">Local Dev</a> •
+  <a href="#future-enhancements">Future</a> •
+  <a href="#related-files">Files</a>
+</p>
+
 # Database Secret Rotation
+
+<a id="overview"></a>
 
 ## Overview
 
 The application supports automatic database credential rotation using AWS Secrets Manager. When RDS rotates the master password, the application automatically detects the change and reconnects with new credentials without requiring a restart.
+
+<a id="how-it-works"></a>
 
 ## How It Works
 
@@ -30,7 +66,11 @@ When a password rotation is detected:
 
 This ensures zero downtime during secret rotation.
 
+<a id="system-flow"></a>
+
 ## System Flow
+
+<div align="center">
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -78,13 +118,19 @@ This ensures zero downtime during secret rotation.
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+</div>
+
+<a id="rotation-timeline"></a>
+
 ## Rotation Timeline
+
+<div align="center">
 
 ```
 Time (minutes)    0    1    2    3    4    5    6    7    8
                   │    │    │    │    │    │    │    │    │
 RDS Rotation      ●────────────────────────────────────────
-                  │                                        
+                  │
 Secrets Manager   │    New Password Available
                   │    ●───────────────────────────────────
                        │
@@ -103,39 +149,49 @@ Legend:
   ─ = Time passes
 ```
 
+</div>
+
+<a id="secret-rotation-event-sequence"></a>
+
 ## Secret Rotation Event Sequence
+
+<div align="center">
 
 ```
 1. AWS RDS initiates password rotation
    └─► Secrets Manager updated with new credentials
-   
+
 2. Application polls Secrets Manager (every 5 minutes)
    └─► Fetches current secret value
    └─► Compares password with cached value
-   
+
 3. Password change detected
    └─► Log: "Database password rotation detected"
    └─► Trigger refreshDatabaseConnection callback
-   
+
 4. Create new connection pool
    └─► Parse credentials from Secrets Manager
    └─► Initialize new pg.Pool with updated password
    └─► Test connection with pool.connect()
-   
+
 5. Swap connection pools
    └─► Update exported 'pool' reference
    └─► Update exported 'db' (drizzle) reference
    └─► Mark old pool for decommission
-   
+
 6. Grace period (30 seconds)
    └─► Old pool continues serving active queries
    └─► New pool serves all new queries
-   
+
 7. Close old pool
    └─► pool.end() on old pool
    └─► Log: "Old database pool closed"
    └─► Log: "Database connection successfully refreshed"
 ```
+
+</div>
+
+<a id="environment-configuration"></a>
 
 ## Environment Configuration
 
@@ -173,7 +229,11 @@ POSTGRES_SSL=false
 POSTGRES_POOL_SIZE=20
 ```
 
+<a id="iam-permissions-flow"></a>
+
 ## IAM Permissions Flow
+
+<div align="center">
 
 ```
 ECS Task Role
@@ -183,46 +243,16 @@ ECS Task Role
   │
   └─► secretsmanager:DescribeSecret
       └─► Allows checking rotation status
-      
+
 ECS Task Execution Role (separate)
   │
   └─► secretsmanager:GetSecretValue
       └─► Allows ECS to inject secrets as env vars at startup
 ```
 
-## Connection Pool Transition
+</div>
 
-```
-Before Rotation:
-┌──────────────┐
-│  Old Pool    │◄─── All Queries
-│ (password 1) │
-└──────────────┘
-
-During Rotation (detected):
-┌──────────────┐
-│  Old Pool    │◄─── Active Queries Only
-│ (password 1) │
-└──────────────┘
-       ▼
-    draining
-       ▼
-┌──────────────┐
-│  New Pool    │◄─── All New Queries
-│ (password 2) │
-└──────────────┘
-
-After Grace Period (30s):
-┌──────────────┐
-│  Old Pool    │  ✗ Closed
-│ (password 1) │
-└──────────────┘
-
-┌──────────────┐
-│  New Pool    │◄─── All Queries
-│ (password 2) │
-└──────────────┘
-```
+<a id="environment-variables"></a>
 
 ## Environment Variables
 
@@ -252,6 +282,8 @@ POSTGRES_PASSWORD=your-password
 POSTGRES_SSL=false
 POSTGRES_POOL_SIZE=20
 ```
+
+<a id="infrastructure-setup"></a>
 
 ## Infrastructure Setup
 
@@ -289,6 +321,8 @@ The ECS task role includes:
 }
 ```
 
+<a id="testing-secret-rotation"></a>
+
 ## Testing Secret Rotation
 
 ### Manual Rotation via AWS CLI
@@ -319,6 +353,8 @@ Database connection successfully refreshed with new credentials
 Old database pool closed
 ```
 
+<a id="architecture-comparison"></a>
+
 ## Architecture Comparison
 
 ### Before (ECS Restart Approach)
@@ -329,7 +365,7 @@ Old database pool closed
 4. All containers restart (downtime)
 5. New containers pick up new password
 
-**Drawbacks**: 
+**Drawbacks**:
 - Service downtime during restart
 - All connections dropped
 - Active requests fail
@@ -349,6 +385,8 @@ Old database pool closed
 - Graceful transition
 - Can still use Lambda as backup
 
+<a id="monitoring"></a>
+
 ## Monitoring
 
 ### CloudWatch Logs
@@ -366,6 +404,8 @@ Monitor the following log patterns:
 - Active database queries during rotation
 - Failed connection attempts
 - Time to detect rotation
+
+<a id="troubleshooting"></a>
 
 ## Troubleshooting
 
@@ -390,6 +430,8 @@ The polling mechanism is lightweight:
 - No impact unless rotation occurs
 - 30-second grace period minimizes query failures
 
+<a id="local-development"></a>
+
 ## Local Development
 
 For local development without AWS:
@@ -398,12 +440,16 @@ For local development without AWS:
 2. Use standard `POSTGRES_*` environment variables
 3. Application automatically falls back to environment-based config
 
+<a id="future-enhancements"></a>
+
 ## Future Enhancements
 
 1. **EventBridge Integration**: Instead of polling, subscribe to rotation events
 2. **Multiple Secrets**: Support for read replicas with different credentials
 3. **Connection Pool Metrics**: Expose metrics for monitoring pool health
 4. **Configurable Grace Period**: Make the 30-second timeout configurable
+
+<a id="related-files"></a>
 
 ## Related Files
 
