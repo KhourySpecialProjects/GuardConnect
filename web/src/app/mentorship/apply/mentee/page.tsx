@@ -339,8 +339,7 @@ export default function MentorshipApplyMenteePage() {
                 value: "career",
               },
               {
-                label:
-                  "Get support discovering educational opportunities",
+                label: "Get support discovering educational opportunities",
                 value: "education",
               },
               {

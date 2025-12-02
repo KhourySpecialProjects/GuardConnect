@@ -404,8 +404,7 @@ export default function MentorshipApplyMentorPage() {
                 value: "career",
               },
               {
-                label:
-                  "Help my mentee navigate educational opportunities",
+                label: "Help my mentee navigate educational opportunities",
                 value: "education",
               },
               {
