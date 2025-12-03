@@ -3,7 +3,6 @@ import { type CSSProperties, useId, useMemo, useState } from "react";
 import { locationOptions } from "@/app/login/create-account/MA-towns";
 import {
   airForceRanks,
-  allRankOptions,
   armyRanks,
 } from "@/app/login/create-account/rankOptions";
 import { type IconName, icons } from "@/components/icons";
