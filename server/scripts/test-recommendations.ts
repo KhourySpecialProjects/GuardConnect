@@ -1,4 +1,9 @@
 #!/usr/bin/env tsx
+
+/**
+ * npx tsx --env-file=.env scripts/test-recommendations.ts
+ */
+
 /* eslint-disable no-console */
 import { eq } from "drizzle-orm";
 import { auth } from "../src/auth.js";
