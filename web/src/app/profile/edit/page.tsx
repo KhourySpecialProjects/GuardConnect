@@ -453,6 +453,7 @@ export default function ProfileEditPage() {
       <div className="flex justify-center px-4 sm:px-0">
         <form
           onSubmit={handleSubmit}
+          noValidate
           className="w-full max-w-4xl space-y-6 rounded-3xl border border-neutral/60 bg-white/80 p-6 shadow-sm backdrop-blur-sm sm:p-7"
         >
           <div className="space-y-3">

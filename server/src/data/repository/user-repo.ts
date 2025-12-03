@@ -302,8 +302,6 @@ export class UserRepository {
         civilianCareer: userData.civilianCareer,
         emailVisibility: userData.emailVisibility,
         signalVisibility: userData.signalVisibility,
-        linkedin: userData.linkedin,
-        linkedinVisibility: userData.linkedinVisibility,
       },
     });
 
@@ -312,6 +310,13 @@ export class UserRepository {
       await db
         .update(users)
         .set({ interests: userData.interests.join(", ") })
+        .where(eq(users.id, res.user.id));
+    }
+
+    if (userData.linkedin !== undefined) {
+      await db
+        .update(users)
+        .set({ linkedin: userData.linkedin })
         .where(eq(users.id, res.user.id));
     }
 
