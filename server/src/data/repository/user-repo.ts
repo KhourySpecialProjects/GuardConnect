@@ -59,6 +59,8 @@ export class UserRepository {
         interests: users.interests,
         signalVisibility: users.signalVisibility,
         emailVisibility: users.emailVisibility,
+        linkedin: users.linkedin,
+        linkedinVisibility: users.linkedinVisibility,
       })
       .from(users)
       .where(eq(users.id, user_id));
@@ -94,6 +96,7 @@ export class UserRepository {
       location?: string | null;
       about?: string | null;
       interests?: string[] | null;
+      linkedin?: string | null;
     },
   ) {
     const updateFields: Partial<typeof users.$inferInsert> = {
@@ -132,6 +135,10 @@ export class UserRepository {
       updateFields.interests = profileData.interests;
     }
 
+    if (profileData.linkedin !== undefined) {
+      updateFields.linkedin = profileData.linkedin;
+    }
+
     const [updated] = await db
       .update(users)
       .set(updateFields)
@@ -152,6 +159,8 @@ export class UserRepository {
         interests: users.interests,
         signalVisibility: users.signalVisibility,
         emailVisibility: users.emailVisibility,
+        linkedin: users.linkedin,
+        linkedinVisibility: users.linkedinVisibility,
       });
 
     if (!updated) {
@@ -175,6 +184,8 @@ export class UserRepository {
       interests?: string[] | null;
       signalVisibility?: "private" | "public";
       emailVisibility?: "private" | "public";
+      linkedin?: string | null;
+      linkedinVisibility?: "private" | "public";
     },
   ) {
     const updateFields: Partial<typeof users.$inferInsert> = {};
@@ -201,6 +212,14 @@ export class UserRepository {
       updateFields.emailVisibility = updateData.emailVisibility;
     }
 
+    if (updateData.linkedin !== undefined) {
+      updateFields.linkedin = updateData.linkedin;
+    }
+
+    if (updateData.linkedinVisibility !== undefined) {
+      updateFields.linkedinVisibility = updateData.linkedinVisibility;
+    }
+
     if (Object.keys(updateFields).length === 0) {
       throw new Error("No values to set");
     }
@@ -225,6 +244,8 @@ export class UserRepository {
         interests: users.interests,
         signalVisibility: users.signalVisibility,
         emailVisibility: users.emailVisibility,
+        linkedin: users.linkedin,
+        linkedinVisibility: users.linkedinVisibility,
       });
 
     if (!updated) {
@@ -257,6 +278,8 @@ export class UserRepository {
         interests: users.interests,
         signalVisibility: users.signalVisibility,
         emailVisibility: users.emailVisibility,
+        linkedin: users.linkedin,
+        linkedinVisibility: users.linkedinVisibility,
       })
       .from(users)
       .where(inArray(users.id, user_ids));
@@ -287,6 +310,13 @@ export class UserRepository {
       await db
         .update(users)
         .set({ interests: userData.interests.join(", ") })
+        .where(eq(users.id, res.user.id));
+    }
+
+    if (userData.linkedin !== undefined) {
+      await db
+        .update(users)
+        .set({ linkedin: userData.linkedin })
         .where(eq(users.id, res.user.id));
     }
 

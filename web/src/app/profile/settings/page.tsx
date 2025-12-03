@@ -26,9 +26,17 @@ import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { useTRPCClient } from "@/lib/trpc";
 
+type VisibilitySettings = {
+  signalVisibility?: "private" | "public" | null;
+  emailVisibility?: "private" | "public" | null;
+  linkedinVisibility?: "private" | "public" | null;
+};
+
 export default function ProfileSettingsPage() {
   const router = useRouter();
   const trpc = useTRPCClient();
+  const { data: sessionData } = authClient.useSession();
+  const userId = sessionData?.user.id ?? null;
 
   const BackIcon = icons.arrowLeft;
 
@@ -54,6 +62,9 @@ export default function ProfileSettingsPage() {
   const [emailVisibility, setEmailVisibility] = useState<"private" | "public">(
     "private",
   );
+  const [linkedinVisibility, setLinkedinVisibility] = useState<
+    "private" | "public"
+  >("public");
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [pendingLeaveAction, setPendingLeaveAction] = useState<
@@ -63,6 +74,25 @@ export default function ProfileSettingsPage() {
   const currentPasswordFieldId = useId();
   const newPasswordFieldId = useId();
   const confirmPasswordFieldId = useId();
+
+  // Load current visibility settings from backend
+  useEffect(() => {
+    if (!userId) return;
+
+    void (async () => {
+      try {
+        const user = (await trpc.user.getUserData.query({
+          user_id: userId,
+        })) as VisibilitySettings;
+
+        setSignalVisibility(user.signalVisibility ?? "private");
+        setEmailVisibility(user.emailVisibility ?? "private");
+        setLinkedinVisibility(user.linkedinVisibility ?? "public");
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, [trpc, userId]);
 
   const validatePassword = (password: string): string[] => {
     const errors: string[] = [];
@@ -193,12 +223,14 @@ export default function ProfileSettingsPage() {
   const saveVisibility = async (
     nextSignal: "private" | "public",
     nextEmail: "private" | "public",
+    nextLinkedin: "private" | "public",
   ) => {
     try {
       setIsSavingVisibility(true);
       await trpc.user.updateUserVisibility.mutate({
         signal_visibility: nextSignal,
         email_visibility: nextEmail,
+        linkedin_visibility: nextLinkedin,
       });
       toast.success("Visibility updated.");
     } catch (error) {
@@ -398,7 +430,11 @@ export default function ProfileSettingsPage() {
                 onValueChange={(value) => {
                   const nextSignal = value as "private" | "public";
                   setSignalVisibility(nextSignal);
-                  void saveVisibility(nextSignal, emailVisibility);
+                  void saveVisibility(
+                    nextSignal,
+                    emailVisibility,
+                    linkedinVisibility,
+                  );
                 }}
                 disabled={isSavingVisibility}
               >
@@ -422,12 +458,44 @@ export default function ProfileSettingsPage() {
                 onValueChange={(value) => {
                   const nextEmail = value as "private" | "public";
                   setEmailVisibility(nextEmail);
-                  void saveVisibility(signalVisibility, nextEmail);
+                  void saveVisibility(
+                    signalVisibility,
+                    nextEmail,
+                    linkedinVisibility,
+                  );
                 }}
                 disabled={isSavingVisibility}
               >
                 <SelectTrigger
                   id="email-visibility"
+                  className="w-full sm:min-w-64"
+                >
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Visible to only me</SelectItem>
+                  <SelectItem value="public">Visible to anyone</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-secondary">LinkedIn</p>
+              <Select
+                value={linkedinVisibility}
+                onValueChange={(value) => {
+                  const nextLinkedin = value as "private" | "public";
+                  setLinkedinVisibility(nextLinkedin);
+                  void saveVisibility(
+                    signalVisibility,
+                    emailVisibility,
+                    nextLinkedin,
+                  );
+                }}
+                disabled={isSavingVisibility}
+              >
+                <SelectTrigger
+                  id="linkedin-visibility"
                   className="w-full sm:min-w-64"
                 >
                   <SelectValue placeholder="Select visibility" />

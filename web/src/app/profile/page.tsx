@@ -13,6 +13,10 @@ type UserProfileExtras = {
   location?: string | null;
   about?: string | null;
   interests?: string[] | null;
+  linkedin?: string | null;
+  signalVisibility?: "private" | "public" | null;
+  emailVisibility?: "private" | "public" | null;
+  linkedinVisibility?: "private" | "public" | null;
 };
 
 export default function ProfilePage() {
@@ -110,6 +114,14 @@ export default function ProfilePage() {
 
   const location = profile.location ?? "";
   const about = profile.about ?? "";
+  const linkedin = profile.linkedin ?? "";
+
+  const signalVisibility: "private" | "public" =
+    profile.signalVisibility ?? "private";
+  const emailVisibility: "private" | "public" =
+    profile.emailVisibility ?? "private";
+  const linkedinVisibility: "private" | "public" =
+    profile.linkedinVisibility ?? "public";
 
   const interests: string[] = Array.isArray(profile.interests)
     ? (profile.interests ?? [])
@@ -148,21 +160,32 @@ export default function ProfilePage() {
 
   const contactActions: ProfileCardProps["contactActions"] = [];
 
-  if (signalNumber.trim()) {
+  if (signalNumber.trim() && signalVisibility === "public") {
     contactActions.push({
       label: "Signal",
       ariaLabel: "Copy Signal number",
+      iconName: "message",
       onClick: () => {
         void handleSignalClick();
       },
     });
   }
 
-  if (email.trim()) {
+  if (email.trim() && emailVisibility === "public") {
     contactActions.push({
       label: "Email",
       ariaLabel: "Send an email",
+      iconName: "message",
       href: `mailto:${email}`,
+    });
+  }
+
+  if (linkedin.trim() && linkedinVisibility === "public") {
+    contactActions.push({
+      label: "LinkedIn",
+      ariaLabel: "Open LinkedIn profile",
+      iconName: "externalLink",
+      href: linkedin,
     });
   }
 

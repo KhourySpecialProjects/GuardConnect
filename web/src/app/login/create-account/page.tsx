@@ -157,6 +157,8 @@ function CreateAccountPage() {
           signalVisibility,
 
           interests: selectedInterests,
+
+          linkedinVisibility: "public",
         },
       });
 

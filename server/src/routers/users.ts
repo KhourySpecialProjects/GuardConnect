@@ -48,7 +48,7 @@ const createUserProfile = protectedProcedure
   .input(createUserProfileInputSchema)
   .meta({
     description:
-      "Create user profile data (name, phone, rank, department, branch, profile picture). Users can only create their own profile.",
+      "Create user profile data (name, phone, rank, department, branch, profile picture, LinkedIn). Users can only create their own profile.",
   })
   .mutation(async ({ ctx, input }) => {
     return withErrorHandling("createUserProfile", async () => {
@@ -61,7 +61,7 @@ const updateUserProfile = protectedProcedure
   .input(updateUserProfileInputSchema)
   .meta({
     description:
-      "Update user profile data (name, phone, rank, department, branch, profile picture)",
+      "Update user profile data (name, phone, rank, department, branch, profile picture, LinkedIn)",
   })
   .mutation(async ({ ctx, input }) => {
     return withErrorHandling("updateUserProfile", async () => {
@@ -74,7 +74,7 @@ const updateUserVisibility = protectedProcedure
   .input(updateUserVisibilityInputSchema)
   .meta({
     description:
-      "Update user profile visibility settings (signal/email visibility). Users can only update their own settings.",
+      "Update user profile visibility settings (signal/email/linkedin visibility). Users can only update their own settings.",
   })
   .mutation(async ({ ctx, input }) => {
     return withErrorHandling("updateUserVisibility", async () => {
