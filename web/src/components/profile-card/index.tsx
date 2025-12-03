@@ -1,9 +1,9 @@
+import { Linkedin, Mail, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { type CSSProperties, useId, useMemo, useState } from "react";
 import { locationOptions } from "@/app/login/create-account/MA-towns";
 import {
   airForceRanks,
-  allRankOptions,
   armyRanks,
 } from "@/app/login/create-account/rankOptions";
 import { type IconName, icons } from "@/components/icons";
@@ -69,14 +69,10 @@ const branchThemes: Record<BranchKey, BranchTheme> = {
 };
 
 function resolveBranchKey(branch?: string): BranchKey {
-  if (!branch) {
-    return "default";
-  }
+  if (!branch) return "default";
 
   const normalized = branch.toLowerCase().replace(/\s+/g, "");
-  if (normalized.includes("army")) {
-    return "army";
-  }
+  if (normalized.includes("army")) return "army";
   if (
     normalized.includes("airforce") ||
     normalized.includes("airnationalguard") ||
@@ -139,6 +135,7 @@ function ProfileCardActionsDropdown({
           <MenuIcon className="h-4 w-4" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent
         align="end"
         className="w-52 rounded-xl border border-border bg-card text-secondary shadow-xl backdrop-blur"
@@ -324,17 +321,32 @@ export default function ProfileCard({
               {contactActions.length > 0 ? (
                 <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
                   {contactActions.map((action, index) => {
-                    const Icon = action.iconName
-                      ? icons[action.iconName]
-                      : null;
+                    let IconComponent: React.ComponentType<
+                      React.SVGProps<SVGSVGElement>
+                    > | null = null;
+
+                    if (action.label === "LinkedIn") {
+                      IconComponent = Linkedin;
+                    } else if (action.label === "Signal") {
+                      IconComponent = MessageCircle;
+                    } else if (action.label === "Email") {
+                      IconComponent = Mail;
+                    } else if (action.iconName) {
+                      IconComponent = icons[action.iconName];
+                    }
+
                     const content = (
                       <>
-                        {Icon ? (
-                          <Icon className="h-4 w-4" aria-hidden="true" />
+                        {IconComponent ? (
+                          <IconComponent
+                            className="h-4 w-4 mr-1"
+                            aria-hidden="true"
+                          />
                         ) : null}
                         <span>{action.label}</span>
                       </>
                     );
+
                     const variant = action.variant ?? "outline";
                     const ariaLabel = action.ariaLabel ?? action.label;
 
@@ -399,6 +411,7 @@ export default function ProfileCard({
                     />
                   </button>
                 </CollapsibleTrigger>
+
                 <CollapsibleContent
                   id={aboutSectionId}
                   className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up"

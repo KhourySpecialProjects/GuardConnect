@@ -130,6 +130,7 @@ export const users = pgTable(
     about: text("about"),
     interests: jsonb("interests"), // comma separated string
     civilianCareer: text("civilian_career"),
+    linkedin: text("linkedin"),
 
     signalVisibility: visibilityEnum("signal_visibility")
       .notNull()
@@ -137,6 +138,9 @@ export const users = pgTable(
     emailVisibility: visibilityEnum("email_visibility")
       .notNull()
       .default("private"),
+    linkedinVisibility: visibilityEnum("linkedin_visibility")
+      .notNull()
+      .default("public"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

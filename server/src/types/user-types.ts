@@ -19,6 +19,14 @@ export const userSchema = z.object({
   about: z.string().nullable().optional(),
   interests: z.array(z.string()).nullable().optional(),
   image: z.string().uuid().nullable().optional(),
+  linkedin: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("https://www.linkedin.com/in/"), {
+      message: "LinkedIn URL must start with https://www.linkedin.com/in/",
+    })
+    .nullable()
+    .optional(),
 });
 
 export type UserSchema = z.infer<typeof userSchema>;
@@ -49,6 +57,14 @@ export const createUserProfileInputSchema = z.object({
   location: z.string().nullable().optional(),
   about: z.string().nullable().optional(),
   interests: z.array(z.string()).nullable().optional(),
+  linkedin: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("https://www.linkedin.com/in/"), {
+      message: "LinkedIn URL must start with https://www.linkedin.com/in/",
+    })
+    .nullable()
+    .optional(),
 });
 
 export type CreateUserProfileInput = z.infer<
@@ -69,6 +85,14 @@ export const updateUserProfileInputSchema = z.object({
   location: z.string().nullable().optional(),
   about: z.string().nullable().optional(),
   interests: z.array(z.string()).nullable().optional(),
+  linkedin: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("https://www.linkedin.com/in/"), {
+      message: "LinkedIn URL must start with https://www.linkedin.com/in/",
+    })
+    .nullable()
+    .optional(),
 });
 
 export type UpdateUserProfileInput = z.infer<
@@ -94,6 +118,7 @@ export type RoleSummary = {
 export const updateUserVisibilityInputSchema = z.object({
   signal_visibility: z.enum(["private", "public"]),
   email_visibility: z.enum(["private", "public"]),
+  linkedin_visibility: z.enum(["private", "public"]),
 });
 
 export type UpdateUserVisibilityInput = z.infer<
@@ -120,7 +145,15 @@ export const createUserInputSchema = z.object({
     civilianCareer: z.string().optional(),
     emailVisibility: z.enum(["private", "public"]),
     signalVisibility: z.enum(["private", "public"]),
+    linkedinVisibility: z.enum(["private", "public"]),
     interests: z.array(z.string()).optional(),
+    linkedin: z
+      .string()
+      .url()
+      .refine((url) => url.startsWith("https://www.linkedin.com/in/"), {
+        message: "LinkedIn URL must start with https://www.linkedin.com/in/",
+      })
+      .optional(),
   }),
   inviteCode: z.string(),
 });

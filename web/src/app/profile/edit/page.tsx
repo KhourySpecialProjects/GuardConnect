@@ -42,6 +42,7 @@ type UserProfileExtras = {
   location?: string | null;
   about?: string | null;
   interests?: string[] | null;
+  linkedin?: string | null;
 };
 
 type FormStateSnapshot = {
@@ -55,6 +56,7 @@ type FormStateSnapshot = {
   interestsRaw: string;
   about: string;
   avatarFileId: string | null;
+  linkedin: string;
 };
 
 // ProfileEditPage allows user to update their profile information and communicates with backend
@@ -85,6 +87,7 @@ export default function ProfileEditPage() {
   const [signalNumber, setSignalNumber] = useState("");
   const [interestsRaw, setInterestsRaw] = useState("");
   const [about, setAbout] = useState("");
+  const [linkedin, setLinkedin] = useState("");
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -131,6 +134,7 @@ export default function ProfileEditPage() {
     const nextInterestsRaw = Array.isArray(profile.interests)
       ? profile.interests.join(", ")
       : "";
+    const nextLinkedin = profile.linkedin ?? "";
 
     setName(nextName);
     setEmail(nextEmail);
@@ -142,6 +146,7 @@ export default function ProfileEditPage() {
     setLocation(nextLocation);
     setAbout(nextAbout);
     setInterestsRaw(nextInterestsRaw);
+    setLinkedin(nextLinkedin);
     setPhotoFile(null);
 
     setInitialState({
@@ -155,6 +160,7 @@ export default function ProfileEditPage() {
       interestsRaw: nextInterestsRaw,
       about: nextAbout,
       avatarFileId: nextAvatarId,
+      linkedin: nextLinkedin,
     });
   }, [userData]);
 
@@ -181,6 +187,7 @@ export default function ProfileEditPage() {
       initialState.interestsRaw !== interestsRaw ||
       initialState.about !== about ||
       initialState.avatarFileId !== avatarFileId ||
+      initialState.linkedin !== linkedin ||
       photoFile !== null
     );
   }, [
@@ -195,6 +202,7 @@ export default function ProfileEditPage() {
     interestsRaw,
     about,
     avatarFileId,
+    linkedin,
     photoFile,
   ]);
 
@@ -305,6 +313,20 @@ export default function ProfileEditPage() {
       return;
     }
 
+    const trimmedLinkedin = linkedin.trim();
+
+    if (
+      trimmedLinkedin &&
+      !/^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9-_]+\/?$/i.test(
+        trimmedLinkedin,
+      )
+    ) {
+      toast.error(
+        "Please enter a valid LinkedIn URL that starts with https://www.linkedin.com/in/your-username",
+      );
+      return;
+    }
+
     updateUserProfile.mutate(
       {
         name,
@@ -316,6 +338,7 @@ export default function ProfileEditPage() {
         location: location || null,
         about: about || null,
         interests: interests.length ? interests : null,
+        linkedin: trimmedLinkedin || null,
       },
       {
         async onSuccess() {
@@ -334,6 +357,7 @@ export default function ProfileEditPage() {
             interestsRaw,
             about,
             avatarFileId,
+            linkedin: trimmedLinkedin,
           });
           setPhotoFile(null);
 
@@ -581,6 +605,24 @@ export default function ProfileEditPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 disabled={isSaving}
+                className="block w-full rounded-xl border border-neutral/60 bg-white px-3 py-2 text-body text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="linkedin"
+                className="text-subheader font-semibold text-secondary"
+              >
+                LinkedIn
+              </label>
+              <input
+                id="linkedin"
+                type="url"
+                value={linkedin}
+                onChange={(event) => setLinkedin(event.target.value)}
+                disabled={isSaving}
+                placeholder="https://www.linkedin.com/in/your-username"
                 className="block w-full rounded-xl border border-neutral/60 bg-white px-3 py-2 text-body text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>

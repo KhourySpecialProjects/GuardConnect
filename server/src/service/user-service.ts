@@ -68,6 +68,7 @@ export class UserService {
       location?: string | null;
       about?: string | null;
       interests?: string[] | null;
+      linkedin?: string | null;
     },
   ) {
     // Validate file exists if imageFileId is provided
@@ -94,6 +95,7 @@ export class UserService {
       location: profileData.location ?? null,
       about: profileData.about ?? null,
       interests: profileData.interests ?? null,
+      linkedin: profileData.linkedin ?? null,
     });
 
     // Refresh cache for this user (best effort - don't fail if Redis is unavailable)
@@ -124,6 +126,7 @@ export class UserService {
       location?: string | null;
       about?: string | null;
       interests?: string[] | null;
+      linkedin?: string | null;
     },
   ) {
     const updated = await this.usersRepo.updateUserProfile(userId, updateData);
@@ -150,6 +153,7 @@ export class UserService {
     const updated = await this.usersRepo.updateUserProfile(userId, {
       signalVisibility: input.signal_visibility,
       emailVisibility: input.email_visibility,
+      linkedinVisibility: input.linkedin_visibility,
     });
 
     const cacheKey = `user:${userId}:data`;
