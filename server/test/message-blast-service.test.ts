@@ -64,6 +64,8 @@ describe("MessageBlastService.getActiveBlastsForUser", () => {
           signalVisibility: "private",
           emailVisibility: "private",
           location: null,
+          linkedin: null,
+          linkedinVisibility: "private",
         } satisfies Awaited<ReturnType<typeof mockUserRepo.getUserData>>;
       },
     };

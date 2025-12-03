@@ -175,7 +175,7 @@ export default function ProfilePage() {
     contactActions.push({
       label: "Email",
       ariaLabel: "Send an email",
-      iconName: "mail",
+      iconName: "message",
       href: `mailto:${email}`,
     });
   }
@@ -184,7 +184,7 @@ export default function ProfilePage() {
     contactActions.push({
       label: "LinkedIn",
       ariaLabel: "Open LinkedIn profile",
-      iconName: "linkedin",
+      iconName: "externalLink",
       href: linkedin,
     });
   }
