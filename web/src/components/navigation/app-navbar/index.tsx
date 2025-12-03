@@ -77,10 +77,8 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
   const isProfileActive = pathname.startsWith("/profile");
   const isHelpActive = pathname.startsWith("/help-page");
   const isAdminActive = pathname.startsWith("/admin");
-  const isBroadcastsActive = pathname.startsWith("/communications/broadcasts");
-  const isCreateBroadcastActive = pathname.startsWith(
-    "/communications/broadcasts/new",
-  );
+  const isBroadcastsActive = pathname.startsWith("/broadcasts");
+  const isCreateBroadcastActive = pathname.startsWith("/broadcasts/new");
 
   const circleButtonClasses =
     "group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200";
@@ -126,7 +124,7 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
         <div className="mt-auto flex w-full flex-col items-center gap-3 overflow-y-auto overflow-x-hidden overscroll-contain pb-6 md:pb-10">
           <Protected requiredRole="broadcast:create">
             <Link
-              href="/communications/broadcasts/new"
+              href="/broadcasts/new"
               aria-label="Create broadcast"
               aria-current={isCreateBroadcastActive ? "page" : undefined}
               className={cn(
@@ -145,7 +143,7 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
           </Protected>
 
           <Link
-            href="/communications/broadcasts"
+            href="/broadcasts"
             aria-label="Active broadcasts"
             aria-current={isBroadcastsActive ? "page" : undefined}
             className={cn(
