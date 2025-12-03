@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 // =============================================================================
 // These weights control the relative importance of each scoring component.
 // They should sum to 1.0 for the final score to be normalized.
+// NOTE: These are inlined as literals in the SQL to avoid Postgres type inference issues.
 
 /** Weight for vector similarity (semantic matching) */
 const VECTOR_SIMILARITY_WEIGHT = 0.5;
@@ -124,7 +125,7 @@ scored_mentors AS (
         2 AS priority,
         false AS from_existing,
         
-        -- Vector similarity component (weight: ${VECTOR_SIMILARITY_WEIGHT})
+        -- Vector similarity component (weight: 0.5)
         -- Average of profile and why_interested similarities
         COALESCE(
             (
@@ -136,9 +137,9 @@ scored_mentors AS (
                 COALESCE(1 - (mentor_emb.profile_embedding <=> md.mentee_why_emb), 0) * 0.2
             ),
             0.3  -- Default score if no embeddings
-        ) * ${VECTOR_SIMILARITY_WEIGHT} AS vector_score,
+        ) * ${sql.raw(String(VECTOR_SIMILARITY_WEIGHT))} AS vector_score,
         
-        -- Meeting format compatibility (weight: ${MEETING_FORMAT_WEIGHT})
+        -- Meeting format compatibility (weight: 0.15)
         -- Full match: 1.0, partial match: 0.6, no preference involved: 0.8, no match: 0.3
         CASE
             -- Exact match
@@ -150,9 +151,9 @@ scored_mentors AS (
             WHEN m.preferred_meeting_format = 'hybrid' OR md.mentee_meeting_format = 'hybrid' THEN 0.7
             -- No match but still consider (diffusion)
             ELSE 0.3
-        END * ${MEETING_FORMAT_WEIGHT} AS format_score,
+        END * ${sql.raw(String(MEETING_FORMAT_WEIGHT))} AS format_score,
         
-        -- Hours commitment compatibility (weight: ${HOURS_COMMITMENT_WEIGHT})
+        -- Hours commitment compatibility (weight: 0.15)
         -- Perfect match or close: high score, with gradual falloff
         CASE
             -- Both null - neutral
@@ -167,9 +168,9 @@ scored_mentors AS (
             WHEN m.hours_per_month_commitment > md.mentee_hours THEN 0.6
             -- Mentor offers less - gradual penalty based on gap
             ELSE GREATEST(0.2, 1.0 - (md.mentee_hours - m.hours_per_month_commitment)::float / 10.0)
-        END * ${HOURS_COMMITMENT_WEIGHT} AS hours_score,
+        END * ${sql.raw(String(HOURS_COMMITMENT_WEIGHT))} AS hours_score,
         
-        -- Mentor load balancing (weight: ${LOAD_BALANCING_WEIGHT})
+        -- Mentor load balancing (weight: 0.2)
         -- Boost mentors with fewer active mentees to distribute load
         CASE
             WHEN COALESCE(mmc.active_mentee_count, 0) = 0 THEN 1.0      -- No mentees: full boost
@@ -177,7 +178,7 @@ scored_mentors AS (
             WHEN COALESCE(mmc.active_mentee_count, 0) = 2 THEN 0.7      -- 2 mentees: decent
             WHEN COALESCE(mmc.active_mentee_count, 0) = 3 THEN 0.5      -- 3 mentees: moderate
             ELSE GREATEST(0.2, 1.0 - COALESCE(mmc.active_mentee_count, 0)::float / 10.0)  -- Gradual falloff
-        END * ${LOAD_BALANCING_WEIGHT} AS load_score
+        END * ${sql.raw(String(LOAD_BALANCING_WEIGHT))} AS load_score
         
     FROM mentors m
     CROSS JOIN mentee_data md
