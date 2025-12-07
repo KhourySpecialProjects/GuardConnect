@@ -175,6 +175,11 @@ export function getImpliedRoles(roleKey: RoleKey): RoleKey[] {
     const allRoles: RoleKey[] = [];
     for (const [_namespace, actions] of Object.entries(ROLE_HIERARCHIES)) {
       const namespace = _namespace as keyof typeof ROLE_HIERARCHIES;
+      if (namespace === "channel") {
+        // we don't want to include channel perms here b/c they rely on
+        // specific channel ids
+        continue;
+      }
       for (const action of actions) {
         allRoles.push(buildRoleKey(namespace, null, action));
       }

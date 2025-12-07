@@ -12,8 +12,10 @@ export const typeaheadSchema = z.object({
   searchType: z.enum(["substring", "prefix"]).default("prefix"),
 });
 
-export type SearchResult = {
-  id: string;
-  label: string;
-  kind: "user" | "channel" | "university";
-};
+export const searchResultSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  kind: z.enum(["user", "channel", "university"]),
+});
+
+export type SearchResult = z.infer<typeof searchResultSchema>;

@@ -1,3 +1,4 @@
+import z from "zod";
 import notificationService from "../service/notification-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
@@ -8,7 +9,15 @@ import {
 
 const subscribe = protectedProcedure
   .input(subscribeInputSchema)
-  .meta({ description: "Subscribe current user to web-push notifications" })
+  .output(z.object({ success: z.boolean() }))
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/notifications.subscribe",
+      summary: "Subscribe current user to web-push notifications",
+      tags: ["Notifications"],
+    },
+  })
   .mutation(async ({ input, ctx }) => {
     return withErrorHandling("subscribeToNotifications", async () => {
       const userId = ctx.auth.user.id;
@@ -19,7 +28,15 @@ const subscribe = protectedProcedure
   });
 
 const testNotifications = protectedProcedure
-  .meta({ description: "Test by sending a sample notification" })
+  .output(z.object({ success: z.boolean() }))
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/notifications.testNotifications",
+      summary: "Test by sending a sample notification",
+      tags: ["Notifications"],
+    },
+  })
   .mutation(async () => {
     return withErrorHandling("testNotification", async () => {
       const payload: NotificationPayload = {

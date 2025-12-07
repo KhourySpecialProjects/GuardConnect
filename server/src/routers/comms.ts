@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { CommsRepository } from "../data/repository/comms-repo.js";
 import { channelRole } from "../data/roles.js";
 import { fileService } from "../routers/files.js";
@@ -6,20 +7,34 @@ import { policyEngine } from "../service/policy-engine.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { ensureHasRole, protectedProcedure, router } from "../trpc/trpc.js";
 import {
+  createChannelOutputSchema,
   createChannelSchema,
+  createSubscriptionOutputSchema,
   createSubscriptionSchema,
+  deleteChannelOutputSchema,
   deleteChannelSchema,
+  deletePostOutputSchema,
   deletePostSchema,
+  deleteSubscriptionOutputSchema,
   deleteSubscriptionSchema,
+  editPostOutputSchema,
   editPostSchema,
+  getAllChannelsOutputSchema,
+  getChannelMembersOutputSchema,
   getChannelMembersSchema,
+  getChannelMessagesOutputSchema,
   getChannelMessagesSchema,
+  getUserSubscriptionsOutputSchema,
   joinChannelSchema,
   leaveChannelSchema,
+  postPostOutputSchema,
   postPostSchema,
   removeMemberSchema,
+  toggleReactionOutputSchema,
   toggleReactionSchema,
+  updateChannelOutputSchema,
   updateChannelSchema,
+  updateSubscriptionOutputSchema,
   updateSubscriptionSchema,
 } from "../types/comms-types.js";
 import { ForbiddenError, InternalServerError } from "../types/errors.js";
@@ -34,6 +49,15 @@ const commsService = new CommsService(commsRepo);
  */
 const createPost = protectedProcedure
   .input(postPostSchema)
+  .output(postPostOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.createPost",
+      summary: "Create a new message in a channel",
+      tags: ["Comms"],
+    },
+  })
   .mutation(async ({ ctx, input }) => {
     ensureHasRole(ctx, [channelRole("post", input.channelId)]);
 
@@ -54,15 +78,25 @@ const createPost = protectedProcedure
  * getAllChannels
  * Retrieves a list of all channels. (no matter if public or private?)
  */
-const getAllChannels = protectedProcedure.query(({ ctx }) =>
-  withErrorHandling("getAllChannels", async () => {
-    const userId = ctx.auth.user.id;
+const getAllChannels = protectedProcedure
+  .output(getAllChannelsOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.getAllChannels",
+      summary: "Gets all channels accessible to current user",
+      tags: ["Comms"],
+    },
+  })
+  .query(({ ctx }) =>
+    withErrorHandling("getAllChannels", async () => {
+      const userId = ctx.auth.user.id;
 
-    log.debug({ userId }, "Getting accessible channels");
+      log.debug({ userId }, "Getting accessible channels");
 
-    return await commsRepo.getAccessibleChannels(userId);
-  }),
-);
+      return await commsRepo.getAccessibleChannels(userId);
+    }),
+  );
 
 /**
  * getChannelMessages
@@ -70,6 +104,16 @@ const getAllChannels = protectedProcedure.query(({ ctx }) =>
  */
 const getChannelMessages = protectedProcedure
   .input(getChannelMessagesSchema)
+  .output(getChannelMessagesOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.getChannelMessages",
+      summary:
+        "Gets messages from a specific channel with reaction information from other users",
+      tags: ["Comms"],
+    },
+  })
   .query(async ({ ctx, input }) => {
     const userId = ctx.auth.user.id;
 
@@ -88,6 +132,15 @@ const getChannelMessages = protectedProcedure
 
 const toggleMessageReaction = protectedProcedure
   .input(toggleReactionSchema)
+  .output(toggleReactionOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.toggleMessageReaction",
+      summary: "Toggles a reaction on a message from the current user",
+      tags: ["Comms"],
+    },
+  })
   .mutation(async ({ ctx, input }) => {
     ensureHasRole(ctx, [channelRole("read", input.channelId)]);
     const userId = ctx.auth.user.id;
@@ -119,6 +172,16 @@ const toggleMessageReaction = protectedProcedure
  */
 const editPost = protectedProcedure
   .input(editPostSchema)
+  .output(editPostOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.editPost",
+      summary:
+        "Edits a previously posted message if the current user is the author",
+      tags: ["Comms"],
+    },
+  })
   .mutation(async ({ ctx, input }) => {
     ensureHasRole(ctx, [channelRole("post", input.channelId)]);
     const userId = ctx.auth.user.id;
@@ -140,6 +203,16 @@ const editPost = protectedProcedure
  */
 const deletePost = protectedProcedure
   .input(deletePostSchema)
+  .output(deletePostOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.deletePost",
+      summary:
+        "Deletes a previously posted message if the current user is the author or an admin",
+      tags: ["Comms"],
+    },
+  })
   .mutation(async ({ ctx, input }) => {
     const userId = ctx.auth.user.id;
 
@@ -156,6 +229,15 @@ const deletePost = protectedProcedure
 // Channel creation endpoint
 const createChannel = protectedProcedure
   .input(createChannelSchema)
+  .output(createChannelOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.createChannel",
+      summary: "Creates a new channel with the current user as the admin",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("createChannel", async () => {
       const userId = ctx.auth.user.id;
@@ -195,6 +277,15 @@ const createChannel = protectedProcedure
 // update channel settings
 const updateChannelSettings = protectedProcedure
   .input(updateChannelSchema)
+  .output(updateChannelOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.updateChannelSettings",
+      summary: "Updates the settings of a channel",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("updateChannel", async () => {
       ensureHasRole(ctx, [channelRole("admin", input.channelId)]);
@@ -210,6 +301,15 @@ const updateChannelSettings = protectedProcedure
 // Channel members endpoint
 const getChannelMembers = protectedProcedure
   .input(getChannelMembersSchema)
+  .output(getChannelMembersOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.getChannelMembers",
+      summary: "Gets the members of a channel with their roles",
+      tags: ["Comms"],
+    },
+  })
   .query(({ input }) =>
     withErrorHandling("getChannelMembers", async () => {
       log.debug({ channelId: input.channelId }, "getChannelMembers");
@@ -220,6 +320,16 @@ const getChannelMembers = protectedProcedure
 // Channel subscription endpoints
 const createSubscription = protectedProcedure
   .input(createSubscriptionSchema)
+  .output(createSubscriptionOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.createSubscription",
+      summary:
+        "Creates a new subscription for the current user for the given channel",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("createSubscription", async () => {
       const userId = ctx.auth.user.id;
@@ -239,6 +349,16 @@ const createSubscription = protectedProcedure
 
 const deleteSubscription = protectedProcedure
   .input(deleteSubscriptionSchema)
+  .output(deleteSubscriptionOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.deleteSubscription",
+      summary:
+        "Deletes a subscription for the current user for the given channel if they are the subscriber",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("deleteSubscription", async () => {
       const userId = ctx.auth.user.id;
@@ -252,18 +372,37 @@ const deleteSubscription = protectedProcedure
     }),
   );
 
-const getUserSubscriptions = protectedProcedure.query(({ ctx }) =>
-  withErrorHandling("getUserSubscriptions", async () => {
-    const userId = ctx.auth.user.id;
+const getUserSubscriptions = protectedProcedure
+  .output(getUserSubscriptionsOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.getUserSubscriptions",
+      summary: "Gets the subscriptions of the current user",
+      tags: ["Comms"],
+    },
+  })
+  .query(({ ctx }) =>
+    withErrorHandling("getUserSubscriptions", async () => {
+      const userId = ctx.auth.user.id;
 
-    log.debug({ userId }, "Getting user subscriptions");
+      log.debug({ userId }, "Getting user subscriptions");
 
-    return await commsRepo.getUserSubscriptions(userId);
-  }),
-);
+      return await commsRepo.getUserSubscriptions(userId);
+    }),
+  );
 
 const updateSubscriptionSettings = protectedProcedure
   .input(updateSubscriptionSchema)
+  .output(updateSubscriptionOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.updateSubscriptionSettings",
+      summary: "Updates the settings of a subscription for the current user",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("updateSubscription", async () => {
       return await commsService.updateSubscriptionSettings(
@@ -277,6 +416,15 @@ const updateSubscriptionSettings = protectedProcedure
 // Delete channel endpoint (admin only)
 const deleteChannel = protectedProcedure
   .input(deleteChannelSchema)
+  .output(deleteChannelOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.deleteChannel",
+      summary: "Deletes a channel if the current user is the admin",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("deleteChannel", async () => {
       const userId = ctx.auth.user.id;
@@ -290,6 +438,15 @@ const deleteChannel = protectedProcedure
 // Leave channel endpoint (non-admin only)
 const leaveChannel = protectedProcedure
   .input(leaveChannelSchema)
+  .output(z.object({ success: z.boolean() }))
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.leaveChannel",
+      summary: "Leaves a channel if the current user is a member",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("leaveChannel", async () => {
       const userId = ctx.auth.user.id;
@@ -303,6 +460,15 @@ const leaveChannel = protectedProcedure
 // Join channel endpoint (public channels only)
 const joinChannel = protectedProcedure
   .input(joinChannelSchema)
+  .output(z.object({ success: z.boolean(), channelId: z.number() }))
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.joinChannel",
+      summary: "Joins a channel if the current user is not a member",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("joinChannel", async () => {
       const userId = ctx.auth.user.id;
@@ -316,6 +482,16 @@ const joinChannel = protectedProcedure
 // Remove member endpoint (admin only)
 const removeMember = protectedProcedure
   .input(removeMemberSchema)
+  .output(z.object({ success: z.boolean() }))
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/comms.removeMember",
+      summary:
+        "Removes a member from a channel if the current user is the admin",
+      tags: ["Comms"],
+    },
+  })
   .mutation(({ ctx, input }) =>
     withErrorHandling("removeMember", async () => {
       const userId = ctx.auth.user.id;

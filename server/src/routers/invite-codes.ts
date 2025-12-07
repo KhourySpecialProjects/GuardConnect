@@ -1,3 +1,4 @@
+import z from "zod";
 import { AuthRepository } from "../data/repository/auth-repo.js";
 import { InviteCodeRepository } from "../data/repository/invite-code-repo.js";
 import { GLOBAL_CREATE_INVITE_KEY } from "../data/roles.js";
@@ -6,9 +7,12 @@ import { withErrorHandling } from "../trpc/error_handler.js";
 import { procedure, roleProcedure, router } from "../trpc/trpc.js";
 import {
   createInviteCodeInputSchema,
+  createInviteCodeOutputSchema,
   listInviteCodesInputSchema,
+  listInviteCodesOutputSchema,
   revokeInviteCodeInputSchema,
   validateInviteCodeInputSchema,
+  validateInviteCodeOutputSchema,
 } from "../types/invite-code-types.js";
 
 const inviteCodeService = new InviteCodeService(
@@ -23,9 +27,14 @@ const inviteProcedure = roleProcedure([GLOBAL_CREATE_INVITE_KEY]);
  */
 const createInviteCode = inviteProcedure
   .input(createInviteCodeInputSchema)
+  .output(createInviteCodeOutputSchema)
   .meta({
-    description:
-      "Create a new invite code with specified role permissions. Requires global:create-invite permission.",
+    openapi: {
+      method: "POST",
+      path: "/inviteCodes.createInviteCode",
+      summary: "Create a new invite code with specified role permissions",
+      tags: ["Invite Codes"],
+    },
   })
   .mutation(async ({ ctx, input }) => {
     return withErrorHandling("createInviteCode", async () => {
@@ -43,9 +52,15 @@ const createInviteCode = inviteProcedure
  */
 const validateInviteCode = procedure
   .input(validateInviteCodeInputSchema)
+  .output(validateInviteCodeOutputSchema)
   .meta({
-    description:
-      "Validate an invite code and return its role assignments if valid. Public endpoint.",
+    openapi: {
+      method: "POST",
+      path: "/inviteCodes.validateInviteCode",
+      summary:
+        "Validate an invite code and return its role assignments if valid. Public endpoint.",
+      tags: ["Invite Codes"],
+    },
   })
   .query(async ({ input }) => {
     return withErrorHandling("validateInviteCode", async () => {
@@ -58,9 +73,15 @@ const validateInviteCode = procedure
  */
 const listInviteCodes = inviteProcedure
   .input(listInviteCodesInputSchema)
+  .output(listInviteCodesOutputSchema)
   .meta({
-    description:
-      "List all invite codes with optional status filtering and pagination. Requires global:create-invite permission.",
+    openapi: {
+      method: "POST",
+      path: "/inviteCodes.listInviteCodes",
+      summary:
+        "List all invite codes with optional status filtering and pagination. Requires global:create-invite permission.",
+      tags: ["Invite Codes"],
+    },
   })
   .query(async ({ ctx, input }) => {
     return withErrorHandling("listInviteCodes", async () => {
@@ -79,9 +100,15 @@ const listInviteCodes = inviteProcedure
  */
 const revokeInviteCode = inviteProcedure
   .input(revokeInviteCodeInputSchema)
+  .output(z.void())
   .meta({
-    description:
-      "Revoke an invite code, preventing its use. Requires global:create-invite permission.",
+    openapi: {
+      method: "POST",
+      path: "/inviteCodes.revokeInviteCode",
+      summary:
+        "Revoke an invite code, preventing its use. Requires global:create-invite permission.",
+      tags: ["Invite Codes"],
+    },
   })
   .mutation(async ({ ctx, input }) => {
     return withErrorHandling("revokeInviteCode", async () => {

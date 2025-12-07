@@ -87,42 +87,41 @@ export type CreateMenteeOutput = {
   updatedAt: string | Date;
 };
 
-export type GetMenteeOutput = {
-  menteeId: number;
-  userId: string;
-  learningGoals?: string | null;
-  experienceLevel?: string | null;
-  preferredMentorType?: string | null;
-  status: "active" | "inactive" | "matched";
-  resumeFileId?: string | null;
-  personalInterests?: string | null;
-  roleModelInspiration?: string | null;
-  hopeToGainResponses?: string[] | null;
-  mentorQualities?: string[] | null;
-  preferredMeetingFormat?:
-    | "in-person"
-    | "virtual"
-    | "hybrid"
-    | "no-preference"
-    | null;
-  hoursPerMonthCommitment?: number | null;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+export const getMenteeOutputSchema = z.object({
+  menteeId: z.number(),
+  userId: z.string(),
+  learningGoals: z.string().nullish(),
+  experienceLevel: z.string().nullish(),
+  preferredMentorType: z.string().nullish(),
+  status: z.enum(["active", "inactive", "matched"]),
+  resumeFileId: z.string().nullish(),
+  personalInterests: z.string().nullish(),
+  roleModelInspiration: z.string().nullish(),
+  hopeToGainResponses: z.array(z.string()).nullish(),
+  mentorQualities: z.array(z.string()).nullish(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .nullish(),
+  hoursPerMonthCommitment: z.number().nullish(),
+  createdAt: z.union([z.string(), z.date()]),
+  updatedAt: z.union([z.string(), z.date()]),
 
   /**
    * Enriched user profile fields for mentorship UI.
    * These are joined from the associated `users` record.
    */
-  name?: string | null;
-  email?: string | null;
-  phoneNumber?: string | null;
-  imageFileId?: string | null;
-  rank?: string | null;
-  positionType?: string | null;
-  detailedPosition?: string | null;
-  detailedRank?: string | null;
-  location?: string | null;
-};
+  name: z.string().nullish(),
+  email: z.string().nullish(),
+  phoneNumber: z.string().nullish(),
+  imageFileId: z.string().nullish(),
+  rank: z.string().nullish(),
+  positionType: z.string().nullish(),
+  detailedPosition: z.string().nullish(),
+  detailedRank: z.string().nullish(),
+  location: z.string().nullish(),
+});
+
+export type GetMenteeOutput = z.infer<typeof getMenteeOutputSchema>;
 
 export type UpdateMenteeOutput = {
   menteeId: number;

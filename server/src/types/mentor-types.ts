@@ -72,64 +72,62 @@ export const createMentorInputSchema = z.object({
 
 export type CreateMentorInput = z.infer<typeof createMentorInputSchema>;
 
-export type CreateMentorOutput = {
-  mentorId: number;
-  userId: string;
-  mentorshipPreferences?: string | null;
-  yearsOfService?: number | null;
-  eligibilityData?: Record<string, unknown> | null;
-  status: "requested" | "approved" | "active";
-  resumeFileId?: string | null;
-  strengths?: string[] | null;
-  personalInterests?: string | null;
-  whyInterestedResponses?: string[] | null;
-  careerAdvice?: string | null;
-  preferredMenteeCareerStages?: string[] | null;
-  preferredMeetingFormat?:
-    | "in-person"
-    | "virtual"
-    | "hybrid"
-    | "no-preference"
-    | null;
-  hoursPerMonthCommitment?: number | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
+export const createMentorOutputSchema = z.object({
+  mentorId: z.number(),
+  userId: z.string(),
+  mentorshipPreferences: z.string().nullish(),
+  yearsOfService: z.number().nullish(),
+  eligibilityData: z.record(z.string(), z.unknown()).nullish(),
+  status: z.enum(["requested", "approved", "active"]),
+  resumeFileId: z.string().nullish(),
+  strengths: z.array(z.string()).nullish(),
+  personalInterests: z.string().nullish(),
+  whyInterestedResponses: z.array(z.string()).nullish(),
+  careerAdvice: z.string().nullish(),
+  preferredMenteeCareerStages: z.array(z.string()).nullish(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .nullish(),
+  hoursPerMonthCommitment: z.number().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
-export type GetMentorOutput = {
-  mentorId: number;
-  userId: string;
-  mentorshipPreferences?: string | null;
-  yearsOfService?: number | null;
-  eligibilityData?: Record<string, unknown> | null;
-  status: "requested" | "approved" | "active";
-  resumeFileId?: string | null;
-  strengths?: string[] | null;
-  personalInterests?: string | null;
-  whyInterestedResponses?: string[] | null;
-  careerAdvice?: string | null;
-  preferredMenteeCareerStages?: string[] | null;
-  preferredMeetingFormat?:
-    | "in-person"
-    | "virtual"
-    | "hybrid"
-    | "no-preference"
-    | null;
-  hoursPerMonthCommitment?: number | null;
-  createdAt: Date;
-  updatedAt: Date;
+export type CreateMentorOutput = z.infer<typeof createMentorOutputSchema>;
+
+export const getMentorOutputSchema = z.object({
+  mentorId: z.number(),
+  userId: z.string(),
+  mentorshipPreferences: z.string().nullish(),
+  yearsOfService: z.number().nullish(),
+  eligibilityData: z.record(z.string(), z.unknown()).nullish(),
+  status: z.enum(["requested", "approved", "active"]),
+  resumeFileId: z.string().nullish(),
+  strengths: z.array(z.string()).nullish(),
+  personalInterests: z.string().nullish(),
+  whyInterestedResponses: z.array(z.string()).nullish(),
+  careerAdvice: z.string().nullish(),
+  preferredMenteeCareerStages: z.array(z.string()).nullish(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .nullish(),
+  hoursPerMonthCommitment: z.number().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 
   /**
    * Enriched user profile fields for mentorship UI.
    * These are joined from the associated `users` record.
    */
-  name?: string | null;
-  email?: string | null;
-  phoneNumber?: string | null;
-  imageFileId?: string | null;
-  rank?: string | null;
-  positionType?: string | null;
-  detailedPosition?: string | null;
-  detailedRank?: string | null;
-  location?: string | null;
-};
+  name: z.string().nullish(),
+  email: z.string().nullish(),
+  phoneNumber: z.string().nullish(),
+  imageFileId: z.string().nullish(),
+  rank: z.string().nullish(),
+  positionType: z.string().nullish(),
+  detailedPosition: z.string().nullish(),
+  detailedRank: z.string().nullish(),
+  location: z.string().nullish(),
+});
+
+export type GetMentorOutput = z.infer<typeof getMentorOutputSchema>;
