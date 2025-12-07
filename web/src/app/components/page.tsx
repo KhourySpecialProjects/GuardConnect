@@ -336,25 +336,33 @@ const Components = () => {
 
       <main className="min-h-screen bg-background px-4 pb-16 pt-20 sm:px-6 lg:pl-[25rem] lg:pr-16 lg:pt-16">
         <div className="mx-auto flex w-full app-content-width flex-col gap-10">
-          <div className="flex justify-start lg:hidden">
-            <button
-              type="button"
-              onClick={() => setMobileNavOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-transparent px-3 py-2 text-primary
-              transition hover:text-primary focus-visible:outline-none"
-              aria-label="Open navigation"
-            >
-              <MenuIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
-
           <header className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.25em] text-primary">
-              Components Gallery
-            </p>
-            <h1 className="text-header font-semibold text-secondary">
-              Communication UI Patterns
-            </h1>
+            <div className="flex items-center gap-2 lg:hidden">
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-transparent px-3 py-2 text-primary transition hover:text-primary focus-visible:outline-none"
+                aria-label="Open navigation"
+              >
+                <MenuIcon className="h-6 w-6" aria-hidden="true" />
+              </button>
+              <div className="flex flex-col">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-primary">
+                  Components Gallery
+                </p>
+                <h1 className="text-lg font-semibold text-secondary">
+                  Communication UI Patterns
+                </h1>
+              </div>
+            </div>
+            <div className="hidden space-y-2 lg:block">
+              <p className="text-sm uppercase tracking-[0.25em] text-primary">
+                Components Gallery
+              </p>
+              <h1 className="text-header font-semibold text-secondary">
+                Communication UI Patterns
+              </h1>
+            </div>
           </header>
 
           <section className="space-y-6">
