@@ -6,7 +6,11 @@ import { MentorshipService } from "../service/mentorship-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { protectedProcedure, router } from "../trpc/trpc.js";
 import { createMenteeInputSchema } from "../types/mentee-types.js";
-import { createMentorInputSchema } from "../types/mentor-types.js";
+import {
+  createMentorInputSchema,
+  createMentorOutputSchema,
+} from "../types/mentor-types.js";
+import { mentorshipDataOutputSchema } from "../types/mentorship-types.js";
 import log from "../utils/logger.js";
 
 const mentorRepo = new MentorRepository();
@@ -19,6 +23,15 @@ const mentorshipService = new MentorshipService(
 
 const createMentor = protectedProcedure
   .input(createMentorInputSchema)
+  .output(createMentorOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/mentorship.createMentor",
+      summary: "Creates a new mentor profile for the current user",
+      tags: ["Mentorship"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("", async () => {
       log.debug({ userId: input.userId }, "createMentor");
@@ -28,6 +41,15 @@ const createMentor = protectedProcedure
 
 const createMentee = protectedProcedure
   .input(createMenteeInputSchema)
+  .output(z.void())
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/mentorship.createMentee",
+      summary: "Creates a new mentee profile for the current user",
+      tags: ["Mentorship"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("createMentee", async () => {
       return await mentorshipService.createMentee(input);
@@ -41,6 +63,15 @@ const requestMentorship = protectedProcedure
       message: z.string().optional(),
     }),
   )
+  .output(z.void())
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/mentorship.requestMentorship",
+      summary: "Requests mentorship from a mentor",
+      tags: ["Mentorship"],
+    },
+  })
   .mutation(({ input, ctx }) =>
     withErrorHandling("requestMentorship", async () => {
       return await mentorshipService.requestMentorship(
@@ -53,6 +84,15 @@ const requestMentorship = protectedProcedure
 
 const declineMentorshipRequest = protectedProcedure
   .input(z.object({ matchId: z.number() }))
+  .output(z.void())
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/mentorship.declineMentorshipRequest",
+      summary: "Declines a mentorship request from a mentor",
+      tags: ["Mentorship"],
+    },
+  })
   .mutation(({ input, ctx }) =>
     withErrorHandling("declineMentorshipRequest", async () => {
       return await mentorshipService.declineMentorshipRequest(
@@ -64,6 +104,15 @@ const declineMentorshipRequest = protectedProcedure
 
 const acceptMentorshipRequest = protectedProcedure
   .input(z.object({ matchId: z.number() }))
+  .output(z.void())
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/mentorship.acceptMentorshipRequest",
+      summary: "Accepts a mentorship request from a mentor",
+      tags: ["Mentorship"],
+    },
+  })
   .mutation(({ input, ctx }) =>
     withErrorHandling("acceptMentorshipRequest", async () => {
       return await mentorshipService.acceptMentorshipRequest(
@@ -74,9 +123,15 @@ const acceptMentorshipRequest = protectedProcedure
   );
 
 const getMentorshipData = protectedProcedure
+  .output(mentorshipDataOutputSchema)
   .meta({
-    description:
-      "Get mentor/mentee data and communication information for mentorship homepage",
+    openapi: {
+      method: "POST",
+      path: "/mentorship.getMentorshipData",
+      summary:
+        "Get mentor/mentee data and communication information for mentorship homepage",
+      tags: ["Mentorship"],
+    },
   })
   .query(async ({ ctx }) =>
     withErrorHandling("getMentorshipData", async () => {
