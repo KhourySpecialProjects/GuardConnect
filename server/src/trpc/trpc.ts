@@ -1,5 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import type { OpenApiMeta } from "trpc-to-openapi";
 import { auth } from "../auth.js";
 import { AuthRepository } from "../data/repository/auth-repo.js";
 import type { RoleKey } from "../data/roles.js";
@@ -45,7 +46,7 @@ type Meta = {
  */
 const t = initTRPC
   .context<Context>()
-  .meta<Meta>()
+  .meta<OpenApiMeta<Meta>>()
   .create({
     errorFormatter({ shape }) {
       return {
