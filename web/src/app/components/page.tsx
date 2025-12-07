@@ -22,6 +22,7 @@ import {
   LeaveChannelModal,
   RemoveMemberModal,
 } from "@/components/modal";
+import { DeleteChannelModal } from "@/components/modal/delete-channel-modal";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import Navigation from "@/components/navigation";
 import PostedCard from "@/components/posted-card";
@@ -31,21 +32,15 @@ import { AddReaction } from "@/components/reaction-bubble/add-reaction";
 import SearchBar from "@/components/search-bar";
 import { ReportsTable } from "@/components/table-view";
 import { TextInput } from "@/components/text-input";
-import { DeleteChannelModal } from "@/components/modal/delete-channel-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import {
   Dropzone,
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
+import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const mentorQualityOptions: MultiSelectOption[] = [
   {
@@ -728,19 +723,31 @@ const Components = () => {
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
               </TabsList>
-              <TabsContent value="overview" className="rounded-2xl border border-border bg-card p-4">
+              <TabsContent
+                value="overview"
+                className="rounded-2xl border border-border bg-card p-4"
+              >
                 <p className="text-sm text-secondary/80">
-                  Show the essentials up front so users can make quick decisions.
+                  Show the essentials up front so users can make quick
+                  decisions.
                 </p>
               </TabsContent>
-              <TabsContent value="details" className="rounded-2xl border border-border bg-card p-4">
+              <TabsContent
+                value="details"
+                className="rounded-2xl border border-border bg-card p-4"
+              >
                 <p className="text-sm text-secondary/80">
-                  Provide supporting info or secondary settings in a dedicated tab.
+                  Provide supporting info or secondary settings in a dedicated
+                  tab.
                 </p>
               </TabsContent>
-              <TabsContent value="activity" className="rounded-2xl border border-border bg-card p-4">
+              <TabsContent
+                value="activity"
+                className="rounded-2xl border border-border bg-card p-4"
+              >
                 <p className="text-sm text-secondary/80">
-                  Keep audit trails and recent actions close to the primary context.
+                  Keep audit trails and recent actions close to the primary
+                  context.
                 </p>
               </TabsContent>
             </Tabs>
