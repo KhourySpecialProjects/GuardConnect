@@ -54,7 +54,7 @@ app.use(
 
 // OpenAPI swagger docs
 app.use("/", swaggerUi.serve);
-app.get("/openapi", swaggerUi.setup(openApiDocument));
+app.get("/api/docs/openapi", swaggerUi.setup(openApiDocument));
 
 // Track connection status for health checks
 let isPostgresConnected = false;
