@@ -3,25 +3,53 @@ import { reportCategoryEnum } from "../data/db/schema.js";
 
 export const reportCategorySchema = z.enum(reportCategoryEnum.enumValues);
 
+export const reportAttachmentSchema = z.object({
+  fileId: z.string(),
+  fileName: z.string(),
+});
+
+export type ReportAttachmentRecord = z.infer<typeof reportAttachmentSchema>;
+
 const userIdSchema = z
   .string()
   .min(1, "User identifier is required to submit reports.");
 
-export const getReportsSchema = z.object({
+const reportSchema = z.object({
+  attachments: z.array(reportAttachmentSchema),
+  reportId: z.string(),
+  category: reportCategorySchema.nullable(),
+  title: z.string(),
+  description: z.string(),
+  status: z.enum(["Pending", "Assigned", "Resolved"]),
+  submittedBy: z.string(),
+  assignedTo: userIdSchema.nullable(),
+  assignedBy: userIdSchema.nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  resolvedAt: z.date().nullable(),
+});
+
+export const getReportsInputSchema = z.object({
   name: userIdSchema,
 });
 
-export const assignReportSchema = z.object({
+export const getReportsOutputSchema = z.array(reportSchema);
+
+export const assignReportInputSchema = z.object({
   reportId: z.uuid(),
   assigneeId: userIdSchema,
   assignedBy: userIdSchema,
 });
 
-export const unassignReportSchema = z.object({
+export const assignReportOutputSchema = reportSchema;
+
+export const unassignReportInputSchema = z.object({
   reportId: z.uuid(),
 });
 
-export const createReportsSchema = z.object({
+export const unassignReportOutputSchema = reportSchema;
+
+export const createReportsInputSchema = z.object({
   category: reportCategorySchema.optional(),
   title: z.string().min(1, "Report title cannot be empty."),
   description: z.string().min(1, "Report description cannot be empty."),
@@ -29,6 +57,8 @@ export const createReportsSchema = z.object({
   submittedBy: userIdSchema,
   status: z.enum(["Pending", "Assigned", "Resolved"]).default("Pending"),
 });
+
+export const createReportsOutputSchema = reportSchema;
 
 export const editReportSchema = z
   .object({
@@ -46,13 +76,15 @@ export const editReportSchema = z
     { message: "At least one field must be updated" },
   );
 
+export const updateReportOutputSchema = reportSchema;
+
 export const deleteReportSchema = z.object({
   reportId: z.uuid(),
   deletedBy: userIdSchema,
 });
 
-export type SendReportInput = z.infer<typeof getReportsSchema>;
-export type AssignReport = z.infer<typeof assignReportSchema>;
-export type CreateReport = z.infer<typeof createReportsSchema>;
+export type SendReportInput = z.infer<typeof getReportsInputSchema>;
+export type AssignReport = z.infer<typeof assignReportInputSchema>;
+export type CreateReport = z.infer<typeof createReportsInputSchema>;
 export type EditReport = z.infer<typeof editReportSchema>;
 export type DeleteReport = z.infer<typeof deleteReportSchema>;

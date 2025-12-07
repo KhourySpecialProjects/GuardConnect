@@ -10,6 +10,7 @@ import type {
   AssignReport,
   CreateReport,
   EditReport,
+  ReportAttachmentRecord,
 } from "../../types/reports-types.js";
 import { db } from "../db/sql.js";
 
@@ -20,11 +21,6 @@ type Transaction = Parameters<typeof db.transaction>[0] extends (
   : never;
 
 type Executor = Transaction | typeof db;
-
-export type ReportAttachmentRecord = {
-  fileId: string;
-  fileName: string;
-};
 
 const BASE_REPORT_FIELDS = {
   reportId: reports.reportId,
