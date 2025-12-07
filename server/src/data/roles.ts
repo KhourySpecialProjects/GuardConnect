@@ -77,9 +77,9 @@ const globalAdminKeySchema = z.templateLiteral([
   globalActionsEnum,
 ]);
 
-type ReportingRoleKey = z.infer<typeof reportingRoleKeySchema>;
-type ChannelRoleKey = z.infer<typeof channelRoleKeySchema>;
-type BroadcastRoleKey = z.infer<typeof broadcastRoleKeySchema>;
+export type ReportingRoleKey = z.infer<typeof reportingRoleKeySchema>;
+export type ChannelRoleKey = z.infer<typeof channelRoleKeySchema>;
+export type BroadcastRoleKey = z.infer<typeof broadcastRoleKeySchema>;
 
 /**
  * Builds a role key for a channel-specific resource/action.
