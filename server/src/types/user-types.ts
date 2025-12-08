@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { RoleNamespace } from "../data/db/schema.js";
+import { roleKeySchema } from "../data/roles.js";
 
 export const userSchema = z.object({
   userId: z.number().int().positive(),
@@ -18,7 +18,7 @@ export const userSchema = z.object({
   location: z.string().nullable().optional(),
   about: z.string().nullable().optional(),
   interests: z.array(z.string()).nullable().optional(),
-  image: z.string().uuid().nullable().optional(),
+  image: z.uuid().nullable().optional(),
   linkedin: z
     .string()
     .url()
@@ -35,7 +35,23 @@ export const getUserDataInputSchema = z.object({
   user_id: z.string(),
 });
 
-export type GetUserDataInput = z.infer<typeof getUserDataInputSchema>;
+export const userDataOutputSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.email(),
+  phoneNumber: z.string().nullable(),
+  rank: z.string().nullable(),
+  department: z.string().nullable(),
+  branch: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  image: z.uuid().nullable(),
+  location: z.string().nullable(),
+  about: z.string().nullable(),
+  interests: z.array(z.string()).nullable(),
+  signalVisibility: z.enum(["private", "public"]),
+  emailVisibility: z.enum(["private", "public"]),
+});
 
 export const checkEmailExistsInputSchema = z.object({
   email: z.email(),
@@ -103,17 +119,7 @@ export const searchUsersInputSchema = z.object({
   name: z.string().min(1),
 });
 
-export type SearchUsersInput = z.infer<typeof searchUsersInputSchema>;
-
-export type RoleSummary = {
-  roleId: number;
-  namespace: RoleNamespace;
-  subjectId: string | null;
-  action: string;
-  roleKey: string;
-  channelId: number | null;
-  metadata: Record<string, unknown> | null;
-};
+export const getUserRolesOutputSchema = z.array(roleKeySchema);
 
 export const updateUserVisibilityInputSchema = z.object({
   signal_visibility: z.enum(["private", "public"]),
@@ -159,3 +165,34 @@ export const createUserInputSchema = z.object({
 });
 
 export type CreateUserInput = z.infer<typeof createUserInputSchema>;
+
+export const searchUsersOutputSchema = z.array(
+  userSchema
+    .pick({
+      name: true,
+      email: true,
+      rank: true,
+      department: true,
+      branch: true,
+    })
+    .extend(z.object({ id: z.string() }).shape),
+);
+
+const userSessionSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string(),
+  image: z.string().nullish(),
+  emailVerified: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const createUserOutputSchema = z.discriminatedUnion("token", [
+  z
+    .object({ token: z.null() })
+    .extend(z.object({ user: userSessionSchema }).shape),
+  z
+    .object({ token: z.string() })
+    .extend(z.object({ user: userSessionSchema }).shape),
+]);

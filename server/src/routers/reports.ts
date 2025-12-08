@@ -1,3 +1,4 @@
+import z from "zod";
 import { ReportRepository } from "../data/repository/reports-repo.js";
 import { reportingRole } from "../data/roles.js";
 import { PolicyEngine } from "../service/policy-engine.js";
@@ -5,20 +6,33 @@ import { ReportService } from "../service/reports-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { roleProcedure, router } from "../trpc/trpc.js";
 import {
-  assignReportSchema,
-  createReportsSchema,
+  assignReportInputSchema,
+  assignReportOutputSchema,
+  createReportsInputSchema,
+  createReportsOutputSchema,
   deleteReportSchema,
   editReportSchema,
-  getReportsSchema,
-  unassignReportSchema,
+  getReportsInputSchema,
+  getReportsOutputSchema,
+  unassignReportInputSchema,
+  unassignReportOutputSchema,
+  updateReportOutputSchema,
 } from "../types/reports-types.js";
 
 const reportService = new ReportService(new ReportRepository());
 const ADMIN_REPORT_ROLES = [reportingRole("admin"), reportingRole("assign")];
 
 const getReports = roleProcedure([reportingRole("read")])
-  .input(getReportsSchema)
-  .meta({ description: "Returns the list of reports" })
+  .input(getReportsInputSchema)
+  .output(getReportsOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/reports.getReports",
+      summary: "Returns the list of reports",
+      tags: ["Reports"],
+    },
+  })
   .query(({ ctx, input }) =>
     withErrorHandling("getReports", () => {
       const roleSet = ctx.roles ?? new Set();
@@ -33,15 +47,31 @@ const getReports = roleProcedure([reportingRole("read")])
   );
 
 const createReport = roleProcedure([reportingRole("create")])
-  .input(createReportsSchema)
-  .meta({ description: "Creates a new report" })
+  .input(createReportsInputSchema)
+  .output(createReportsOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/reports.createReport",
+      summary: "Creates a new report",
+      tags: ["Reports"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("createReport", () => reportService.createReport(input)),
   );
 
 const updateReport = roleProcedure([reportingRole("update")])
   .input(editReportSchema)
-  .meta({ description: "Updates an existing report" })
+  .output(updateReportOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/reports.updateReport",
+      summary: "Updates an existing report",
+      tags: ["Reports"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("updateReport", () =>
       reportService.updateReport(input.reportId, input.updates),
@@ -50,7 +80,15 @@ const updateReport = roleProcedure([reportingRole("update")])
 
 const deleteReport = roleProcedure([reportingRole("delete")])
   .input(deleteReportSchema)
-  .meta({ description: "Deletes a report" })
+  .output(z.object({ reportId: z.string() }).optional())
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/reports.deleteReport",
+      summary: "Deletes a report",
+      tags: ["Reports"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("deleteReport", () =>
       reportService.deleteReport(input.reportId, input.deletedBy),
@@ -58,15 +96,31 @@ const deleteReport = roleProcedure([reportingRole("delete")])
   );
 
 const assignReport = roleProcedure([reportingRole("assign")])
-  .input(assignReportSchema)
-  .meta({ description: "Assigns a report to a user" })
+  .input(assignReportInputSchema)
+  .output(assignReportOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/reports.assignReport",
+      summary: "Assigns a report to a user",
+      tags: ["Reports"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("assignReport", () => reportService.assignReport(input)),
   );
 
 const unassignReport = roleProcedure([reportingRole("assign")])
-  .input(unassignReportSchema)
-  .meta({ description: "Unassigns a report to a user" })
+  .input(unassignReportInputSchema)
+  .output(unassignReportOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/reports.unassignReport",
+      summary: "Unassigns a report from a user",
+      tags: ["Reports"],
+    },
+  })
   .mutation(({ input }) =>
     withErrorHandling("unassignReport", () =>
       reportService.unassignReport(input.reportId),

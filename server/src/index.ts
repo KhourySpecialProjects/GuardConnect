@@ -2,12 +2,15 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import { createOpenApiExpressMiddleware } from "trpc-to-openapi";
 import { auth } from "./auth.js";
 import { allowedOrigins } from "./cors.js";
 import { connectRedis, getRedisClientInstance } from "./data/db/redis.js";
 import { connectPostgres } from "./data/db/sql.js";
 import { policyEngine } from "./service/policy-engine.js";
 import { appRouter } from "./trpc/app_router.js";
+import { openApiDocument } from "./trpc/openapi.js";
 import { createContext } from "./trpc/trpc.js";
 import log from "./utils/logger.js";
 
@@ -42,6 +45,16 @@ app.use(
     createContext,
   }),
 );
+
+// This is what swagger hits
+app.use(
+  "/api/openapi",
+  createOpenApiExpressMiddleware({ router: appRouter, createContext }),
+);
+
+// OpenAPI swagger docs
+app.use("/", swaggerUi.serve);
+app.get("/openapi", swaggerUi.setup(openApiDocument));
 
 // Track connection status for health checks
 let isPostgresConnected = false;
