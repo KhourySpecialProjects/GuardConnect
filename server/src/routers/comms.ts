@@ -109,8 +109,7 @@ const getChannelMessages = protectedProcedure
     openapi: {
       method: "POST",
       path: "/comms.getChannelMessages",
-      summary:
-        "Gets messages from a specific channel with reaction information from other users",
+      summary: "Gets messages from a specific channel with reaction information from other users",
       tags: ["Comms"],
     },
   })
@@ -122,10 +121,7 @@ const getChannelMessages = protectedProcedure
 
     ensureHasRole(ctx, [channelRole("read", input.channelId)]);
 
-    log.debug(
-      { userId, channelId: input.channelId },
-      "Getting channel messages",
-    );
+    log.debug({ userId, channelId: input.channelId }, "Getting channel messages");
 
     return await commsRepo.getChannelMessages(input.channelId, userId);
   });
@@ -148,9 +144,7 @@ const toggleMessageReaction = protectedProcedure
     const message = await commsRepo.getMessageById(input.messageId);
 
     if (message.channelId !== input.channelId) {
-      throw new ForbiddenError(
-        "Message does not belong to the specified channel",
-      );
+      throw new ForbiddenError("Message does not belong to the specified channel");
     }
 
     const reactions = await commsRepo.setMessageReaction({
@@ -177,8 +171,7 @@ const editPost = protectedProcedure
     openapi: {
       method: "POST",
       path: "/comms.editPost",
-      summary:
-        "Edits a previously posted message if the current user is the author",
+      summary: "Edits a previously posted message if the current user is the author",
       tags: ["Comms"],
     },
   })
@@ -208,8 +201,7 @@ const deletePost = protectedProcedure
     openapi: {
       method: "POST",
       path: "/comms.deletePost",
-      summary:
-        "Deletes a previously posted message if the current user is the author or an admin",
+      summary: "Deletes a previously posted message if the current user is the author or an admin",
       tags: ["Comms"],
     },
   })
@@ -265,10 +257,7 @@ const createChannel = protectedProcedure
       );
 
       // Auto-subscribe the creator with notifications enabled
-      await commsRepo.ensureChannelSubscription(
-        userId,
-        channelCreationResult.channelId,
-      );
+      await commsRepo.ensureChannelSubscription(userId, channelCreationResult.channelId);
 
       return channelCreationResult;
     }),
@@ -325,8 +314,7 @@ const createSubscription = protectedProcedure
     openapi: {
       method: "POST",
       path: "/comms.createSubscription",
-      summary:
-        "Creates a new subscription for the current user for the given channel",
+      summary: "Creates a new subscription for the current user for the given channel",
       tags: ["Comms"],
     },
   })
@@ -334,10 +322,7 @@ const createSubscription = protectedProcedure
     withErrorHandling("createSubscription", async () => {
       const userId = ctx.auth.user.id;
 
-      log.debug(
-        { userId, channelId: input.channelId },
-        "Creating subscription",
-      );
+      log.debug({ userId, channelId: input.channelId }, "Creating subscription");
 
       return await commsRepo.createSubscription(
         userId,
@@ -363,10 +348,7 @@ const deleteSubscription = protectedProcedure
     withErrorHandling("deleteSubscription", async () => {
       const userId = ctx.auth.user.id;
 
-      log.debug(
-        { userId, subscriptionId: input.subscriptionId },
-        "Deleting subscription",
-      );
+      log.debug({ userId, subscriptionId: input.subscriptionId }, "Deleting subscription");
 
       return await commsRepo.deleteSubscription(input.subscriptionId, userId);
     }),
@@ -487,8 +469,7 @@ const removeMember = protectedProcedure
     openapi: {
       method: "POST",
       path: "/comms.removeMember",
-      summary:
-        "Removes a member from a channel if the current user is the admin",
+      summary: "Removes a member from a channel if the current user is the admin",
       tags: ["Comms"],
     },
   })
@@ -501,11 +482,7 @@ const removeMember = protectedProcedure
         "Removing member from channel",
       );
 
-      return await commsService.removeUserFromChannel(
-        userId,
-        input.channelId,
-        input.userId,
-      );
+      return await commsService.removeUserFromChannel(userId, input.channelId, input.userId);
     }),
   );
 
