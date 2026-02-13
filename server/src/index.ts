@@ -47,10 +47,10 @@ app.use(
 );
 
 // This is what swagger hits
-app.use(
-  "/api/openapi",
-  createOpenApiExpressMiddleware({ router: appRouter, createContext }),
-);
+// app.use(
+//   "/api/openapi",
+//   createOpenApiExpressMiddleware({ router: appRouter, createContext }),
+// );
 
 // OpenAPI swagger docs
 app.use("/api/docs", swaggerUi.serve);
