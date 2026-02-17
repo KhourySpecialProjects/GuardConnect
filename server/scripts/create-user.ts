@@ -1,5 +1,7 @@
+import { eq } from "drizzle-orm";
 import { auth } from "../src/auth.js";
-import { connectPostgres, shutdownPostgres } from "../src/data/db/sql.js";
+import { users } from "../src/data/db/schema.js";
+import { connectPostgres, db, shutdownPostgres } from "../src/data/db/sql.js";
 
 /**
  * Script to create a new user account using better-auth
@@ -16,9 +18,9 @@ async function createUser() {
   await connectPostgres();
   // Edit this object to create a new user
   const userData = {
-    email: "basic@basic.basic",
+    email: "basic2@basic.basic",
     password: "password",
-    name: "Basic User",
+    name: "U2",
     phoneNumber: "555-123-1234", // optional
     rank: "Captain", // optional
     department: "Engineering", // optional
@@ -43,6 +45,8 @@ async function createUser() {
 
   try {
     // Use better-auth's internal API to create the user
+    // Note: We exclude enum fields (positionType, signalVisibility, emailVisibility)
+    // because better-auth wraps them in objects when validators are present
     const result = await auth.api.signUpEmail({
       body: {
         email: userData.email.toLowerCase().trim(),
@@ -68,6 +72,17 @@ async function createUser() {
     }
 
     console.log("✓ Successfully created user!");
+    // Update enum fields separately to avoid better-auth wrapping them in objects
+    await db
+      .update(users)
+      .set({
+        positionType: userData.positionType as "active" | "part-time",
+        signalVisibility: userData.signalVisibility as "private" | "public",
+        emailVisibility: userData.emailVisibility as "private" | "public",
+        interests: userData.interests ? JSON.parse(userData.interests) : [],
+      })
+      .where(eq(users.id, result.user.id));
+
     console.log(`  User ID: ${result.user.id}`);
     console.log(`  Email: ${result.user.email}`);
     console.log(`  Name: ${result.user.name}`);

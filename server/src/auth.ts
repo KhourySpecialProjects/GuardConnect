@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { z } from "zod";
 import { allowedOrigins } from "./cors.js";
 import { account, session, users, verification } from "./data/db/schema.js";
 import { db } from "./data/db/sql.js";
@@ -37,7 +36,6 @@ export const auth = betterAuth({
       },
       positionType: {
         type: "string",
-        validator: { input: z.enum(["active", "part-time"]) },
       },
       civilianCareer: {
         type: "string",
@@ -54,13 +52,11 @@ export const auth = betterAuth({
       signalVisibility: {
         type: "string",
         required: false,
-        validator: { input: z.enum(["private", "public"]) },
         defaultValue: "private" as const,
       },
       emailVisibility: {
         type: "string",
         required: false,
-        validator: { input: z.enum(["private", "public"]) },
         defaultValue: "private" as const,
       },
     },
