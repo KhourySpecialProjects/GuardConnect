@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { z } from "zod";
 import { allowedOrigins } from "./cors.js";
 import { account, session, users, verification } from "./data/db/schema.js";
 import { db } from "./data/db/sql.js";
