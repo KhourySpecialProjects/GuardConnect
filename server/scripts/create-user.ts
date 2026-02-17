@@ -1,7 +1,7 @@
-import { auth } from "../src/auth.js";
-import { connectPostgres, db, shutdownPostgres } from "../src/data/db/sql.js";
-import { users } from "../src/data/db/schema.js";
 import { eq } from "drizzle-orm";
+import { auth } from "../src/auth.js";
+import { users } from "../src/data/db/schema.js";
+import { connectPostgres, db, shutdownPostgres } from "../src/data/db/sql.js";
 
 /**
  * Script to create a new user account using better-auth

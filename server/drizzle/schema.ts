@@ -1,18 +1,18 @@
+import { sql } from "drizzle-orm";
 import {
-  pgTable,
+  boolean,
   check,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  primaryKey,
   text,
   timestamp,
-  integer,
-  boolean,
-  jsonb,
+  unique,
   uuid,
   vector,
-  unique,
-  primaryKey,
-  pgEnum,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 export const careerStageEnum = pgEnum("career_stage_enum", [
   "new-soldiers",
