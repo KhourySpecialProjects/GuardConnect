@@ -37,7 +37,6 @@ export const auth = betterAuth({
       },
       positionType: {
         type: "string",
-        validator: { input: z.enum(["active", "part-time"]) },
       },
       civilianCareer: {
         type: "string",
@@ -54,13 +53,11 @@ export const auth = betterAuth({
       signalVisibility: {
         type: "string",
         required: false,
-        validator: { input: z.enum(["private", "public"]) },
         defaultValue: "private" as const,
       },
       emailVisibility: {
         type: "string",
         required: false,
-        validator: { input: z.enum(["private", "public"]) },
         defaultValue: "private" as const,
       },
     },

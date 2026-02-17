@@ -18,9 +18,9 @@ async function createUser() {
   await connectPostgres();
   // Edit this object to create a new user
   const userData = {
-    email: "basic@basic.basic",
+    email: "basic2@basic.basic",
     password: "password",
-    name: "Basic User",
+    name: "U2",
     phoneNumber: "555-123-1234", // optional
     rank: "Captain", // optional
     department: "Engineering", // optional
@@ -56,7 +56,10 @@ async function createUser() {
         rank: userData.rank,
         department: userData.department,
         branch: userData.branch,
+        positionType: userData.positionType,
         civilianCareer: userData.civilianCareer,
+        signalVisibility: userData.signalVisibility,
+        emailVisibility: userData.emailVisibility,
         location: userData.location,
         about: userData.about,
       },
