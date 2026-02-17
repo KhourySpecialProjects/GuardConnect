@@ -1768,9 +1768,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "session_token_unique": {
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "nullsNotDistinct": false,
           "name": "session_token_unique"
         }
@@ -1945,9 +1943,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "user_email_unique": {
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false,
           "name": "user_email_unique"
         }
@@ -2110,10 +2106,7 @@
       "compositePrimaryKeys": {
         "pk_user_roles": {
           "name": "pk_user_roles",
-          "columns": [
-            "user_id",
-            "role_id"
-          ]
+          "columns": ["user_id", "role_id"]
         }
       },
       "uniqueConstraints": {},
@@ -2151,128 +2144,72 @@
     },
     "public.channel_post_permission_enum": {
       "name": "channel_post_permission_enum",
-      "values": [
-        "admin",
-        "everyone",
-        "custom"
-      ],
+      "values": ["admin", "everyone", "custom"],
       "schema": "public"
     },
     "public.match_status_enum": {
       "name": "match_status_enum",
-      "values": [
-        "pending",
-        "accepted",
-        "declined"
-      ],
+      "values": ["pending", "accepted", "declined"],
       "schema": "public"
     },
     "public.meeting_format_enum": {
       "name": "meeting_format_enum",
-      "values": [
-        "in-person",
-        "virtual",
-        "hybrid",
-        "no-preference"
-      ],
+      "values": ["in-person", "virtual", "hybrid", "no-preference"],
       "schema": "public"
     },
     "public.mentee_status_enum": {
       "name": "mentee_status_enum",
-      "values": [
-        "active",
-        "inactive",
-        "matched"
-      ],
+      "values": ["active", "inactive", "matched"],
       "schema": "public"
     },
     "public.mentor_status_enum": {
       "name": "mentor_status_enum",
-      "values": [
-        "requested",
-        "approved",
-        "active"
-      ],
+      "values": ["requested", "approved", "active"],
       "schema": "public"
     },
     "public.mentorship_user_type_enum": {
       "name": "mentorship_user_type_enum",
-      "values": [
-        "mentor",
-        "mentee"
-      ],
+      "values": ["mentor", "mentee"],
       "schema": "public"
     },
     "public.message_blast_status_enum": {
       "name": "message_blast_status_enum",
-      "values": [
-        "draft",
-        "sent",
-        "failed"
-      ],
+      "values": ["draft", "sent", "failed"],
       "schema": "public"
     },
     "public.permission_enum": {
       "name": "permission_enum",
-      "values": [
-        "read",
-        "write",
-        "both"
-      ],
+      "values": ["read", "write", "both"],
       "schema": "public"
     },
     "public.position_type_enum": {
       "name": "position_type_enum",
-      "values": [
-        "active",
-        "part-time"
-      ],
+      "values": ["active", "part-time"],
       "schema": "public"
     },
     "public.report_category_enum": {
       "name": "report_category_enum",
-      "values": [
-        "Communication",
-        "Mentorship",
-        "Training",
-        "Resources"
-      ],
+      "values": ["Communication", "Mentorship", "Training", "Resources"],
       "schema": "public"
     },
     "public.report_status_enum": {
       "name": "report_status_enum",
-      "values": [
-        "Pending",
-        "Assigned",
-        "Resolved"
-      ],
+      "values": ["Pending", "Assigned", "Resolved"],
       "schema": "public"
     },
     "public.role_namespace_enum": {
       "name": "role_namespace_enum",
-      "values": [
-        "global",
-        "channel",
-        "mentor",
-        "broadcast",
-        "reporting"
-      ],
+      "values": ["global", "channel", "mentor", "broadcast", "reporting"],
       "schema": "public"
     },
     "public.service_type_enum": {
       "name": "service_type_enum",
-      "values": [
-        "enlisted",
-        "officer"
-      ],
+      "values": ["enlisted", "officer"],
       "schema": "public"
     },
     "public.visibility_enum": {
       "name": "visibility_enum",
-      "values": [
-        "private",
-        "public"
-      ],
+      "values": ["private", "public"],
       "schema": "public"
     }
   },

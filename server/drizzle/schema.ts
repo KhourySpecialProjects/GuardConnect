@@ -23,35 +23,60 @@ export const careerStageEnum = pgEnum("career_stage_enum", [
   "transitioning",
   "no-preference",
 ]);
-export const channelPostPermissionEnum = pgEnum("channel_post_permission_enum", [
-  "admin",
-  "everyone",
-  "custom",
+export const channelPostPermissionEnum = pgEnum(
+  "channel_post_permission_enum",
+  ["admin", "everyone", "custom"],
+);
+export const matchStatusEnum = pgEnum("match_status_enum", [
+  "pending",
+  "accepted",
+  "declined",
 ]);
-export const matchStatusEnum = pgEnum("match_status_enum", ["pending", "accepted", "declined"]);
 export const meetingFormatEnum = pgEnum("meeting_format_enum", [
   "in-person",
   "virtual",
   "hybrid",
   "no-preference",
 ]);
-export const menteeStatusEnum = pgEnum("mentee_status_enum", ["active", "inactive", "matched"]);
-export const mentorStatusEnum = pgEnum("mentor_status_enum", ["requested", "approved", "active"]);
-export const mentorshipUserTypeEnum = pgEnum("mentorship_user_type_enum", ["mentor", "mentee"]);
+export const menteeStatusEnum = pgEnum("mentee_status_enum", [
+  "active",
+  "inactive",
+  "matched",
+]);
+export const mentorStatusEnum = pgEnum("mentor_status_enum", [
+  "requested",
+  "approved",
+  "active",
+]);
+export const mentorshipUserTypeEnum = pgEnum("mentorship_user_type_enum", [
+  "mentor",
+  "mentee",
+]);
 export const messageBlastStatusEnum = pgEnum("message_blast_status_enum", [
   "draft",
   "sent",
   "failed",
 ]);
-export const permissionEnum = pgEnum("permission_enum", ["read", "write", "both"]);
-export const positionTypeEnum = pgEnum("position_type_enum", ["active", "part-time"]);
+export const permissionEnum = pgEnum("permission_enum", [
+  "read",
+  "write",
+  "both",
+]);
+export const positionTypeEnum = pgEnum("position_type_enum", [
+  "active",
+  "part-time",
+]);
 export const reportCategoryEnum = pgEnum("report_category_enum", [
   "Communication",
   "Mentorship",
   "Training",
   "Resources",
 ]);
-export const reportStatusEnum = pgEnum("report_status_enum", ["Pending", "Assigned", "Resolved"]);
+export const reportStatusEnum = pgEnum("report_status_enum", [
+  "Pending",
+  "Assigned",
+  "Resolved",
+]);
 export const roleNamespaceEnum = pgEnum("role_namespace_enum", [
   "global",
   "channel",
@@ -59,7 +84,10 @@ export const roleNamespaceEnum = pgEnum("role_namespace_enum", [
   "broadcast",
   "reporting",
 ]);
-export const serviceTypeEnum = pgEnum("service_type_enum", ["enlisted", "officer"]);
+export const serviceTypeEnum = pgEnum("service_type_enum", [
+  "enlisted",
+  "officer",
+]);
 export const visibilityEnum = pgEnum("visibility_enum", ["private", "public"]);
 
 export const account = pgTable(
@@ -72,11 +100,17 @@ export const account = pgTable(
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
-    accessTokenExpiresAt: timestamp("access_token_expires_at", { mode: "string" }),
-    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { mode: "string" }),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", {
+      mode: "string",
+    }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+      mode: "string",
+    }),
     scope: text(),
     password: text(),
-    createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" }).notNull(),
   },
   () => [
@@ -104,36 +138,45 @@ export const channelSubscriptions = pgTable(
       }),
     userId: text("user_id").notNull(),
     channelId: integer("channel_id").notNull(),
-    notificationsEnabled: boolean("notifications_enabled").default(true).notNull(),
+    notificationsEnabled: boolean("notifications_enabled")
+      .default(true)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
   },
   () => [
-    check("channel_subscriptions_subscription_id_not_null", sql`NOT NULL subscription_id`),
+    check(
+      "channel_subscriptions_subscription_id_not_null",
+      sql`NOT NULL subscription_id`,
+    ),
     check("channel_subscriptions_user_id_not_null", sql`NOT NULL user_id`),
-    check("channel_subscriptions_channel_id_not_null", sql`NOT NULL channel_id`),
+    check(
+      "channel_subscriptions_channel_id_not_null",
+      sql`NOT NULL channel_id`,
+    ),
     check(
       "channel_subscriptions_notifications_enabled_not_null",
       sql`NOT NULL notifications_enabled`,
     ),
-    check("channel_subscriptions_created_at_not_null", sql`NOT NULL created_at`),
+    check(
+      "channel_subscriptions_created_at_not_null",
+      sql`NOT NULL created_at`,
+    ),
   ],
 );
 
 export const channels = pgTable(
   "channels",
   {
-    channelId: integer("channel_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "channels_channel_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    channelId: integer("channel_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "channels_channel_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     name: text().notNull(),
     description: text(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -148,7 +191,10 @@ export const channels = pgTable(
     check("channels_channel_id_not_null", sql`NOT NULL channel_id`),
     check("channels_name_not_null", sql`NOT NULL name`),
     check("channels_created_at_not_null", sql`NOT NULL created_at`),
-    check("channels_post_permission_level_not_null", sql`NOT NULL post_permission_level`),
+    check(
+      "channels_post_permission_level_not_null",
+      sql`NOT NULL post_permission_level`,
+    ),
   ],
 );
 
@@ -170,23 +216,24 @@ export const files = pgTable(
 export const inviteCodes = pgTable(
   "invite_codes",
   {
-    codeId: integer("code_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "invite_codes_code_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    codeId: integer("code_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "invite_codes_code_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     code: text().notNull(),
     roleKeys: jsonb("role_keys").notNull(),
     createdBy: text("created_by").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
-    expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" }).notNull(),
+    expiresAt: timestamp("expires_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
     usedBy: text("used_by"),
     usedAt: timestamp("used_at", { withTimezone: true, mode: "string" }),
     revokedBy: text("revoked_by"),
@@ -205,16 +252,14 @@ export const inviteCodes = pgTable(
 export const mentees = pgTable(
   "mentees",
   {
-    menteeId: integer("mentee_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "mentees_mentee_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    menteeId: integer("mentee_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "mentees_mentee_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     userId: text("user_id").notNull(),
     learningGoals: text("learning_goals"),
     experienceLevel: text("experience_level"),
@@ -264,29 +309,33 @@ export const mentorRecommendations = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" }),
   },
   () => [
-    check("mentor_recommendations_recommendation_id_not_null", sql`NOT NULL recommendation_id`),
+    check(
+      "mentor_recommendations_recommendation_id_not_null",
+      sql`NOT NULL recommendation_id`,
+    ),
     check("mentor_recommendations_user_id_not_null", sql`NOT NULL user_id`),
     check(
       "mentor_recommendations_recommended_mentor_ids_not_null",
       sql`NOT NULL recommended_mentor_ids`,
     ),
-    check("mentor_recommendations_created_at_not_null", sql`NOT NULL created_at`),
+    check(
+      "mentor_recommendations_created_at_not_null",
+      sql`NOT NULL created_at`,
+    ),
   ],
 );
 
 export const mentors = pgTable(
   "mentors",
   {
-    mentorId: integer("mentor_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "mentors_mentor_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    mentorId: integer("mentor_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "mentors_mentor_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     userId: text("user_id").notNull(),
     mentorshipPreferences: text("mentorship_preferences"),
     yearsOfService: integer("years_of_service"),
@@ -331,7 +380,9 @@ export const mentorshipEmbeddings = pgTable(
       }),
     userId: text("user_id").notNull(),
     userType: mentorshipUserTypeEnum("user_type").notNull(),
-    whyInterestedEmbedding: vector("why_interested_embedding", { dimensions: 512 }),
+    whyInterestedEmbedding: vector("why_interested_embedding", {
+      dimensions: 512,
+    }),
     hopeToGainEmbedding: vector("hope_to_gain_embedding", { dimensions: 512 }),
     profileEmbedding: vector("profile_embedding", { dimensions: 512 }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -342,27 +393,34 @@ export const mentorshipEmbeddings = pgTable(
       .notNull(),
   },
   () => [
-    check("mentorship_embeddings_embedding_id_not_null", sql`NOT NULL embedding_id`),
+    check(
+      "mentorship_embeddings_embedding_id_not_null",
+      sql`NOT NULL embedding_id`,
+    ),
     check("mentorship_embeddings_user_id_not_null", sql`NOT NULL user_id`),
     check("mentorship_embeddings_user_type_not_null", sql`NOT NULL user_type`),
-    check("mentorship_embeddings_created_at_not_null", sql`NOT NULL created_at`),
-    check("mentorship_embeddings_updated_at_not_null", sql`NOT NULL updated_at`),
+    check(
+      "mentorship_embeddings_created_at_not_null",
+      sql`NOT NULL created_at`,
+    ),
+    check(
+      "mentorship_embeddings_updated_at_not_null",
+      sql`NOT NULL updated_at`,
+    ),
   ],
 );
 
 export const mentorshipMatches = pgTable(
   "mentorship_matches",
   {
-    matchId: integer("match_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "mentorship_matches_match_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    matchId: integer("match_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "mentorship_matches_match_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     requestorUserId: text("requestor_user_id"),
     mentorUserId: text("mentor_user_id"),
     status: matchStatusEnum().default("pending").notNull(),
@@ -398,7 +456,10 @@ export const messageAttachments = pgTable(
       .notNull(),
   },
   () => [
-    check("message_attachments_attachment_id_not_null", sql`NOT NULL attachment_id`),
+    check(
+      "message_attachments_attachment_id_not_null",
+      sql`NOT NULL attachment_id`,
+    ),
     check("message_attachments_message_id_not_null", sql`NOT NULL message_id`),
     check("message_attachments_file_id_not_null", sql`NOT NULL file_id`),
     check("message_attachments_created_at_not_null", sql`NOT NULL created_at`),
@@ -408,16 +469,14 @@ export const messageAttachments = pgTable(
 export const messageBlasts = pgTable(
   "message_blasts",
   {
-    blastId: integer("blast_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "message_blasts_blast_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    blastId: integer("blast_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "message_blasts_blast_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     senderId: text("sender_id").notNull(),
     title: text().notNull(),
     content: text().notNull(),
@@ -449,16 +508,14 @@ export const messageBlasts = pgTable(
 export const messageReactions = pgTable(
   "message_reactions",
   {
-    reactionId: integer("reaction_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "message_reactions_reaction_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    reactionId: integer("reaction_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "message_reactions_reaction_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     messageId: integer("message_id").notNull(),
     userId: text("user_id").notNull(),
     emoji: text().notNull(),
@@ -478,16 +535,14 @@ export const messageReactions = pgTable(
 export const messages = pgTable(
   "messages",
   {
-    messageId: integer("message_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "messages_message_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    messageId: integer("message_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "messages_message_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     channelId: integer("channel_id").notNull(),
     senderId: text("sender_id"),
     message: text(),
@@ -528,7 +583,10 @@ export const pushSubscriptions = pgTable(
     isActive: boolean("is_active").default(true).notNull(),
   },
   () => [
-    check("push_subscriptions_subscription_id_not_null", sql`NOT NULL subscription_id`),
+    check(
+      "push_subscriptions_subscription_id_not_null",
+      sql`NOT NULL subscription_id`,
+    ),
     check("push_subscriptions_user_id_not_null", sql`NOT NULL user_id`),
     check("push_subscriptions_endpoint_not_null", sql`NOT NULL endpoint`),
     check("push_subscriptions_p256dh_not_null", sql`NOT NULL p256dh`),
@@ -558,7 +616,10 @@ export const reportAttachments = pgTable(
       .notNull(),
   },
   () => [
-    check("report_attachments_attachment_id_not_null", sql`NOT NULL attachment_id`),
+    check(
+      "report_attachments_attachment_id_not_null",
+      sql`NOT NULL attachment_id`,
+    ),
     check("report_attachments_report_id_not_null", sql`NOT NULL report_id`),
     check("report_attachments_file_id_not_null", sql`NOT NULL file_id`),
     check("report_attachments_created_at_not_null", sql`NOT NULL created_at`),
@@ -598,16 +659,14 @@ export const reports = pgTable(
 export const roles = pgTable(
   "roles",
   {
-    roleId: integer("role_id")
-      .primaryKey()
-      .generatedAlwaysAsIdentity({
-        name: "roles_role_id_seq",
-        startWith: 1,
-        increment: 1,
-        minValue: 1,
-        maxValue: 2147483647,
-        cache: 1,
-      }),
+    roleId: integer("role_id").primaryKey().generatedAlwaysAsIdentity({
+      name: "roles_role_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
     namespace: roleNamespaceEnum().notNull(),
     subjectId: text("subject_id"),
     action: text().notNull(),
@@ -638,7 +697,9 @@ export const session = pgTable(
     id: text().primaryKey().notNull(),
     expiresAt: timestamp("expires_at", { mode: "string" }).notNull(),
     token: text().notNull(),
-    createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" }).notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
@@ -673,11 +734,21 @@ export const user = pgTable(
     interests: jsonb().default([]),
     civilianCareer: text("civilian_career"),
     linkedin: text(),
-    signalVisibility: visibilityEnum("signal_visibility").default("private").notNull(),
-    emailVisibility: visibilityEnum("email_visibility").default("private").notNull(),
-    linkedinVisibility: visibilityEnum("linkedin_visibility").default("public").notNull(),
-    createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+    signalVisibility: visibilityEnum("signal_visibility")
+      .default("private")
+      .notNull(),
+    emailVisibility: visibilityEnum("email_visibility")
+      .default("private")
+      .notNull(),
+    linkedinVisibility: visibilityEnum("linkedin_visibility")
+      .default("public")
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     unique("user_email_unique").on(table.email),
@@ -687,7 +758,10 @@ export const user = pgTable(
     check("user_email_verified_not_null", sql`NOT NULL email_verified`),
     check("user_signal_visibility_not_null", sql`NOT NULL signal_visibility`),
     check("user_email_visibility_not_null", sql`NOT NULL email_visibility`),
-    check("user_linkedin_visibility_not_null", sql`NOT NULL linkedin_visibility`),
+    check(
+      "user_linkedin_visibility_not_null",
+      sql`NOT NULL linkedin_visibility`,
+    ),
     check("user_created_at_not_null", sql`NOT NULL created_at`),
     check("user_updated_at_not_null", sql`NOT NULL updated_at`),
   ],
@@ -700,8 +774,12 @@ export const verification = pgTable(
     identifier: text().notNull(),
     value: text().notNull(),
     expiresAt: timestamp("expires_at", { mode: "string" }).notNull(),
-    createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
   },
   () => [
     check("verification_id_not_null", sql`NOT NULL id`),
@@ -725,7 +803,10 @@ export const userRoles = pgTable(
     metadata: jsonb(),
   },
   (table) => [
-    primaryKey({ columns: [table.userId, table.roleId], name: "pk_user_roles" }),
+    primaryKey({
+      columns: [table.userId, table.roleId],
+      name: "pk_user_roles",
+    }),
     check("user_roles_user_id_not_null", sql`NOT NULL user_id`),
     check("user_roles_role_id_not_null", sql`NOT NULL role_id`),
     check("user_roles_assigned_at_not_null", sql`NOT NULL assigned_at`),

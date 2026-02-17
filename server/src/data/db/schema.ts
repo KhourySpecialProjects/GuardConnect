@@ -16,11 +16,23 @@ import {
 import type { RoleKey } from "../../data/roles.js";
 
 // Enums
-export const permissionEnum = pgEnum("permission_enum", ["read", "write", "both"]);
+export const permissionEnum = pgEnum("permission_enum", [
+  "read",
+  "write",
+  "both",
+]);
 
-export const mentorStatusEnum = pgEnum("mentor_status_enum", ["requested", "approved", "active"]);
+export const mentorStatusEnum = pgEnum("mentor_status_enum", [
+  "requested",
+  "approved",
+  "active",
+]);
 
-export const menteeStatusEnum = pgEnum("mentee_status_enum", ["active", "inactive", "matched"]);
+export const menteeStatusEnum = pgEnum("mentee_status_enum", [
+  "active",
+  "inactive",
+  "matched",
+]);
 
 export const matchStatusEnum = pgEnum("match_status_enum", [
   "pending", // Mentee requested, waiting for mentor acceptance
@@ -46,16 +58,21 @@ export const visibilityEnum = pgEnum("visibility_enum", ["private", "public"]);
 
 export type RoleNamespace = (typeof roleNamespaceEnum.enumValues)[number];
 
-export const channelPostPermissionEnum = pgEnum("channel_post_permission_enum", [
-  "admin",
-  "everyone",
-  "custom",
-]);
+export const channelPostPermissionEnum = pgEnum(
+  "channel_post_permission_enum",
+  ["admin", "everyone", "custom"],
+);
 
 // Mentorship application enums
-export const positionTypeEnum = pgEnum("position_type_enum", ["active", "part-time"]);
+export const positionTypeEnum = pgEnum("position_type_enum", [
+  "active",
+  "part-time",
+]);
 
-export const serviceTypeEnum = pgEnum("service_type_enum", ["enlisted", "officer"]);
+export const serviceTypeEnum = pgEnum("service_type_enum", [
+  "enlisted",
+  "officer",
+]);
 
 export const meetingFormatEnum = pgEnum("meeting_format_enum", [
   "in-person",
@@ -74,7 +91,10 @@ export const careerStageEnum = pgEnum("career_stage_enum", [
   "no-preference",
 ]);
 
-export const mentorshipUserTypeEnum = pgEnum("mentorship_user_type_enum", ["mentor", "mentee"]);
+export const mentorshipUserTypeEnum = pgEnum("mentorship_user_type_enum", [
+  "mentor",
+  "mentee",
+]);
 
 // pgvector support - custom type for vector columns
 const vector = customType<{ data: number[]; driverData: string }>({
@@ -112,9 +132,15 @@ export const users = pgTable(
     civilianCareer: text("civilian_career"),
     linkedin: text("linkedin"),
 
-    signalVisibility: visibilityEnum("signal_visibility").notNull().default("private"),
-    emailVisibility: visibilityEnum("email_visibility").notNull().default("private"),
-    linkedinVisibility: visibilityEnum("linkedin_visibility").notNull().default("public"),
+    signalVisibility: visibilityEnum("signal_visibility")
+      .notNull()
+      .default("private"),
+    emailVisibility: visibilityEnum("email_visibility")
+      .notNull()
+      .default("private"),
+    linkedinVisibility: visibilityEnum("linkedin_visibility")
+      .notNull()
+      .default("public"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -182,7 +208,9 @@ export const channels = pgTable(
     channelId: integer("channel_id").primaryKey().generatedAlwaysAsIdentity(),
     name: text("name").notNull(),
     description: text("description"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
     metadata: jsonb("metadata"),
     postPermissionLevel: channelPostPermissionEnum("post_permission_level")
       .notNull()
@@ -225,8 +253,12 @@ export const roles = pgTable(
     }),
     metadata: jsonb("metadata"),
     description: text("description"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     sql`CONSTRAINT ck_roles_channel_namespace CHECK (${table.namespace.name} <> 'channel' OR ${table.channelId.name} IS NOT NULL)`,
@@ -255,7 +287,9 @@ export const userRoles = pgTable(
     roleId: integer("role_id")
       .references(() => roles.roleId, { onDelete: "cascade" })
       .notNull(),
-    assignedAt: timestamp("assigned_at", { withTimezone: true }).defaultNow().notNull(),
+    assignedAt: timestamp("assigned_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
     assignedBy: text("assigned_by").references(() => users.id, {
       onDelete: "set null",
     }),
@@ -276,18 +310,27 @@ export const userRoles = pgTable(
 export const channelSubscriptions = pgTable(
   "channel_subscriptions",
   {
-    subscriptionId: integer("subscription_id").primaryKey().generatedAlwaysAsIdentity(),
+    subscriptionId: integer("subscription_id")
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
     userId: text("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     channelId: integer("channel_id")
       .references(() => channels.channelId, { onDelete: "cascade" })
       .notNull(),
-    notificationsEnabled: boolean("notifications_enabled").default(true).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    notificationsEnabled: boolean("notifications_enabled")
+      .default(true)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
-    uniqueIndex("ux_channel_subscriptions_user_channel").on(table.userId, table.channelId),
+    uniqueIndex("ux_channel_subscriptions_user_channel").on(
+      table.userId,
+      table.channelId,
+    ),
     index("ix_channel_subscriptions_user_id").on(table.userId),
     index("ix_channel_subscriptions_channel_id").on(table.channelId),
   ],
@@ -306,7 +349,9 @@ export const messages = pgTable(
     }),
     message: text("message"),
     attachmentUrl: text("attachment_url"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index("ix_messages_channel_id").on(table.channelId),
@@ -317,19 +362,26 @@ export const messages = pgTable(
 export const messageAttachments = pgTable(
   "message_attachments",
   {
-    attachmentId: integer("attachment_id").primaryKey().generatedAlwaysAsIdentity(),
+    attachmentId: integer("attachment_id")
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
     messageId: integer("message_id")
       .references(() => messages.messageId, { onDelete: "cascade" })
       .notNull(),
     fileId: uuid("file_id")
       .references(() => files.fileId, { onDelete: "cascade" })
       .notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index("ix_message_attachments_message_id").on(table.messageId),
     index("ix_message_attachments_file_id").on(table.fileId),
-    uniqueIndex("ux_message_attachments_message_file").on(table.messageId, table.fileId),
+    uniqueIndex("ux_message_attachments_message_file").on(
+      table.messageId,
+      table.fileId,
+    ),
   ],
 );
 
@@ -344,10 +396,16 @@ export const messageReactions = pgTable(
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     emoji: text("emoji").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
-    uniqueIndex("ux_message_reactions_user").on(table.messageId, table.userId, table.emoji),
+    uniqueIndex("ux_message_reactions_user").on(
+      table.messageId,
+      table.userId,
+      table.emoji,
+    ),
     index("ix_message_reactions_message_id").on(table.messageId),
     index("ix_message_reactions_user_id").on(table.userId),
   ],
@@ -366,7 +424,9 @@ export const mentors = pgTable(
       .notNull(),
     mentorshipPreferences: text("mentorship_preferences"),
     yearsOfService: integer("years_of_service"),
-    eligibilityData: jsonb("eligibility_data").$type<Record<string, unknown> | null | undefined>(),
+    eligibilityData: jsonb("eligibility_data").$type<
+      Record<string, unknown> | null | undefined
+    >(),
     status: mentorStatusEnum("status").default("requested").notNull(),
     // New application fields
     resumeFileId: uuid("resume_file_id").references(() => files.fileId, {
@@ -376,11 +436,17 @@ export const mentors = pgTable(
     personalInterests: text("personal_interests"),
     whyInterestedResponses: jsonb("why_interested_responses").$type<string[]>(), // Ordered responses
     careerAdvice: text("career_advice"), // Text response to advice question
-    preferredMenteeCareerStages: jsonb("preferred_mentee_career_stages").$type<string[]>(), // Array of career stage enum values
+    preferredMenteeCareerStages: jsonb("preferred_mentee_career_stages").$type<
+      string[]
+    >(), // Array of career stage enum values
     preferredMeetingFormat: meetingFormatEnum("preferred_meeting_format"),
     hoursPerMonthCommitment: integer("hours_per_month_commitment"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     // CHECK (years_of_service IS NULL OR years_of_service >= 0)
@@ -397,15 +463,23 @@ export const mentors = pgTable(
 export const mentorRecommendations = pgTable(
   "mentor_recommendations",
   {
-    recommendationId: integer("recommendation_id").primaryKey().generatedAlwaysAsIdentity(),
+    recommendationId: integer("recommendation_id")
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
     userId: text("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    recommendedMentorIds: jsonb("recommended_mentor_ids").$type<string[]>().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    recommendedMentorIds: jsonb("recommended_mentor_ids")
+      .$type<string[]>()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
   },
-  (table) => [uniqueIndex("ux_mentor_recommendations_user_id").on(table.userId)],
+  (table) => [
+    uniqueIndex("ux_mentor_recommendations_user_id").on(table.userId),
+  ],
 );
 
 // MENTORSHIP MATCHES
@@ -416,11 +490,16 @@ export const mentorshipMatches = pgTable(
     requestorUserId: text("requestor_user_id").references(() => users.id),
     mentorUserId: text("mentor_user_id").references(() => users.id),
     status: matchStatusEnum("status").default("pending").notNull(),
-    matchedAt: timestamp("matched_at", { withTimezone: true }).defaultNow().notNull(),
+    matchedAt: timestamp("matched_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
     message: text("message"), // Optional personalized message from mentee to mentor
   },
   (table) => [
-    uniqueIndex("ux_mentorship_matches_pair").on(table.requestorUserId, table.mentorUserId),
+    uniqueIndex("ux_mentorship_matches_pair").on(
+      table.requestorUserId,
+      table.mentorUserId,
+    ),
     index("ix_mentorship_matches_requestor_user_id").on(table.requestorUserId),
     index("ix_mentorship_matches_mentor_user_id").on(table.mentorUserId),
     index("ix_mentorship_matches_status").on(table.status),
@@ -431,7 +510,9 @@ export const mentorshipMatches = pgTable(
 export const pushSubscriptions = pgTable(
   "push_subscriptions",
   {
-    subscriptionId: integer("subscription_id").primaryKey().generatedAlwaysAsIdentity(),
+    subscriptionId: integer("subscription_id")
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
     userId: text("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
@@ -440,7 +521,9 @@ export const pushSubscriptions = pgTable(
     auth: text("auth").notNull(),
     keys: jsonb("keys"),
     topics: jsonb("topics"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
     isActive: boolean("is_active").default(true).notNull(),
   },
   (table) => [
@@ -471,8 +554,12 @@ export const mentees = pgTable(
     mentorQualities: jsonb("mentor_qualities").$type<string[]>(), // What qualities look for
     preferredMeetingFormat: meetingFormatEnum("preferred_meeting_format"),
     hoursPerMonthCommitment: integer("hours_per_month_commitment"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     sql`CONSTRAINT ck_mentees_hours_per_month CHECK (${table.hoursPerMonthCommitment.name} IS NULL OR ${table.hoursPerMonthCommitment.name} > 0)`,
@@ -498,8 +585,12 @@ export const messageBlasts = pgTable(
       .notNull()
       .default(sql`NOW() + INTERVAL '24 hours'`),
     status: messageBlastStatusEnum("status").default("draft").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index("ix_message_blasts_sender_id").on(table.senderId),
@@ -509,7 +600,11 @@ export const messageBlasts = pgTable(
 );
 
 // Reports
-export const reportStatusEnum = pgEnum("report_status_enum", ["Pending", "Assigned", "Resolved"]);
+export const reportStatusEnum = pgEnum("report_status_enum", [
+  "Pending",
+  "Assigned",
+  "Resolved",
+]);
 
 export const reportCategoryEnum = pgEnum("report_category_enum", [
   "Communication",
@@ -534,25 +629,36 @@ export const reports = pgTable("reports", {
   assignedBy: text("assigned_by").references(() => users.id, {
     onDelete: "set null",
   }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
   resolvedAt: timestamp("resolved", { withTimezone: true }),
 });
 
 export const reportAttachments = pgTable(
   "report_attachments",
   {
-    attachmentId: integer("attachment_id").primaryKey().generatedAlwaysAsIdentity(),
+    attachmentId: integer("attachment_id")
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
     reportId: uuid("report_id")
       .references(() => reports.reportId, { onDelete: "cascade" })
       .notNull(),
     fileId: uuid("file_id")
       .references(() => files.fileId, { onDelete: "cascade" })
       .notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
-    uniqueIndex("ux_report_attachments_report_file").on(table.reportId, table.fileId),
+    uniqueIndex("ux_report_attachments_report_file").on(
+      table.reportId,
+      table.fileId,
+    ),
     index("ix_report_attachments_report_id").on(table.reportId),
   ],
 );
@@ -561,7 +667,9 @@ export const reportAttachments = pgTable(
 export const mentorshipEmbeddings = pgTable(
   "mentorship_embeddings",
   {
-    embeddingId: integer("embedding_id").primaryKey().generatedAlwaysAsIdentity(),
+    embeddingId: integer("embedding_id")
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
     userId: text("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
@@ -571,11 +679,18 @@ export const mentorshipEmbeddings = pgTable(
     hopeToGainEmbedding: vector("hope_to_gain_embedding"), // For mentees
     // Combined embedding for overall profile matching
     profileEmbedding: vector("profile_embedding"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
-    uniqueIndex("ux_mentorship_embeddings_user_type").on(table.userId, table.userType),
+    uniqueIndex("ux_mentorship_embeddings_user_type").on(
+      table.userId,
+      table.userType,
+    ),
     index("ix_mentorship_embeddings_user_id").on(table.userId),
     index("ix_mentorship_embeddings_user_type").on(table.userType),
     sql`CREATE INDEX IF NOT EXISTS ix_mentorship_embeddings_profile_embedding ON mentorship_embeddings USING ivfflat (profile_embedding vector_cosine_ops) WITH (lists = 100)`,
@@ -592,7 +707,9 @@ export const inviteCodes = pgTable(
     createdBy: text("created_by")
       .references(() => users.id, { onDelete: "set null" })
       .notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     usedBy: text("used_by").references(() => users.id, {
       onDelete: "set null",
