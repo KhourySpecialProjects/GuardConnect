@@ -9,6 +9,30 @@ import type { CreateUserInput } from "../../types/user-types.js";
  * Repository to handle database queries/communication related to users
  */
 export class UserRepository {
+  private normalizeInterests(interests: unknown): string[] | null {
+    if (Array.isArray(interests)) {
+      return interests.filter(
+        (value): value is string => typeof value === "string",
+      );
+    }
+
+    if (typeof interests === "string") {
+      return interests
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0);
+    }
+
+    return null;
+  }
+
+  private normalizeUserRow<T extends { interests: unknown }>(row: T) {
+    return {
+      ...row,
+      interests: this.normalizeInterests(row.interests),
+    };
+  }
+
   async searchUsers(name: string) {
     const searchTerm = name.trim().toLowerCase();
     if (!searchTerm) return [];
@@ -68,7 +92,7 @@ export class UserRepository {
     if (!userRow) {
       throw new NotFoundError(`User ${user_id} not found`);
     }
-    return userRow;
+    return this.normalizeUserRow(userRow);
   }
 
   /**
@@ -167,7 +191,7 @@ export class UserRepository {
       throw new NotFoundError(`User ${userId} not found`);
     }
 
-    return updated;
+    return this.normalizeUserRow(updated);
   }
 
   async updateUserProfile(
@@ -252,7 +276,7 @@ export class UserRepository {
       throw new NotFoundError(`User ${userId} not found`);
     }
 
-    return updated;
+    return this.normalizeUserRow(updated);
   }
 
   /**
@@ -284,7 +308,7 @@ export class UserRepository {
       .from(users)
       .where(inArray(users.id, user_ids));
 
-    return userRows;
+    return userRows.map((row) => this.normalizeUserRow(row));
   }
 
   async createUser(userData: CreateUserInput["userData"]) {
