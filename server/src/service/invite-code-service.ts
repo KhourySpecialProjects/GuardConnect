@@ -1,4 +1,5 @@
 import { customAlphabet } from "nanoid";
+import type { DbTransaction } from "../data/db/db-client.js";
 import type { AuthRepository } from "../data/repository/auth-repo.js";
 import type { InviteCodeRepository } from "../data/repository/invite-code-repo.js";
 import { hasPermission } from "../data/role-hierarchy.js";
@@ -124,10 +125,11 @@ export class InviteCodeService {
    */
   async validateInviteCode(
     code: string,
+    tx?: DbTransaction,
   ): Promise<
     { isValid: true; roleKeys: RoleKey[] } | { isValid: false; message: string }
   > {
-    const inviteCode = await this.inviteCodeRepo.getInviteCodeByCode(code);
+    const inviteCode = await this.inviteCodeRepo.getInviteCodeByCode(code, tx);
 
     if (!inviteCode) {
       return {
@@ -174,28 +176,33 @@ export class InviteCodeService {
    * @param userId User ID to assign roles to
    * @throws ValidationError if code is invalid
    */
-  async useInviteAndAssignRoles(code: string, userId: string) {
+  async useInviteAndAssignRoles(
+    code: string,
+    userId: string,
+    tx?: DbTransaction,
+  ) {
     // Validate the code
-    const validation = await this.validateInviteCode(code);
+    const validation = await this.validateInviteCode(code, tx);
 
     if (!validation.isValid) {
       throw new ValidationError(validation.message ?? "Invalid invite code");
     }
 
     // Get the full invite code
-    const inviteCode = await this.inviteCodeRepo.getInviteCodeByCode(code);
+    const inviteCode = await this.inviteCodeRepo.getInviteCodeByCode(code, tx);
     if (!inviteCode) {
       throw new NotFoundError("Invite code not found");
     }
 
     // Mark code as used
-    await this.inviteCodeRepo.markCodeAsUsed(inviteCode.codeId, userId);
+    await this.inviteCodeRepo.markCodeAsUsed(inviteCode.codeId, userId, tx);
 
     // Bulk assign all roles to the user
     const bulkResult = await this.authRepo.grantAccessBulk(
       inviteCode.createdBy,
       userId,
       validation.roleKeys,
+      tx,
     );
 
     log.info(

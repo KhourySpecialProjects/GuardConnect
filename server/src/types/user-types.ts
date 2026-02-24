@@ -141,6 +141,7 @@ export const createUserInputSchema = z.object({
     email: z.email(),
     password: z.string(),
     name: z.string(),
+    phoneNumber: z.string().optional(),
     rank: z.string(),
     about: z.string(),
     location: z.string(),

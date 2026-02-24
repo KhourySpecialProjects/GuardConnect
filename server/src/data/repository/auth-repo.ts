@@ -1,4 +1,5 @@
 import { count, eq } from "drizzle-orm";
+import type { DbTransaction } from "../../data/db/db-client.js";
 import { getRedisClientInstance } from "../../data/db/redis.js";
 import {
   type RoleNamespace,
@@ -120,8 +121,9 @@ export class AuthRepository {
    * @param roleKey Role key
    * @returns Role ID or null if not found
    */
-  async getRoleId(roleKey: RoleKey) {
-    const roleData = await db
+  async getRoleId(roleKey: RoleKey, tx?: DbTransaction) {
+    const database = tx ?? db;
+    const roleData = await database
       .selectDistinct({
         roleId: roles.roleId,
       })
@@ -238,6 +240,7 @@ export class AuthRepository {
     userId: string,
     targetUserId: string,
     roleKeys: RoleKey[],
+    tx?: DbTransaction,
   ) {
     const results: {
       roleKey: RoleKey;
@@ -250,7 +253,7 @@ export class AuthRepository {
     // Get all role IDs first
     const roleIdMap = new Map<RoleKey, number>();
     for (const roleKey of roleKeys) {
-      const roleId = await this.getRoleId(roleKey);
+      const roleId = await this.getRoleId(roleKey, tx);
       if (roleId) {
         roleIdMap.set(roleKey, roleId);
       } else {
@@ -275,7 +278,11 @@ export class AuthRepository {
     // Bulk insert
     if (insertValues.length > 0) {
       try {
-        await db.insert(userRoles).values(insertValues).onConflictDoNothing();
+        const database = tx ?? db;
+        await database
+          .insert(userRoles)
+          .values(insertValues)
+          .onConflictDoNothing();
 
         // Add successful results
         for (const [roleKey, roleId] of roleIdMap.entries()) {

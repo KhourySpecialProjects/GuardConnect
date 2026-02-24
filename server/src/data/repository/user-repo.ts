@@ -1,5 +1,6 @@
 import { and, eq, ilike, inArray, or } from "drizzle-orm";
 import { auth } from "../../auth.js";
+import type { DbTransaction } from "../../data/db/db-client.js";
 import { users } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { NotFoundError } from "../../types/errors.js";
@@ -317,6 +318,7 @@ export class UserRepository {
         email: userData.email,
         password: userData.password,
         name: userData.name,
+        phoneNumber: userData.phoneNumber,
         rank: userData.rank,
         about: userData.about,
         location: userData.location,
@@ -329,21 +331,49 @@ export class UserRepository {
       },
     });
 
+    return res;
+  }
+
+  async postSignupUpdates(
+    userId: string,
+    userData: CreateUserInput["userData"],
+    tx?: DbTransaction,
+  ) {
+    const database = tx ?? db;
+    const updateFields: Partial<typeof users.$inferInsert> = {};
+
     // BetterAuth doesn't properly support JSON types, so we will update it separately
     if (userData.interests) {
-      await db
-        .update(users)
-        .set({ interests: userData.interests })
-        .where(eq(users.id, res.user.id));
+      updateFields.interests = userData.interests;
     }
 
     if (userData.linkedin !== undefined) {
-      await db
-        .update(users)
-        .set({ linkedin: userData.linkedin })
-        .where(eq(users.id, res.user.id));
+      updateFields.linkedin = userData.linkedin;
     }
 
-    return res;
+    if (Object.keys(updateFields).length === 0) {
+      return;
+    }
+
+    const [updated] = await database
+      .update(users)
+      .set(updateFields)
+      .where(eq(users.id, userId))
+      .returning({ id: users.id });
+
+    if (!updated) {
+      throw new NotFoundError(`User ${userId} not found`);
+    }
+  }
+
+  async deleteUser(userId: string) {
+    const [deleted] = await db
+      .delete(users)
+      .where(eq(users.id, userId))
+      .returning({ id: users.id });
+
+    if (!deleted) {
+      throw new NotFoundError(`User ${userId} not found`);
+    }
   }
 }

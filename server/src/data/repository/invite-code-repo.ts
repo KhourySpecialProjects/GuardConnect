@@ -8,6 +8,7 @@ import {
   lt,
   type SQL,
 } from "drizzle-orm";
+import type { DbTransaction } from "../../data/db/db-client.js";
 import { type InviteCode, inviteCodes } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import type { RoleKey } from "../../data/roles.js";
@@ -58,8 +59,9 @@ export class InviteCodeRepository {
    * @param code Invite code string
    * @returns Invite code object or null if not found
    */
-  async getInviteCodeByCode(code: string) {
-    const [inviteCode] = await db
+  async getInviteCodeByCode(code: string, tx?: DbTransaction) {
+    const database = tx ?? db;
+    const [inviteCode] = await database
       .select()
       .from(inviteCodes)
       .where(eq(inviteCodes.code, code));
@@ -92,8 +94,9 @@ export class InviteCodeRepository {
    * @param userId User ID who used the code
    * @returns Updated invite code
    */
-  async markCodeAsUsed(codeId: number, userId: string) {
-    const [updated] = await db
+  async markCodeAsUsed(codeId: number, userId: string, tx?: DbTransaction) {
+    const database = tx ?? db;
+    const [updated] = await database
       .update(inviteCodes)
       .set({
         usedBy: userId,

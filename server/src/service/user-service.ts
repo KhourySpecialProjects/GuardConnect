@@ -1,4 +1,5 @@
 import { getRedisClientInstance } from "../data/db/redis.js";
+import { db } from "../data/db/sql.js";
 import { FileRepository } from "../data/repository/file-repo.js";
 import type { UserRepository } from "../data/repository/user-repo.js";
 import { NotFoundError } from "../types/errors.js";
@@ -187,15 +188,35 @@ export class UserService {
       await this.inviteCodeService.validateInviteCode(inviteCode);
 
     if (!validationRes.isValid) {
-      throw new Error("Invalid invite code");
+      throw new Error(validationRes.message);
     }
 
     const signupRes = await this.usersRepo.createUser(userData);
 
-    await this.inviteCodeService.useInviteAndAssignRoles(
-      inviteCode,
-      signupRes.user.id,
-    );
+    try {
+      await db.transaction(async (tx) => {
+        await this.usersRepo.postSignupUpdates(signupRes.user.id, userData, tx);
+
+        await this.inviteCodeService.useInviteAndAssignRoles(
+          inviteCode,
+          signupRes.user.id,
+          tx,
+        );
+      });
+    } catch (error) {
+      try {
+        await this.usersRepo.deleteUser(signupRes.user.id);
+      } catch (deleteError) {
+        log.error(
+          {
+            userId: signupRes.user.id,
+            deleteError,
+          },
+          "Failed to clean up orphaned auth record after signup failure",
+        );
+      }
+      throw error;
+    }
 
     return signupRes;
   }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
-import { toast } from "sonner";
+import { Suspense, useEffect, useState } from "react";
 import { locationOptions } from "@/app/login/create-account/MA-towns";
 import {
   airForceRanks,
@@ -89,18 +88,33 @@ function CreateAccountPage() {
   const [bioError, setBioError] = useState<string | null>(null);
   const [branchError, setBranchError] = useState<string | null>(null);
 
-  const [isCreateAccount, setIsCreateAccount] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isSubmitting) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isSubmitting]);
+
   const handleCreateAccount = async () => {
     setDutyError(null);
     setEmailError(null);
     setPasswordError(null);
     setBioError(null);
     setBranchError(null);
-
-    await authClient.signOut();
+    setSubmitError(null);
 
     if (!inviteCode) {
-      toast.error(
+      setSubmitError(
         "Invite code is missing. Please return to the sign-up page and try again.",
       );
       return;
@@ -126,6 +140,21 @@ function CreateAccountPage() {
       return;
     }
 
+    if (!fullname.trim()) {
+      setSubmitError("Full name is required.");
+      return;
+    }
+
+    if (!locationSelection.trim()) {
+      setSubmitError("Location is required.");
+      return;
+    }
+
+    if (!department.trim()) {
+      setSubmitError("Department is required.");
+      return;
+    }
+
     if (!branch) {
       setBranchError("Branch is required");
       return;
@@ -136,22 +165,30 @@ function CreateAccountPage() {
       return;
     }
 
-    setIsCreateAccount(true);
+    setIsSubmitting(true);
     try {
+      const { error: signOutError } = await authClient.signOut();
+      if (signOutError) {
+        throw new Error(
+          signOutError.message ?? "Unable to prepare account setup.",
+        );
+      }
+
       await trpc.user.createUser.mutate({
         inviteCode,
         userData: {
           email,
           password,
-          name: fullname,
+          name: fullname.trim(),
+          phoneNumber: phone.trim() ? phone.trim() : undefined,
           rank: rankSelection,
-          about: multiLineText,
-          location: locationSelection,
+          about: multiLineText.trim(),
+          location: locationSelection.trim(),
           positionType:
             dutySelection === "active-duty" ? "active" : "part-time",
           branch: branch === "air-force-national-guard" ? "airforce" : "army",
-          department,
-          civilianCareer: careerField,
+          department: department.trim(),
+          civilianCareer: careerField.trim(),
 
           emailVisibility,
           signalVisibility,
@@ -165,18 +202,29 @@ function CreateAccountPage() {
       const { error } = await authClient.signIn.email({ email, password });
 
       if (error) {
-        const message = error.message ?? "Unable to create account right now.";
-        toast.error(`${message} Please try again.`);
+        throw new Error(
+          error.message ?? "Unable to sign in to the new account.",
+        );
       } else {
-        router.replace("/login");
+        router.replace("/communications");
       }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Account creation failed.";
+      if (message.includes("already been used")) {
+        setSubmitError(
+          "This invite code has already been used. If your account already exists, please sign in.",
+        );
+        return;
+      }
+      setSubmitError(message);
     } finally {
-      setIsCreateAccount(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-left px-6 py-16 sm:gap-0 sm:px-10 lg:pr-16lg:px-16 ">
+    <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-start px-6 py-16 sm:gap-0 sm:px-10 lg:px-16">
       <h1 className="text-3xl font-semibold text-secondary sm:text-4xl lg:text-3xl mb-3">
         Create Your Account
       </h1>
@@ -209,6 +257,7 @@ function CreateAccountPage() {
           onChange={(value) => {
             setEmail(value);
             setEmailError(null);
+            setSubmitError(null);
           }}
         />
         {emailError && <p className="mt-1 text-xs text-error">{emailError}</p>}
@@ -224,6 +273,7 @@ function CreateAccountPage() {
           onChange={(value) => {
             setPassword(value);
             setPasswordError(null);
+            setSubmitError(null);
           }}
         />
         {passwordError && (
@@ -240,14 +290,20 @@ function CreateAccountPage() {
           placeholder="(123) 456-7890"
           value={phone}
           className="w-full mt-2"
-          onChange={setPhone}
+          onChange={(value) => {
+            setPhone(value);
+            setSubmitError(null);
+          }}
         />
 
         <label htmlFor="login-location">Location*</label>
         <DropdownSelect
           options={locationOptions}
           value={locationSelection}
-          onChange={setLocationSelection}
+          onChange={(value) => {
+            setLocationSelection(value);
+            setSubmitError(null);
+          }}
           className="w-full mt-2"
         />
 
@@ -260,6 +316,7 @@ function CreateAccountPage() {
               val as "army-national-guard" | "air-force-national-guard",
             );
             setBranchError(null);
+            setSubmitError(null);
           }}
           onDropdownChange={(branch, rank) => {
             setBranch(
@@ -267,6 +324,7 @@ function CreateAccountPage() {
             );
             setRankSelection(rank);
             setBranchError(null);
+            setSubmitError(null);
           }}
           className="w-full mt-2"
         />
@@ -281,7 +339,10 @@ function CreateAccountPage() {
           placeholder="Your department"
           value={department}
           className="w-full mt-2"
-          onChange={setDepartment}
+          onChange={(value) => {
+            setDepartment(value);
+            setSubmitError(null);
+          }}
         />
 
         <label htmlFor="login-career-field">What is your career field?</label>
@@ -291,7 +352,10 @@ function CreateAccountPage() {
           placeholder="Your career field"
           value={careerField}
           className="w-full mt-2"
-          onChange={setCareerField}
+          onChange={(value) => {
+            setCareerField(value);
+            setSubmitError(null);
+          }}
         />
 
         <label htmlFor="login-duty-status">
@@ -306,6 +370,7 @@ function CreateAccountPage() {
           onChange={(value) => {
             setDutySelection(value as "active-duty" | "part-time" | null);
             setDutyError(null);
+            setSubmitError(null);
           }}
         />
         {dutyError && <p className="mt-1 text-xs text-error">{dutyError}</p>}
@@ -316,6 +381,7 @@ function CreateAccountPage() {
           onChange={(value) => {
             setMultiLineText(value);
             setBioError(null);
+            setSubmitError(null);
           }}
           placeholder="Enter a short biography about yourself..."
           multiline={true}
@@ -337,7 +403,10 @@ function CreateAccountPage() {
           helperText=" "
           options={InterestOptions}
           value={selectedInterests}
-          onChange={setSelectedInterests}
+          onChange={(value) => {
+            setSelectedInterests(value);
+            setSubmitError(null);
+          }}
           maxSelections={9}
         />
 
@@ -348,6 +417,7 @@ function CreateAccountPage() {
               value={signalVisibility}
               onValueChange={(value) => {
                 setSignalVisibility(value as "private" | "public");
+                setSubmitError(null);
               }}
             >
               <SelectTrigger
@@ -369,6 +439,7 @@ function CreateAccountPage() {
               value={emailVisibility}
               onValueChange={(value) => {
                 setEmailVisibility(value as "private" | "public");
+                setSubmitError(null);
               }}
             >
               <SelectTrigger
@@ -387,15 +458,18 @@ function CreateAccountPage() {
       </div>
 
       <div className="flex-1 max-w-xl mt-5">
+        {submitError && (
+          <p className="mb-2 text-sm text-error">{submitError}</p>
+        )}
         <Button
           type="button"
           className="inline-flex items-center gap-2 px-6"
-          disabled={isCreateAccount}
+          disabled={isSubmitting}
           onClick={handleCreateAccount}
           aria-label="Create a new account"
         >
-          {isCreateAccount && <Spinner />}
-          Create Account
+          {isSubmitting && <Spinner />}
+          {isSubmitting ? "Creating Account..." : "Create Account"}
         </Button>
       </div>
     </div>
