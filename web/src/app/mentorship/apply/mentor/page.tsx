@@ -15,7 +15,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { authClient } from "@/lib/auth-client";
 import { useTRPCClient } from "@/lib/trpc";
 
 type ResumeState = null | {
@@ -29,8 +28,6 @@ export default function MentorshipApplyMentorPage() {
   const trpcClient = useTRPCClient();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: sessionData } = authClient.useSession();
-  const userId = sessionData?.user?.id ?? null;
   const backHref = useMemo(
     () =>
       searchParams.get("from") === "dashboard"
@@ -134,11 +131,6 @@ export default function MentorshipApplyMentorPage() {
   }, [resume, isSubmitted, trpcClient]);
 
   const handleSubmit = useCallback(async () => {
-    if (!userId) {
-      setFormError("You must be logged in to submit this application.");
-      return;
-    }
-
     setFormError(null);
     setIsSubmitting(true);
 
@@ -197,7 +189,6 @@ export default function MentorshipApplyMentorPage() {
       })();
 
       await createMentor.mutateAsync({
-        userId,
         resumeFileId: resume?.status === "uploaded" ? resume.fileId : undefined,
         strengths: selectedQualities,
         personalInterests:
@@ -234,7 +225,6 @@ export default function MentorshipApplyMentorPage() {
       setIsSubmitting(false);
     }
   }, [
-    userId,
     resume,
     selectedQualities,
     selectedInterests,

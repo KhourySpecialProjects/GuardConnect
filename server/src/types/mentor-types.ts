@@ -38,7 +38,6 @@ export const mentorSchema = z.object({
 export type MentorSchema = z.infer<typeof mentorSchema>;
 
 export const createMentorInputSchema = z.object({
-  userId: z.string(),
   mentorshipPreferences: z.string().optional(),
   yearsOfService: z.number().int().nonnegative().optional(),
   eligibilityData: z.record(z.string(), z.unknown()).nullish(),
@@ -70,7 +69,9 @@ export const createMentorInputSchema = z.object({
   hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
 
-export type CreateMentorInput = z.infer<typeof createMentorInputSchema>;
+export type CreateMentorInput = z.infer<typeof createMentorInputSchema> & {
+  userId: string;
+};
 
 export const createMentorOutputSchema = z.object({
   mentorId: z.number(),
