@@ -1,10 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
-import {
-  mentees,
-  mentors,
-  mentorshipMatches,
-  users,
-} from "../../data/db/schema.js";
+import { mentees, mentors, mentorshipMatches, users } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import type {
@@ -46,11 +41,7 @@ export class MenteeRepository {
     roleModelInspiration?: string,
     hopeToGainResponses?: string[],
     mentorQualities?: string[],
-    preferredMeetingFormat?:
-      | "in-person"
-      | "virtual"
-      | "hybrid"
-      | "no-preference",
+    preferredMeetingFormat?: "in-person" | "virtual" | "hybrid",
     hoursPerMonthCommitment?: number,
   ): Promise<CreateMenteeOutput> {
     // Check if mentee already exists for this user
@@ -220,11 +211,7 @@ export class MenteeRepository {
     roleModelInspiration?: string,
     hopeToGainResponses?: string[],
     mentorQualities?: string[],
-    preferredMeetingFormat?:
-      | "in-person"
-      | "virtual"
-      | "hybrid"
-      | "no-preference",
+    preferredMeetingFormat?: "in-person" | "virtual" | "hybrid",
     hoursPerMonthCommitment?: number,
   ): Promise<UpdateMenteeOutput> {
     const updateData: Partial<typeof mentees.$inferInsert> = {
@@ -232,20 +219,14 @@ export class MenteeRepository {
     };
 
     if (learningGoals !== undefined) updateData.learningGoals = learningGoals;
-    if (experienceLevel !== undefined)
-      updateData.experienceLevel = experienceLevel;
-    if (preferredMentorType !== undefined)
-      updateData.preferredMentorType = preferredMentorType;
+    if (experienceLevel !== undefined) updateData.experienceLevel = experienceLevel;
+    if (preferredMentorType !== undefined) updateData.preferredMentorType = preferredMentorType;
     if (status !== undefined) updateData.status = status;
     if (resumeFileId !== undefined) updateData.resumeFileId = resumeFileId;
-    if (personalInterests !== undefined)
-      updateData.personalInterests = personalInterests;
-    if (roleModelInspiration !== undefined)
-      updateData.roleModelInspiration = roleModelInspiration;
-    if (hopeToGainResponses !== undefined)
-      updateData.hopeToGainResponses = hopeToGainResponses;
-    if (mentorQualities !== undefined)
-      updateData.mentorQualities = mentorQualities;
+    if (personalInterests !== undefined) updateData.personalInterests = personalInterests;
+    if (roleModelInspiration !== undefined) updateData.roleModelInspiration = roleModelInspiration;
+    if (hopeToGainResponses !== undefined) updateData.hopeToGainResponses = hopeToGainResponses;
+    if (mentorQualities !== undefined) updateData.mentorQualities = mentorQualities;
     if (preferredMeetingFormat !== undefined)
       updateData.preferredMeetingFormat = preferredMeetingFormat;
     if (hoursPerMonthCommitment !== undefined)
@@ -301,9 +282,7 @@ export class MenteeRepository {
    * @param status Mentee status
    * @returns Array of mentee profiles
    */
-  async getMenteesByStatus(
-    status: "active" | "inactive" | "matched",
-  ): Promise<GetMenteeOutput[]> {
+  async getMenteesByStatus(status: "active" | "inactive" | "matched"): Promise<GetMenteeOutput[]> {
     return await db
       .select({
         menteeId: mentees.menteeId,

@@ -26,10 +26,7 @@ export const mentorSchema = z.object({
     )
     .nullable()
     .optional(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
-    .nullable()
-    .optional(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullable().optional(),
   hoursPerMonthCommitment: z.number().int().positive().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -42,10 +39,7 @@ export const createMentorInputSchema = z.object({
   mentorshipPreferences: z.string().optional(),
   yearsOfService: z.number().int().nonnegative().optional(),
   eligibilityData: z.record(z.string(), z.unknown()).nullish(),
-  status: z
-    .enum(["requested", "approved", "active"])
-    .optional()
-    .default("requested"),
+  status: z.enum(["requested", "approved", "active"]).optional().default("requested"),
   resumeFileId: z.string().uuid().optional(),
   strengths: z.array(z.string()).max(5).optional().default([]),
   personalInterests: z.string().optional(),
@@ -64,9 +58,7 @@ export const createMentorInputSchema = z.object({
       ]),
     )
     .optional(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
-    .optional(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).optional(),
   hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
 
@@ -85,9 +77,7 @@ export const createMentorOutputSchema = z.object({
   whyInterestedResponses: z.array(z.string()).nullish(),
   careerAdvice: z.string().nullish(),
   preferredMenteeCareerStages: z.array(z.string()).nullish(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
-    .nullish(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -108,9 +98,7 @@ export const getMentorOutputSchema = z.object({
   whyInterestedResponses: z.array(z.string()).nullish(),
   careerAdvice: z.string().nullish(),
   preferredMenteeCareerStages: z.array(z.string()).nullish(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
-    .nullish(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),

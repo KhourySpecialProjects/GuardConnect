@@ -12,10 +12,7 @@ export const menteeSchema = z.object({
   roleModelInspiration: z.string().nullable().optional(),
   hopeToGainResponses: z.array(z.string()).nullable().optional(),
   mentorQualities: z.array(z.string()).nullable().optional(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
-    .nullable()
-    .optional(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullable().optional(),
   hoursPerMonthCommitment: z.number().int().positive().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -28,18 +25,13 @@ export const createMenteeInputSchema = z.object({
   learningGoals: z.string().optional(),
   experienceLevel: z.string().optional(),
   preferredMentorType: z.string().optional(),
-  status: z
-    .enum(["active", "inactive", "matched"])
-    .optional()
-    .default("active"),
+  status: z.enum(["active", "inactive", "matched"]).optional().default("active"),
   resumeFileId: z.string().uuid().optional(),
   personalInterests: z.string().optional(),
   roleModelInspiration: z.string().optional(),
   hopeToGainResponses: z.array(z.string()).optional(),
   mentorQualities: z.array(z.string()).optional(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
-    .optional(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).optional(),
   hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
 
@@ -76,12 +68,7 @@ export type CreateMenteeOutput = {
   roleModelInspiration?: string | null;
   hopeToGainResponses?: string[] | null;
   mentorQualities?: string[] | null;
-  preferredMeetingFormat?:
-    | "in-person"
-    | "virtual"
-    | "hybrid"
-    | "no-preference"
-    | null;
+  preferredMeetingFormat?: "in-person" | "virtual" | "hybrid" | null;
   hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -99,9 +86,7 @@ export const getMenteeOutputSchema = z.object({
   roleModelInspiration: z.string().nullish(),
   hopeToGainResponses: z.array(z.string()).nullish(),
   mentorQualities: z.array(z.string()).nullish(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
-    .nullish(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
@@ -135,12 +120,7 @@ export type UpdateMenteeOutput = {
   roleModelInspiration?: string | null;
   hopeToGainResponses?: string[] | null;
   mentorQualities?: string[] | null;
-  preferredMeetingFormat?:
-    | "in-person"
-    | "virtual"
-    | "hybrid"
-    | "no-preference"
-    | null;
+  preferredMeetingFormat?: "in-person" | "virtual" | "hybrid" | null;
   hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;
