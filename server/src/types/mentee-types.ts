@@ -24,7 +24,6 @@ export const menteeSchema = z.object({
 export type MenteeSchema = z.infer<typeof menteeSchema>;
 
 export const createMenteeInputSchema = z.object({
-  userId: z.string(),
   learningGoals: z.string().optional(),
   experienceLevel: z.string().optional(),
   preferredMentorType: z.string().optional(),
@@ -59,7 +58,9 @@ export const getMenteesByUserInputSchema = z.object({
   userId: z.string(),
 });
 
-export type CreateMenteeInput = z.infer<typeof createMenteeInputSchema>;
+export type CreateMenteeInput = z.infer<typeof createMenteeInputSchema> & {
+  userId: string;
+};
 export type UpdateMenteeInput = z.infer<typeof updateMenteeInputSchema>;
 export type GetMenteeInput = z.infer<typeof getMenteeInputSchema>;
 export type GetMenteesByUserInput = z.infer<typeof getMenteesByUserInputSchema>;

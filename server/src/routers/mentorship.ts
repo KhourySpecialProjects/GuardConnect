@@ -32,10 +32,14 @@ const createMentor = protectedProcedure
       tags: ["Mentorship"],
     },
   })
-  .mutation(({ input }) =>
+  .mutation(({ input, ctx }) =>
     withErrorHandling("", async () => {
-      log.debug({ userId: input.userId }, "createMentor");
-      return await mentorshipService.createMentor(input);
+      const userId = ctx.auth.user.id;
+      log.debug({ userId }, "createMentor");
+      return await mentorshipService.createMentor({
+        ...input,
+        userId,
+      });
     }),
   );
 
@@ -50,9 +54,12 @@ const createMentee = protectedProcedure
       tags: ["Mentorship"],
     },
   })
-  .mutation(({ input }) =>
+  .mutation(({ input, ctx }) =>
     withErrorHandling("createMentee", async () => {
-      return await mentorshipService.createMentee(input);
+      return await mentorshipService.createMentee({
+        ...input,
+        userId: ctx.auth.user.id,
+      });
     }),
   );
 

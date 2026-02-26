@@ -37,26 +37,21 @@ export const getUserDataInputSchema = z.object({
 export const userDataOutputSchema = z.object({
   id: z.string(),
   name: z.string(),
-  email: z.email(),
+  email: z.string(),
   phoneNumber: z.string().nullable(),
   rank: z.string().nullable(),
   department: z.string().nullable(),
   branch: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  image: z.uuid().nullable(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  image: z.string().nullable(),
   location: z.string().nullable(),
   about: z.string().nullable(),
   interests: z.array(z.string()).nullable(),
-  signalVisibility: z.enum(["private", "public"]),
-  emailVisibility: z.enum(["private", "public"]),
-  linkedin: z
-    .url()
-    .refine((url) => url.startsWith("https://www.linkedin.com/in/"), {
-      message: "LinkedIn URL must start with https://www.linkedin.com/in/",
-    })
-    .nullable(),
-  linkedinVisibility: z.enum(["private", "public"]),
+  signalVisibility: z.enum(["private", "public"]).nullable(),
+  emailVisibility: z.enum(["private", "public"]).nullable(),
+  linkedin: z.string().nullable(),
+  linkedinVisibility: z.enum(["private", "public"]).nullable(),
 });
 
 export const checkEmailExistsInputSchema = z.object({
