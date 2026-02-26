@@ -140,16 +140,13 @@ scored_mentors AS (
         ) * ${sql.raw(String(VECTOR_SIMILARITY_WEIGHT))} AS vector_score,
         
         -- Meeting format compatibility (weight: 0.15)
-        -- Full match: 1.0, partial match: 0.6, no preference involved: 0.8, no match: 0.3
+        -- Full match: 1.0, partial match: 0.8, no match: 0.3
         CASE
             -- Exact match
             WHEN m.preferred_meeting_format = md.mentee_meeting_format THEN 1.0
-            -- Either has no preference
-            WHEN m.preferred_meeting_format = 'no-preference' OR md.mentee_meeting_format = 'no-preference' THEN 0.9
-            WHEN m.preferred_meeting_format IS NULL OR md.mentee_meeting_format IS NULL THEN 0.8
-            -- Hybrid matches with in-person or virtual
-            WHEN m.preferred_meeting_format = 'hybrid' OR md.mentee_meeting_format = 'hybrid' THEN 0.7
-            -- No match but still consider (diffusion)
+            -- Either has hybrid
+            WHEN m.preferred_meeting_format = 'hybrid' AND md.mentee_meeting_format != 'hybrid' THEN 0.8
+            WHEN m.preferred_meeting_format != 'hybrid' AND md.mentee_meeting_format = 'hybrid' THEN 0.8
             ELSE 0.3
         END * ${sql.raw(String(MEETING_FORMAT_WEIGHT))} AS format_score,
         

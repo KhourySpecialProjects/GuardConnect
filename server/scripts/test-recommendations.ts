@@ -37,7 +37,7 @@ type MentorInput = {
   whyInterestedResponses: string[];
   careerAdvice: string;
   preferredMenteeCareerStages: string[];
-  preferredMeetingFormat: "in-person" | "virtual" | "hybrid" | "no-preference";
+  preferredMeetingFormat: "in-person" | "virtual" | "hybrid";
   hoursPerMonthCommitment: number;
 };
 
@@ -49,7 +49,7 @@ type MenteeInput = {
   roleModelInspiration: string;
   hopeToGainResponses: string[];
   mentorQualities: string[];
-  preferredMeetingFormat: "in-person" | "virtual" | "hybrid" | "no-preference";
+  preferredMeetingFormat: "in-person" | "virtual" | "hybrid";
   hoursPerMonthCommitment: number;
 };
 

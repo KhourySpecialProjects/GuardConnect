@@ -78,7 +78,6 @@ export const meetingFormatEnum = pgEnum("meeting_format_enum", [
   "in-person",
   "virtual",
   "hybrid",
-  "no-preference",
 ]);
 
 export const careerStageEnum = pgEnum("career_stage_enum", [
