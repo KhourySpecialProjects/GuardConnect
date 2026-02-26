@@ -12,7 +12,10 @@ export const menteeSchema = z.object({
   roleModelInspiration: z.string().nullable().optional(),
   hopeToGainResponses: z.array(z.string()).nullable().optional(),
   mentorQualities: z.array(z.string()).nullable().optional(),
-  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullable().optional(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid"])
+    .nullable()
+    .optional(),
   hoursPerMonthCommitment: z.number().int().positive().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -25,7 +28,10 @@ export const createMenteeInputSchema = z.object({
   learningGoals: z.string().optional(),
   experienceLevel: z.string().optional(),
   preferredMentorType: z.string().optional(),
-  status: z.enum(["active", "inactive", "matched"]).optional().default("active"),
+  status: z
+    .enum(["active", "inactive", "matched"])
+    .optional()
+    .default("active"),
   resumeFileId: z.string().uuid().optional(),
   personalInterests: z.string().optional(),
   roleModelInspiration: z.string().optional(),

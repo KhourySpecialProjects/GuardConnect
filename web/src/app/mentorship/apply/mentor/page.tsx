@@ -10,7 +10,11 @@ import { DragReorderFrame } from "@/components/drag-and-drop";
 import { icons } from "@/components/icons";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import { TextInput } from "@/components/text-input";
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone";
+import {
+  Dropzone,
+  DropzoneContent,
+  DropzoneEmptyState,
+} from "@/components/ui/shadcn-io/dropzone";
 import { authClient } from "@/lib/auth-client";
 import { useTRPCClient } from "@/lib/trpc";
 
@@ -28,7 +32,10 @@ export default function MentorshipApplyMentorPage() {
   const { data: sessionData } = authClient.useSession();
   const userId = sessionData?.user?.id ?? null;
   const backHref = useMemo(
-    () => (searchParams.get("from") === "dashboard" ? "/mentorship/dashboard" : "/mentorship"),
+    () =>
+      searchParams.get("from") === "dashboard"
+        ? "/mentorship/dashboard"
+        : "/mentorship",
     [searchParams],
   );
   const BackIcon = icons.arrowLeft;
@@ -38,8 +45,12 @@ export default function MentorshipApplyMentorPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [multiLineText, setMultiLineText] = useState("");
   const [whyInterestedOrder, setWhyInterestedOrder] = useState<string[]>([]);
-  const [selectedCareerStages, setSelectedCareerStages] = useState<string[]>([]);
-  const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<string[]>([]);
+  const [selectedCareerStages, setSelectedCareerStages] = useState<string[]>(
+    [],
+  );
+  const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<
+    string[]
+  >([]);
   const [availableMentorHours, setAvailableMentorHours] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +59,9 @@ export default function MentorshipApplyMentorPage() {
   // Aligned with server `appRouter.mentorship.createMentor`
   const createMentor = useMutation({
     mutationFn: async (
-      input: Parameters<(typeof trpcClient.mentorship.createMentor)["mutate"]>[0],
+      input: Parameters<
+        (typeof trpcClient.mentorship.createMentor)["mutate"]
+      >[0],
     ) => trpcClient.mentorship.createMentor.mutate(input),
   });
 
@@ -91,7 +104,10 @@ export default function MentorshipApplyMentorPage() {
           fileId: presign.fileId,
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "We couldn't upload that file.";
+        const message =
+          error instanceof Error
+            ? error.message
+            : "We couldn't upload that file.";
         setResume({
           file,
           status: "error",
@@ -142,7 +158,8 @@ export default function MentorshipApplyMentorPage() {
     try {
       // Map meeting formats to backend enum
       const preferredMeetingFormat =
-        selectedMeetingFormats.includes("in-person") && selectedMeetingFormats.includes("online")
+        selectedMeetingFormats.includes("in-person") &&
+        selectedMeetingFormats.includes("online")
           ? "hybrid"
           : selectedMeetingFormats.includes("online")
             ? "virtual"
@@ -158,7 +175,9 @@ export default function MentorshipApplyMentorPage() {
         | "transitioning"
         | "no-preference";
 
-      const preferredMenteeCareerStages: PreferredMenteeCareerStage[] | undefined =
+      const preferredMenteeCareerStages:
+        | PreferredMenteeCareerStage[]
+        | undefined =
         selectedCareerStages.length > 0
           ? selectedCareerStages.map((stage) =>
               stage === "transitioning-soldiers"
@@ -177,8 +196,12 @@ export default function MentorshipApplyMentorPage() {
         userId,
         resumeFileId: resume?.status === "uploaded" ? resume.fileId : undefined,
         strengths: selectedQualities,
-        personalInterests: selectedInterests.length > 0 ? selectedInterests.join(", ") : undefined,
-        whyInterestedResponses: whyInterestedOrder.length > 0 ? whyInterestedOrder : undefined,
+        personalInterests:
+          selectedInterests.length > 0
+            ? selectedInterests.join(", ")
+            : undefined,
+        whyInterestedResponses:
+          whyInterestedOrder.length > 0 ? whyInterestedOrder : undefined,
         careerAdvice: multiLineText.trim() || undefined,
         preferredMenteeCareerStages,
         preferredMeetingFormat,
@@ -299,17 +322,21 @@ export default function MentorshipApplyMentorPage() {
           </h1>
         </div>
         <h1 className="text-s sm:text-sm text-secondary mb-2">
-          Thank you for your interest in mentoring. Give yourself 20-25 minutes to thoughtfully
-          complete this application. Your responses are used to match you with potential mentees and
-          will be shared with mentees who are interested in connecting.
+          Thank you for your interest in mentoring. Give yourself 20-25 minutes
+          to thoughtfully complete this application. Your responses are used to
+          match you with potential mentees and will be shared with mentees who
+          are interested in connecting.
         </h1>
-        <h1 className="text-s sm:text-sm text-accent mb-6">*Required Information</h1>
+        <h1 className="text-s sm:text-sm text-accent mb-6">
+          *Required Information
+        </h1>
       </section>
 
       <div className="flex flex-col items-start space-y-8">
         <section>
           <h1 className="mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
-            1. Upload a resume to share your educational and career history with potential mentees.
+            1. Upload a resume to share your educational and career history with
+            potential mentees.
           </h1>
           <Dropzone
             className="mb-3 max-w-3xl"
@@ -360,7 +387,8 @@ export default function MentorshipApplyMentorPage() {
           <h1 className="mt-3 mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
             4. What are you interested in becoming a mentor?
             <div className="italic font-normal text-secondary sm:text-sm mt-1">
-              Rank the following reasons from most important (1) to least important (5).
+              Rank the following reasons from most important (1) to least
+              important (5).
             </div>
           </h1>
           <DragReorderFrame
@@ -375,15 +403,18 @@ export default function MentorshipApplyMentorPage() {
                 value: "education",
               },
               {
-                label: "Build a strong sense of community within the National Guard",
+                label:
+                  "Build a strong sense of community within the National Guard",
                 value: "community",
               },
               {
-                label: "Strengthen my professional network within the National Guard",
+                label:
+                  "Strengthen my professional network within the National Guard",
                 value: "network",
               },
               {
-                label: "Connect with Guardsmen who have different perspectives and experiences",
+                label:
+                  "Connect with Guardsmen who have different perspectives and experiences",
                 value: "diversity",
               },
             ]}
@@ -393,7 +424,8 @@ export default function MentorshipApplyMentorPage() {
 
         <section>
           <h1 className="mb-3 mt-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
-            5. What is one piece of advice that you wish you had received earlier in your career?
+            5. What is one piece of advice that you wish you had received
+            earlier in your career?
           </h1>
           <TextInput
             value={multiLineText}
@@ -453,7 +485,9 @@ export default function MentorshipApplyMentorPage() {
         </section>
 
         <div className="flex flex-col gap-2">
-          {formError && <p className="text-sm text-red-600 mb-2">{formError}</p>}
+          {formError && (
+            <p className="text-sm text-red-600 mb-2">{formError}</p>
+          )}
           <SelectableButton
             text={isSubmitting ? "Submitting..." : "Submit"}
             className="mb-4 bg-accent text-white"

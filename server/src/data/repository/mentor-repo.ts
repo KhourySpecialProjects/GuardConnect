@@ -1,9 +1,17 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { mentees, mentors, mentorshipMatches, users } from "../../data/db/schema.js";
+import {
+  mentees,
+  mentors,
+  mentorshipMatches,
+  users,
+} from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import type { GetMenteeOutput } from "../../types/mentee-types.js";
-import type { CreateMentorOutput, GetMentorOutput } from "../../types/mentor-types.js";
+import type {
+  CreateMentorOutput,
+  GetMentorOutput,
+} from "../../types/mentor-types.js";
 import type { PendingMenteeRequest } from "../../types/mentorship-types.js";
 
 /**
@@ -193,7 +201,9 @@ export class MentorRepository {
   /**
    * Get pending mentee requests for a mentor
    */
-  async getPendingMenteeRequests(userId: string): Promise<PendingMenteeRequest[]> {
+  async getPendingMenteeRequests(
+    userId: string,
+  ): Promise<PendingMenteeRequest[]> {
     const pendingRows = await db
       .select({
         matchId: mentorshipMatches.matchId,
@@ -228,7 +238,10 @@ export class MentorRepository {
       .innerJoin(mentees, eq(mentees.userId, mentorshipMatches.requestorUserId))
       .innerJoin(users, eq(users.id, mentees.userId))
       .where(
-        and(eq(mentorshipMatches.mentorUserId, userId), eq(mentorshipMatches.status, "pending")),
+        and(
+          eq(mentorshipMatches.mentorUserId, userId),
+          eq(mentorshipMatches.status, "pending"),
+        ),
       );
 
     return pendingRows.map((row) => ({
@@ -346,7 +359,10 @@ export class MentorRepository {
       .innerJoin(mentees, eq(mentees.userId, mentorshipMatches.requestorUserId))
       .innerJoin(users, eq(users.id, mentees.userId))
       .where(
-        and(eq(mentorshipMatches.mentorUserId, userId), eq(mentorshipMatches.status, "accepted")),
+        and(
+          eq(mentorshipMatches.mentorUserId, userId),
+          eq(mentorshipMatches.status, "accepted"),
+        ),
       );
 
     return { mentor, activeMentees };

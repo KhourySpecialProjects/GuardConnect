@@ -10,7 +10,11 @@ import { DragReorderFrame } from "@/components/drag-and-drop";
 import { icons } from "@/components/icons";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
 import { TextInput } from "@/components/text-input";
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone";
+import {
+  Dropzone,
+  DropzoneContent,
+  DropzoneEmptyState,
+} from "@/components/ui/shadcn-io/dropzone";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
@@ -64,7 +68,10 @@ export default function MentorshipApplyMenteePage() {
   const { data: sessionData } = authClient.useSession();
   const userId = sessionData?.user?.id ?? null;
   const backHref = useMemo(
-    () => (searchParams.get("from") === "dashboard" ? "/mentorship/dashboard" : "/mentorship"),
+    () =>
+      searchParams.get("from") === "dashboard"
+        ? "/mentorship/dashboard"
+        : "/mentorship",
     [searchParams],
   );
   const BackIcon = icons.arrowLeft;
@@ -72,7 +79,9 @@ export default function MentorshipApplyMenteePage() {
   const [resume, setResume] = useState<ResumeState>(null);
   const [selectedQualities, setSelectedQualities] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<string[]>([]);
+  const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<
+    string[]
+  >([]);
   const [hopeToGainOrder, setHopeToGainOrder] = useState<string[]>([]);
   const [multiLineText, setMultiLineText] = useState("");
   const [desiredMentorHours, setDesiredMentorHours] = useState("");
@@ -82,8 +91,9 @@ export default function MentorshipApplyMenteePage() {
   // Aligned with server `appRouter.mentorship.createMentee`
   const mentorshipQueryKey = trpc.mentorship.getMentorshipData.queryKey();
   const createMentee = useMutation({
-    mutationFn: async (input: Parameters<typeof trpcClient.mentorship.createMentee.mutate>[0]) =>
-      trpcClient.mentorship.createMentee.mutate(input),
+    mutationFn: async (
+      input: Parameters<typeof trpcClient.mentorship.createMentee.mutate>[0],
+    ) => trpcClient.mentorship.createMentee.mutate(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mentorshipQueryKey });
     },
@@ -128,7 +138,10 @@ export default function MentorshipApplyMenteePage() {
           fileId: presign.fileId,
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "We couldn't upload that file.";
+        const message =
+          error instanceof Error
+            ? error.message
+            : "We couldn't upload that file.";
         setResume({
           file,
           status: "error",
@@ -176,7 +189,8 @@ export default function MentorshipApplyMenteePage() {
     try {
       // Map meeting formats to backend enum
       const preferredMeetingFormat =
-        selectedMeetingFormats.includes("in-person") && selectedMeetingFormats.includes("online")
+        selectedMeetingFormats.includes("in-person") &&
+        selectedMeetingFormats.includes("online")
           ? "hybrid"
           : selectedMeetingFormats.includes("online")
             ? "virtual"
@@ -191,10 +205,15 @@ export default function MentorshipApplyMenteePage() {
       await createMentee.mutateAsync({
         userId,
         resumeFileId: resume?.status === "uploaded" ? resume.fileId : undefined,
-        personalInterests: selectedInterests.length > 0 ? selectedInterests.join(", ") : undefined,
+        personalInterests:
+          selectedInterests.length > 0
+            ? selectedInterests.join(", ")
+            : undefined,
         roleModelInspiration: multiLineText.trim() || undefined,
-        hopeToGainResponses: hopeToGainOrder.length > 0 ? hopeToGainOrder : undefined,
-        mentorQualities: selectedQualities.length > 0 ? selectedQualities : undefined,
+        hopeToGainResponses:
+          hopeToGainOrder.length > 0 ? hopeToGainOrder : undefined,
+        mentorQualities:
+          selectedQualities.length > 0 ? selectedQualities : undefined,
         preferredMeetingFormat,
         hoursPerMonthCommitment,
       });
@@ -244,11 +263,13 @@ export default function MentorshipApplyMenteePage() {
           </h1>
         </div>
         <h1 className="text-s sm:text-sm text-secondary mb-2">
-          Thank you for your interest in the mentorship program. Give yourself enough time to
-          thoughtfully complete this application. Your responses will help us match you with a
-          mentor who can best support your goals.
+          Thank you for your interest in the mentorship program. Give yourself
+          enough time to thoughtfully complete this application. Your responses
+          will help us match you with a mentor who can best support your goals.
         </h1>
-        <h1 className="text-s sm:text-sm text-accent mb-6">*Required Information</h1>
+        <h1 className="text-s sm:text-sm text-accent mb-6">
+          *Required Information
+        </h1>
       </section>
 
       <div className="flex flex-col items-start space-y-8">
@@ -288,7 +309,8 @@ export default function MentorshipApplyMenteePage() {
 
         <section>
           <div className="max-w-3xl mt-3 mb-3 text-left text-xs font-large text-secondary sm:text-sm">
-            3. Who has been an important role model or source of inspiration for you, and why?
+            3. Who has been an important role model or source of inspiration for
+            you, and why?
           </div>
           <TextInput
             value={multiLineText}
@@ -307,13 +329,15 @@ export default function MentorshipApplyMenteePage() {
           <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mt-3 mb-3">
             4. What do you hope to get out of the mentorship program?
             <div className="italic font-normal text-secondary sm:text-sm mt-1">
-              Rank the following reasons from most important (1) to least important (5).
+              Rank the following reasons from most important (1) to least
+              important (5).
             </div>
           </h1>
           <DragReorderFrame
             options={[
               {
-                label: "Receive guidance on career advancement and professional goals",
+                label:
+                  "Receive guidance on career advancement and professional goals",
                 value: "career",
               },
               {
@@ -321,15 +345,18 @@ export default function MentorshipApplyMenteePage() {
                 value: "education",
               },
               {
-                label: "Develop a sense of belonging in the National Guard community",
+                label:
+                  "Develop a sense of belonging in the National Guard community",
                 value: "community",
               },
               {
-                label: "Expand my professional network within the National Guard",
+                label:
+                  "Expand my professional network within the National Guard",
                 value: "network",
               },
               {
-                label: "Connect with Guardsmen with different perspectives and experiences",
+                label:
+                  "Connect with Guardsmen with different perspectives and experiences",
                 value: "diversity",
               },
             ]}
@@ -369,7 +396,8 @@ export default function MentorshipApplyMenteePage() {
 
         <section>
           <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-3">
-            7. How much time would you like to spend with your mentor per month?*
+            7. How much time would you like to spend with your mentor per
+            month?*
           </h1>
           <TextInput
             value={desiredMentorHours}
@@ -382,7 +410,9 @@ export default function MentorshipApplyMenteePage() {
         </section>
 
         <div className="flex flex-col gap-2">
-          {formError && <p className="text-sm text-red-600 mb-2">{formError}</p>}
+          {formError && (
+            <p className="text-sm text-red-600 mb-2">{formError}</p>
+          )}
           <SelectableButton
             text={isSubmitting ? "Submitting..." : "Submit"}
             className="mb-4 bg-accent text-white"

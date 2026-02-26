@@ -54,7 +54,11 @@ type MenteeInput = {
 };
 
 async function ensureUser(input: SeedUserInput) {
-  const [existing] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, input.email))
+    .limit(1);
 
   if (existing) {
     const [updated] = await db
@@ -104,7 +108,11 @@ async function ensureUser(input: SeedUserInput) {
 }
 
 async function ensureMentor(userId: string, input: MentorInput) {
-  const [existing] = await db.select().from(mentors).where(eq(mentors.userId, userId)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(mentors)
+    .where(eq(mentors.userId, userId))
+    .limit(1);
 
   if (existing) {
     const [updated] = await db
@@ -130,7 +138,11 @@ async function ensureMentor(userId: string, input: MentorInput) {
 }
 
 async function ensureMentee(userId: string, input: MenteeInput) {
-  const [existing] = await db.select().from(mentees).where(eq(mentees.userId, userId)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(mentees)
+    .where(eq(mentees.userId, userId))
+    .limit(1);
 
   if (existing) {
     const [updated] = await db
@@ -267,7 +279,11 @@ const MENTOR_DATA: Array<{ user: SeedUserInput; mentor: MentorInput }> = [
         "Diversity makes our force stronger.",
       ],
       careerAdvice: "Your background is your strength, not a limitation.",
-      preferredMenteeCareerStages: ["new-soldiers", "junior-ncos", "transitioning"],
+      preferredMenteeCareerStages: [
+        "new-soldiers",
+        "junior-ncos",
+        "transitioning",
+      ],
       preferredMeetingFormat: "hybrid",
       hoursPerMonthCommitment: 4,
     },
@@ -352,7 +368,11 @@ const MENTOR_DATA: Array<{ user: SeedUserInput; mentor: MentorInput }> = [
     },
     mentor: {
       yearsOfService: 4,
-      strengths: ["work-life-balance", "civilian-military-integration", "education"],
+      strengths: [
+        "work-life-balance",
+        "civilian-military-integration",
+        "education",
+      ],
       personalInterests: "yoga, graduate school, startup culture",
       whyInterestedResponses: [
         "Balancing civilian career and Guard service is challenging but rewarding.",
@@ -473,7 +493,8 @@ const MENTOR_DATA: Array<{ user: SeedUserInput; mentor: MentorInput }> = [
         "First Sergeants shape unit culture.",
         "I want to develop future senior NCOs.",
       ],
-      careerAdvice: "Take care of your soldiers and they will take care of the mission.",
+      careerAdvice:
+        "Take care of your soldiers and they will take care of the mission.",
       preferredMenteeCareerStages: ["junior-ncos", "senior-ncos"],
       preferredMeetingFormat: "in-person",
       hoursPerMonthCommitment: 4,
@@ -528,7 +549,11 @@ const TEST_MENTEE: { user: SeedUserInput; mentee: MenteeInput } = {
       "Work-life balance strategies",
       "Networking within the Guard",
     ],
-    mentorQualities: ["strong-communicator", "experienced-leader", "encouraging-and-empathetic"],
+    mentorQualities: [
+      "strong-communicator",
+      "experienced-leader",
+      "encouraging-and-empathetic",
+    ],
     preferredMeetingFormat: "hybrid",
     hoursPerMonthCommitment: 3,
   },
@@ -580,9 +605,15 @@ async function clearTestData() {
 
   // Delete in order due to foreign key constraints
   for (const userId of testUserIds) {
-    await db.delete(mentorRecommendations).where(eq(mentorRecommendations.userId, userId));
-    await db.delete(mentorshipMatches).where(eq(mentorshipMatches.requestorUserId, userId));
-    await db.delete(mentorshipMatches).where(eq(mentorshipMatches.mentorUserId, userId));
+    await db
+      .delete(mentorRecommendations)
+      .where(eq(mentorRecommendations.userId, userId));
+    await db
+      .delete(mentorshipMatches)
+      .where(eq(mentorshipMatches.requestorUserId, userId));
+    await db
+      .delete(mentorshipMatches)
+      .where(eq(mentorshipMatches.mentorUserId, userId));
     await db.delete(mentees).where(eq(mentees.userId, userId));
     await db.delete(mentors).where(eq(mentors.userId, userId));
     await db.delete(account).where(eq(account.userId, userId));
@@ -730,7 +761,9 @@ async function main() {
   console.log(`  Mentee 1: ${TEST_MENTEE.user.email} (leadership-focused)`);
   console.log(`  Mentee 2: ${TEST_MENTEE_TECH.user.email} (tech-focused)`);
   console.log(`\nPassword for all accounts: ${DEFAULT_PASSWORD}`);
-  console.log("\nLog in as a mentee to see their personalized mentor recommendations.");
+  console.log(
+    "\nLog in as a mentee to see their personalized mentor recommendations.",
+  );
   console.log("The algorithm should rank mentors based on:");
   console.log("  - Vector similarity (embeddings match)");
   console.log("  - Meeting format compatibility");

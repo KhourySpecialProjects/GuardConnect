@@ -26,7 +26,10 @@ export const mentorSchema = z.object({
     )
     .nullable()
     .optional(),
-  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullable().optional(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid"])
+    .nullable()
+    .optional(),
   hoursPerMonthCommitment: z.number().int().positive().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -39,7 +42,10 @@ export const createMentorInputSchema = z.object({
   mentorshipPreferences: z.string().optional(),
   yearsOfService: z.number().int().nonnegative().optional(),
   eligibilityData: z.record(z.string(), z.unknown()).nullish(),
-  status: z.enum(["requested", "approved", "active"]).optional().default("requested"),
+  status: z
+    .enum(["requested", "approved", "active"])
+    .optional()
+    .default("requested"),
   resumeFileId: z.string().uuid().optional(),
   strengths: z.array(z.string()).max(5).optional().default([]),
   personalInterests: z.string().optional(),
