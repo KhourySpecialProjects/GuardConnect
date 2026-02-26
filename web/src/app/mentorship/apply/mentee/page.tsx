@@ -15,7 +15,6 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { authClient } from "@/lib/auth-client";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
 type ResumeState = null | {
@@ -65,8 +64,6 @@ export default function MentorshipApplyMenteePage() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: sessionData } = authClient.useSession();
-  const userId = sessionData?.user?.id ?? null;
   const backHref = useMemo(
     () =>
       searchParams.get("from") === "dashboard"
@@ -167,11 +164,6 @@ export default function MentorshipApplyMenteePage() {
   }, [resume, trpcClient]);
 
   const handleSubmit = async () => {
-    if (!userId) {
-      setFormError("You must be logged in to submit this application.");
-      return;
-    }
-
     // Block submit if resume is in a bad state
     if (resume?.status === "uploading") {
       setFormError("Please wait for the resume upload to complete.");
@@ -203,7 +195,6 @@ export default function MentorshipApplyMenteePage() {
       })();
 
       await createMentee.mutateAsync({
-        userId,
         resumeFileId: resume?.status === "uploaded" ? resume.fileId : undefined,
         personalInterests:
           selectedInterests.length > 0
