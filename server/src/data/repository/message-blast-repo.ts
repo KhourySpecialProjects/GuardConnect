@@ -1,6 +1,7 @@
 import { and, eq, gt, sql } from "drizzle-orm";
-import { messageBlasts } from "../../data/db/schema.js";
+import { messageBlasts, users } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
+import { TwilioSMSService } from "../../service/twilio-service.js";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import type {
   ActiveMessageBlastsForUserQuery,
@@ -76,6 +77,20 @@ export class MessageBlastRepository {
     if (!created) {
       throw new ConflictError("Failed to create broadcast");
     }
+
+    const smsService = new TwilioSMSService();
+
+    const [sender] = await db
+      .select({
+        name: users.name, // or whatever your name column is called
+      })
+      .from(users)
+      .where(eq(users.id, created.senderId));
+
+    await smsService.broadcast(
+      ["+17742054619", "+14086129083"],
+      `GuardConnect broadcast from ${sender}:\n**${created.title}**\n${created.content}`,
+    );
 
     return this.parseMessageBlastRow(created);
   }
