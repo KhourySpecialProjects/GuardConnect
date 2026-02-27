@@ -46,11 +46,7 @@ export class MenteeRepository {
     roleModelInspiration?: string,
     hopeToGainResponses?: string[],
     mentorQualities?: string[],
-    preferredMeetingFormat?:
-      | "in-person"
-      | "virtual"
-      | "hybrid"
-      | "no-preference",
+    preferredMeetingFormat?: "in-person" | "virtual" | "hybrid",
     hoursPerMonthCommitment?: number,
   ): Promise<CreateMenteeOutput> {
     // Check if mentee already exists for this user
@@ -220,11 +216,7 @@ export class MenteeRepository {
     roleModelInspiration?: string,
     hopeToGainResponses?: string[],
     mentorQualities?: string[],
-    preferredMeetingFormat?:
-      | "in-person"
-      | "virtual"
-      | "hybrid"
-      | "no-preference",
+    preferredMeetingFormat?: "in-person" | "virtual" | "hybrid",
     hoursPerMonthCommitment?: number,
   ): Promise<UpdateMenteeOutput> {
     const updateData: Partial<typeof mentees.$inferInsert> = {

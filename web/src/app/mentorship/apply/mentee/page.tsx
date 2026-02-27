@@ -56,7 +56,6 @@ const mentorQualitiesOptions: MultiSelectOption[] = [
 const mentorMeetingFormat: MultiSelectOption[] = [
   { label: "In-person", value: "in-person" },
   { label: "Online", value: "online" },
-  { label: "No preference", value: "no-preference" },
 ];
 
 export default function MentorshipApplyMenteePage() {
@@ -182,15 +181,12 @@ export default function MentorshipApplyMenteePage() {
     try {
       // Map meeting formats to backend enum
       const preferredMeetingFormat =
-        selectedMeetingFormats.length > 0
-          ? ((selectedMeetingFormats[0] === "online"
-              ? "virtual"
-              : selectedMeetingFormats[0]) as
-              | "in-person"
-              | "virtual"
-              | "hybrid"
-              | "no-preference")
-          : undefined;
+        selectedMeetingFormats.includes("in-person") &&
+        selectedMeetingFormats.includes("online")
+          ? "hybrid"
+          : selectedMeetingFormats.includes("online")
+            ? "virtual"
+            : "in-person";
 
       const hoursPerMonthCommitment = (() => {
         if (!desiredMentorHours) return undefined;
@@ -376,7 +372,7 @@ export default function MentorshipApplyMenteePage() {
 
         <section>
           <span className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mt-3">
-            6. What meeting formats work best for you?*{" "}
+            6. Which meeting formats work for you?*{" "}
             <span className="text-accent">(Select all that apply)</span>
           </span>
           <MultiSelect
@@ -391,7 +387,8 @@ export default function MentorshipApplyMenteePage() {
 
         <section>
           <h1 className="max-w-3xl text-left text-xs font-large text-secondary sm:text-sm mb-3 mt-3">
-            7. How much time would you like to spend with your mentor?*
+            7. How much time would you like to spend with your mentor per
+            month?*
           </h1>
           <TextInput
             value={desiredMentorHours}

@@ -48,7 +48,6 @@ export default function MentorshipApplyMentorPage() {
   const [selectedMeetingFormats, setSelectedMeetingFormats] = useState<
     string[]
   >([]);
-  const [desiredMentorHours, setDesiredMentorHours] = useState("");
   const [availableMentorHours, setAvailableMentorHours] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -151,15 +150,12 @@ export default function MentorshipApplyMentorPage() {
     try {
       // Map meeting formats to backend enum
       const preferredMeetingFormat =
-        selectedMeetingFormats.length > 0
-          ? ((selectedMeetingFormats[0] === "online"
-              ? "virtual"
-              : selectedMeetingFormats[0]) as
-              | "in-person"
-              | "virtual"
-              | "hybrid"
-              | "no-preference")
-          : undefined;
+        selectedMeetingFormats.includes("in-person") &&
+        selectedMeetingFormats.includes("online")
+          ? "hybrid"
+          : selectedMeetingFormats.includes("online")
+            ? "virtual"
+            : "in-person";
 
       // Map career stages to backend enum (fix transitioning-soldiers -> transitioning)
       type PreferredMenteeCareerStage =
@@ -298,7 +294,6 @@ export default function MentorshipApplyMentorPage() {
   const mentorMeetingFormat: MultiSelectOption[] = [
     { label: "In-person", value: "in-person" },
     { label: "Online", value: "online" },
-    { label: "No preference", value: "no-preference" },
   ];
 
   return (
@@ -452,7 +447,7 @@ export default function MentorshipApplyMentorPage() {
 
         <section>
           <span className="mb-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
-            7. What meeting formats do you prefer?*{" "}
+            7. Which meeting formats work for you?*{" "}
             <span className="text-accent">(Select all that apply)</span>
           </span>
           <MultiSelect
@@ -467,20 +462,7 @@ export default function MentorshipApplyMentorPage() {
 
         <section>
           <h1 className="mb-3 mt-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
-            8. How much time would you like to spend with your mentor?*
-          </h1>
-          <TextInput
-            value={desiredMentorHours}
-            onChange={setDesiredMentorHours}
-            placeholder="Hours per Month"
-            showCharCount={false}
-            className="border-neutral "
-            counterColor="#CDCDCD"
-          />
-        </section>
-        <section>
-          <h1 className="mb-3 mt-3 max-w-3xl text-left text-xs font-large text-secondary sm:text-sm">
-            9. How much time can you commit per month to mentoring?*{" "}
+            8. How much time can you commit per month to mentoring?*{" "}
           </h1>
           <TextInput
             value={availableMentorHours}
