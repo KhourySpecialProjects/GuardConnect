@@ -93,7 +93,9 @@ export class TwilioSMSService {
       );
 
       // Send batch in parallel
-      const batchPromises = batch.map((phoneNumber) => this.sendSMS(phoneNumber, message));
+      const batchPromises = batch.map((phoneNumber) =>
+        this.sendSMS(phoneNumber, message),
+      );
 
       const batchResults = await Promise.allSettled(batchPromises);
 

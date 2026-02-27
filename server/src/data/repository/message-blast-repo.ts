@@ -1,6 +1,7 @@
 import { and, eq, gt, sql } from "drizzle-orm";
 import { messageBlasts, users } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
+import { TwilioSMSService } from "../../service/twilio-service.js";
 import { ConflictError, NotFoundError } from "../../types/errors.js";
 import type {
   ActiveMessageBlastsForUserQuery,
@@ -12,7 +13,6 @@ import type {
   UpdateMessageBlastOutput,
 } from "../../types/message-blast-types.js";
 import { parseTargetAudience } from "../../types/message-blast-types.js";
-import { TwilioSMSService } from "../../service/twilio-service.js";
 
 /**
  * Repository to handle database queries/communication related to message blasts.
@@ -131,7 +131,9 @@ export class MessageBlastRepository {
    * @param senderId Sender user ID
    * @returns Array of message blast objects
    */
-  async getMessageBlastsBySender(senderId: string): Promise<GetMessageBlastOutput[]> {
+  async getMessageBlastsBySender(
+    senderId: string,
+  ): Promise<GetMessageBlastOutput[]> {
     const rows = await db
       .select({
         blastId: messageBlasts.blastId,
@@ -176,7 +178,8 @@ export class MessageBlastRepository {
 
     if (title !== undefined) updateData.title = title;
     if (content !== undefined) updateData.content = content;
-    if (targetAudience !== undefined) updateData.targetAudience = targetAudience;
+    if (targetAudience !== undefined)
+      updateData.targetAudience = targetAudience;
     if (validUntil !== undefined) updateData.validUntil = validUntil;
     if (status !== undefined) updateData.status = status;
 
@@ -323,7 +326,9 @@ export class MessageBlastRepository {
 
     const branchPath = sql`${messageBlasts.targetAudience}->${query.branch}`;
 
-    const rankCondition = query.rank ? sql`${branchPath}->'ranks' ? ${query.rank}` : null;
+    const rankCondition = query.rank
+      ? sql`${branchPath}->'ranks' ? ${query.rank}`
+      : null;
     const departmentCondition = query.department
       ? sql`${branchPath}->'departments' ? ${query.department}`
       : null;
@@ -332,9 +337,9 @@ export class MessageBlastRepository {
       return sql`(${messageBlasts.targetAudience} IS NULL OR ${branchPath} IS NOT NULL)`;
     }
 
-    const applicableConditions = [rankCondition, departmentCondition].filter(Boolean) as ReturnType<
-      typeof sql
-    >[];
+    const applicableConditions = [rankCondition, departmentCondition].filter(
+      Boolean,
+    ) as ReturnType<typeof sql>[];
 
     return sql`(${messageBlasts.targetAudience} IS NULL OR ${sql.join(
       applicableConditions,
