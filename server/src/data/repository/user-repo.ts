@@ -344,6 +344,9 @@ export class UserRepository {
         .where(eq(users.id, res.user.id));
     }
 
-    return res;
+    return {
+      token: res.token ?? null,
+      user: res.user,
+    };
   }
 }

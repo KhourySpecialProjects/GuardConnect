@@ -182,15 +182,11 @@ const userSessionSchema = z.object({
   name: z.string(),
   image: z.string().nullish(),
   emailVerified: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
-export const createUserOutputSchema = z.discriminatedUnion("token", [
-  z
-    .object({ token: z.null() })
-    .extend(z.object({ user: userSessionSchema }).shape),
-  z
-    .object({ token: z.string() })
-    .extend(z.object({ user: userSessionSchema }).shape),
-]);
+export const createUserOutputSchema = z.object({
+  token: z.string().nullable(),
+  user: userSessionSchema,
+});
