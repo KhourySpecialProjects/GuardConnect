@@ -83,7 +83,9 @@ export const createUserProfileInputSchema = z.object({
     .optional(),
 });
 
-export type CreateUserProfileInput = z.infer<typeof createUserProfileInputSchema>;
+export type CreateUserProfileInput = z.infer<
+  typeof createUserProfileInputSchema
+>;
 
 export const updateUserProfileInputSchema = z.object({
   name: z.string().min(1).optional(),
@@ -108,7 +110,9 @@ export const updateUserProfileInputSchema = z.object({
     .optional(),
 });
 
-export type UpdateUserProfileInput = z.infer<typeof updateUserProfileInputSchema>;
+export type UpdateUserProfileInput = z.infer<
+  typeof updateUserProfileInputSchema
+>;
 
 export const searchUsersInputSchema = z.object({
   name: z.string().min(1),
@@ -122,7 +126,9 @@ export const updateUserVisibilityInputSchema = z.object({
   linkedin_visibility: z.enum(["private", "public"]),
 });
 
-export type UpdateUserVisibilityInput = z.infer<typeof updateUserVisibilityInputSchema>;
+export type UpdateUserVisibilityInput = z.infer<
+  typeof updateUserVisibilityInputSchema
+>;
 
 export const getUsersByIdsInputSchema = z.object({
   user_ids: z.array(z.string()),
