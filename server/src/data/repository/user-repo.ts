@@ -11,9 +11,7 @@ import type { CreateUserInput } from "../../types/user-types.js";
 export class UserRepository {
   private normalizeInterests(interests: unknown): string[] | null {
     if (Array.isArray(interests)) {
-      return interests.filter(
-        (value): value is string => typeof value === "string",
-      );
+      return interests.filter((value): value is string => typeof value === "string");
     }
 
     if (typeof interests === "string") {
@@ -101,10 +99,7 @@ export class UserRepository {
    * @returns True if user exists, false otherwise
    */
   async doesUserExistByEmail(email: string) {
-    const [userRow] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.email, email));
+    const [userRow] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
     return Boolean(userRow);
   }
 
@@ -215,19 +210,14 @@ export class UserRepository {
     const updateFields: Partial<typeof users.$inferInsert> = {};
 
     if (updateData.name !== undefined) updateFields.name = updateData.name;
-    if (updateData.phoneNumber !== undefined)
-      updateFields.phoneNumber = updateData.phoneNumber;
+    if (updateData.phoneNumber !== undefined) updateFields.phoneNumber = updateData.phoneNumber;
     if (updateData.rank !== undefined) updateFields.rank = updateData.rank;
-    if (updateData.department !== undefined)
-      updateFields.department = updateData.department;
-    if (updateData.branch !== undefined)
-      updateFields.branch = updateData.branch;
+    if (updateData.department !== undefined) updateFields.department = updateData.department;
+    if (updateData.branch !== undefined) updateFields.branch = updateData.branch;
     if (updateData.image !== undefined) updateFields.image = updateData.image;
-    if (updateData.location !== undefined)
-      updateFields.location = updateData.location;
+    if (updateData.location !== undefined) updateFields.location = updateData.location;
     if (updateData.about !== undefined) updateFields.about = updateData.about;
-    if (updateData.interests !== undefined)
-      updateFields.interests = updateData.interests;
+    if (updateData.interests !== undefined) updateFields.interests = updateData.interests;
 
     if (updateData.signalVisibility !== undefined) {
       updateFields.signalVisibility = updateData.signalVisibility;
@@ -338,12 +328,12 @@ export class UserRepository {
     }
 
     if (userData.linkedin !== undefined) {
-      await db
-        .update(users)
-        .set({ linkedin: userData.linkedin })
-        .where(eq(users.id, res.user.id));
+      await db.update(users).set({ linkedin: userData.linkedin }).where(eq(users.id, res.user.id));
     }
 
-    return res;
+    return {
+      token: res.token ?? null,
+      user: res.user,
+    };
   }
 }

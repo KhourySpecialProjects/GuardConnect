@@ -83,9 +83,7 @@ export const createUserProfileInputSchema = z.object({
     .optional(),
 });
 
-export type CreateUserProfileInput = z.infer<
-  typeof createUserProfileInputSchema
->;
+export type CreateUserProfileInput = z.infer<typeof createUserProfileInputSchema>;
 
 export const updateUserProfileInputSchema = z.object({
   name: z.string().min(1).optional(),
@@ -110,9 +108,7 @@ export const updateUserProfileInputSchema = z.object({
     .optional(),
 });
 
-export type UpdateUserProfileInput = z.infer<
-  typeof updateUserProfileInputSchema
->;
+export type UpdateUserProfileInput = z.infer<typeof updateUserProfileInputSchema>;
 
 export const searchUsersInputSchema = z.object({
   name: z.string().min(1),
@@ -126,9 +122,7 @@ export const updateUserVisibilityInputSchema = z.object({
   linkedin_visibility: z.enum(["private", "public"]),
 });
 
-export type UpdateUserVisibilityInput = z.infer<
-  typeof updateUserVisibilityInputSchema
->;
+export type UpdateUserVisibilityInput = z.infer<typeof updateUserVisibilityInputSchema>;
 
 export const getUsersByIdsInputSchema = z.object({
   user_ids: z.array(z.string()),
@@ -182,15 +176,11 @@ const userSessionSchema = z.object({
   name: z.string(),
   image: z.string().nullish(),
   emailVerified: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
-export const createUserOutputSchema = z.discriminatedUnion("token", [
-  z
-    .object({ token: z.null() })
-    .extend(z.object({ user: userSessionSchema }).shape),
-  z
-    .object({ token: z.string() })
-    .extend(z.object({ user: userSessionSchema }).shape),
-]);
+export const createUserOutputSchema = z.object({
+  token: z.string().nullable(),
+  user: userSessionSchema,
+});
