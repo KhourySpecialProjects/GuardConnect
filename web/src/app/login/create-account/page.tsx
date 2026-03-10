@@ -1,10 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { locationOptions } from "@/app/login/create-account/MA-towns";
-import { airForceRanks, armyRanks } from "@/app/login/create-account/rankOptions";
+import {
+  airForceRanks,
+  armyRanks,
+} from "@/app/login/create-account/rankOptions";
 import { SingleSelectButtonGroup } from "@/components/button-single-select";
 import { DropdownSelect } from "@/components/dropdown-select";
 import { MultiSelect, type MultiSelectOption } from "@/components/multi-select";
@@ -58,9 +62,9 @@ function CreateAccountPage() {
   const [receiveNotifications, setReceiveNotifications] = useState(false);
   const [fullname, setFullname] = useState("");
 
-  const [branch, setBranch] = useState<"army-national-guard" | "air-force-national-guard" | null>(
-    null,
-  );
+  const [branch, setBranch] = useState<
+    "army-national-guard" | "air-force-national-guard" | null
+  >(null);
   const [department, setDepartment] = useState<string>("");
   const [rankSelection, setRankSelection] = useState<string>("");
   const [multiLineText, setMultiLineText] = useState<string>("");
@@ -68,9 +72,15 @@ function CreateAccountPage() {
   const [careerField, setCareerField] = useState<string>("");
 
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [dutySelection, setDutySelection] = useState<"active-duty" | "part-time" | null>(null);
-  const [signalVisibility, setSignalVisibility] = useState<"private" | "public">("private");
-  const [emailVisibility, setEmailVisibility] = useState<"private" | "public">("private");
+  const [dutySelection, setDutySelection] = useState<
+    "active-duty" | "part-time" | null
+  >(null);
+  const [signalVisibility, setSignalVisibility] = useState<
+    "private" | "public"
+  >("private");
+  const [emailVisibility, setEmailVisibility] = useState<"private" | "public">(
+    "private",
+  );
 
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get("inviteCode");
@@ -81,7 +91,12 @@ function CreateAccountPage() {
   const [bioError, setBioError] = useState<string | null>(null);
   const [branchError, setBranchError] = useState<string | null>(null);
 
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
+  const [agreementError, setAgreementError] = useState<string | null>(null);
+
   const [isCreateAccount, setIsCreateAccount] = useState(false);
+
   const handleCreateAccount = async () => {
     setDutyError(null);
     setEmailError(null);
@@ -92,7 +107,9 @@ function CreateAccountPage() {
     await authClient.signOut();
 
     if (!inviteCode) {
-      toast.error("Invite code is missing. Please return to the sign-up page and try again.");
+      toast.error(
+        "Invite code is missing. Please return to the sign-up page and try again.",
+      );
       return;
     }
 
@@ -126,6 +143,13 @@ function CreateAccountPage() {
       return;
     }
 
+    if (!agreedToTerms || !agreedToPrivacy) {
+      setAgreementError(
+        "You must agree to the Terms and Conditions and Privacy Policy.",
+      );
+      return;
+    }
+
     setIsCreateAccount(true);
     try {
       await trpc.user.createUser.mutate({
@@ -137,7 +161,8 @@ function CreateAccountPage() {
           rank: rankSelection,
           about: multiLineText,
           location: locationSelection,
-          positionType: dutySelection === "active-duty" ? "active" : "part-time",
+          positionType:
+            dutySelection === "active-duty" ? "active" : "part-time",
           branch: branch === "air-force-national-guard" ? "airforce" : "army",
           department,
           civilianCareer: careerField,
@@ -172,7 +197,9 @@ function CreateAccountPage() {
       <h1 className="text-left text-md font-medium text-secondary mb-1">
         Please fill out the following information to create your account.
       </h1>
-      <h1 className="text-s sm:text-sm text-accent mb-6">*Required Information</h1>
+      <h1 className="text-s sm:text-sm text-accent mb-6">
+        *Required Information
+      </h1>
 
       <div className="flex-1 max-w-lg space-y-6">
         <label htmlFor="login-fullname">Full Name*</label>
@@ -213,11 +240,14 @@ function CreateAccountPage() {
             setPasswordError(null);
           }}
         />
-        {passwordError && <p className="mt-1 text-xs text-error">{passwordError}</p>}
+        {passwordError && (
+          <p className="mt-1 text-xs text-error">{passwordError}</p>
+        )}
 
         <div>
           <label htmlFor="login-phone">
-            Phone Number <span className="font-regular text-accent">(Not Required)</span>
+            Phone Number{" "}
+            <span className="font-regular text-accent">(Not Required)</span>
           </label>
           <TextInput
             id="login-phone"
@@ -230,9 +260,16 @@ function CreateAccountPage() {
           <MultiSelect
             name="smsNotifications"
             helperText=" "
-            options={[{ label: "Receive notifications via SMS", value: "sms-notifications" }]}
+            options={[
+              {
+                label: "Receive notifications via SMS",
+                value: "sms-notifications",
+              },
+            ]}
             value={receiveNotifications ? ["sms-notifications"] : []}
-            onChange={(val) => setReceiveNotifications(val.includes("sms-notifications"))}
+            onChange={(val) =>
+              setReceiveNotifications(val.includes("sms-notifications"))
+            }
             maxSelections={1}
           />
         </div>
@@ -250,17 +287,23 @@ function CreateAccountPage() {
           options={rankOptions}
           value={branch ?? ""}
           onChange={(val) => {
-            setBranch(val as "army-national-guard" | "air-force-national-guard");
+            setBranch(
+              val as "army-national-guard" | "air-force-national-guard",
+            );
             setBranchError(null);
           }}
           onDropdownChange={(branch, rank) => {
-            setBranch(branch as "army-national-guard" | "air-force-national-guard");
+            setBranch(
+              branch as "army-national-guard" | "air-force-national-guard",
+            );
             setRankSelection(rank);
             setBranchError(null);
           }}
           className="w-full mt-2"
         />
-        {branchError && <p className="mt-1 text-xs text-error">{branchError}</p>}
+        {branchError && (
+          <p className="mt-1 text-xs text-error">{branchError}</p>
+        )}
 
         <label htmlFor="login-dept">What is your department?*</label>
         <TextInput
@@ -282,7 +325,9 @@ function CreateAccountPage() {
           onChange={setCareerField}
         />
 
-        <label htmlFor="login-duty-status">Are you active duty or part-time?*</label>
+        <label htmlFor="login-duty-status">
+          Are you active duty or part-time?*
+        </label>
         <SingleSelectButtonGroup
           options={[
             { label: "Active Duty", value: "active-duty" },
@@ -313,11 +358,7 @@ function CreateAccountPage() {
         />
         {bioError && <p className="mt-1 text-xs text-error">{bioError}</p>}
 
-        <label //selected here will appear selected in "interests" section of mentee/mentor forms
-          htmlFor="login-interests"
-        >
-          Areas of Interest
-        </label>
+        <label htmlFor="login-interests">Areas of Interest</label>
         <MultiSelect
           name="mentorInterests"
           helperText=" "
@@ -336,7 +377,10 @@ function CreateAccountPage() {
                 setSignalVisibility(value as "private" | "public");
               }}
             >
-              <SelectTrigger id="signal-visibility" className="w-full sm:min-w-64">
+              <SelectTrigger
+                id="signal-visibility"
+                className="w-full sm:min-w-64"
+              >
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
               <SelectContent>
@@ -354,7 +398,10 @@ function CreateAccountPage() {
                 setEmailVisibility(value as "private" | "public");
               }}
             >
-              <SelectTrigger id="email-visibility" className="w-full sm:min-w-64">
+              <SelectTrigger
+                id="email-visibility"
+                className="w-full sm:min-w-64"
+              >
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
               <SelectContent>
@@ -364,7 +411,55 @@ function CreateAccountPage() {
             </Select>
           </div>
         </div>
+
+        <div>
+          <MultiSelect
+            name="agreeTerms"
+            helperText=" "
+            options={[
+              { label: "I agree to the Terms and Conditions*", value: "terms" },
+            ]}
+            value={agreedToTerms ? ["terms"] : []}
+            onChange={(val) => {
+              setAgreedToTerms(val.includes("terms"));
+              setAgreementError(null);
+            }}
+            maxSelections={1}
+          />
+          <Link
+            href="/documents/terms-conditions"
+            className="text-xs text-accent underline ml-4 mt-2 block"
+          >
+            View Terms and Conditions
+          </Link>
+        </div>
+
+        <div>
+          <MultiSelect
+            name="agreePrivacy"
+            helperText=" "
+            options={[
+              { label: "I agree to the Privacy Policy*", value: "privacy" },
+            ]}
+            value={agreedToPrivacy ? ["privacy"] : []}
+            onChange={(val) => {
+              setAgreedToPrivacy(val.includes("privacy"));
+              setAgreementError(null);
+            }}
+            maxSelections={1}
+          />
+          <Link
+            href="/documents/privacy-policy"
+            className="text-xs text-accent underline ml-4 mt-2 block"
+          >
+            View Privacy Policy
+          </Link>
+        </div>
       </div>
+
+      {agreementError && (
+        <p className="mt-1 text-xs text-error">{agreementError}</p>
+      )}
 
       <div className="flex-1 max-w-xl mt-5">
         <Button
