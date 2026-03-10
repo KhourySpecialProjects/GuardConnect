@@ -7,7 +7,13 @@ import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
-const PUBLIC_ROUTES = ["/login", "/sign-up", "/forgot-password"];
+const PUBLIC_ROUTES = [
+  "/login",
+  "/sign-up",
+  "/forgot-password",
+  "/documents/privacy-policy",
+  "/documents/terms-conditions",
+];
 
 export function AuthGuard({ children }: PropsWithChildren) {
   const router = useRouter();

@@ -21,18 +21,32 @@ This application is provided solely for official Massachusetts National Guard co
 
 Users are responsible for all activity conducted under their account. Any misuse, unauthorized disclosure of information, or violation of military communications policy may result in revocation of access and disciplinary action in accordance with applicable regulations.
 
-## 4. Intellectual Property
+## 4. SMS Notifications
+
+**Program Name:** Massachusetts National Guard Communications App
+
+**Program Description:** By opting in to SMS notifications, you consent to receive official broadcast messages from authorized senior Massachusetts National Guard personnel. These messages may include operational updates, announcements, and other mission-related communications.
+
+**Message Frequency:** Message frequency varies based on operational needs. You may receive multiple messages per week during active periods.
+
+**Message & Data Rates:** Message and data rates may apply. Check with your mobile carrier for details.
+
+**Support:** For assistance, contact your unit's communications officer or IT administrator. You may also text **HELP** at any time to receive help information.
+
+**Opt-Out:** You can cancel SMS notifications at any time. Text **STOP** to unsubscribe. After sending **STOP**, you will receive a confirmation message and no further SMS messages will be sent to you. To re-subscribe, contact your unit administrator. For more details, see the [Twilio Support Article](https://support.twilio.com/hc/en-us/articles/223134847-Industry-standards-for-US-Short-Code-Terms-of-Service).
+
+## 5. Intellectual Property
 
 All content, branding, and software associated with this application are the property of the Massachusetts National Guard or its authorized vendors. Unauthorized reproduction or distribution is prohibited.
 
-## 5. Disclaimer of Warranties
+## 6. Disclaimer of Warranties
 
 This application is provided "as is." The Massachusetts National Guard makes no guarantees regarding uptime, availability, or fitness for a particular purpose. It should not be used as the sole means of communication during critical operations.
 
-## 6. Modifications
+## 7. Modifications
 
 These Terms may be updated at any time. Continued use of the application following any changes constitutes acceptance of the revised Terms.
 
-## 7. Contact
+## 8. Contact
 
 For questions or to report misuse, contact your unit's communications officer or IT administrator.

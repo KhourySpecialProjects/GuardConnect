@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ function CreateAccountPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [receiveNotifications, setReceiveNotifications] = useState(false);
   const [fullname, setFullname] = useState("");
 
   const [branch, setBranch] = useState<
@@ -89,7 +91,12 @@ function CreateAccountPage() {
   const [bioError, setBioError] = useState<string | null>(null);
   const [branchError, setBranchError] = useState<string | null>(null);
 
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
+  const [agreementError, setAgreementError] = useState<string | null>(null);
+
   const [isCreateAccount, setIsCreateAccount] = useState(false);
+
   const handleCreateAccount = async () => {
     setDutyError(null);
     setEmailError(null);
@@ -133,6 +140,13 @@ function CreateAccountPage() {
 
     if (!rankSelection) {
       setBranchError("Rank is required");
+      return;
+    }
+
+    if (!agreedToTerms || !agreedToPrivacy) {
+      setAgreementError(
+        "You must agree to the Terms and Conditions and Privacy Policy.",
+      );
       return;
     }
 
@@ -230,18 +244,35 @@ function CreateAccountPage() {
           <p className="mt-1 text-xs text-error">{passwordError}</p>
         )}
 
-        <label htmlFor="login-phone">
-          Phone Number{" "}
-          <span className="font-regular text-accent">(Not Required)</span>
-        </label>
-        <TextInput
-          id="login-phone"
-          name="phone"
-          placeholder="(123) 456-7890"
-          value={phone}
-          className="w-full mt-2"
-          onChange={setPhone}
-        />
+        <div>
+          <label htmlFor="login-phone">
+            Phone Number{" "}
+            <span className="font-regular text-accent">(Not Required)</span>
+          </label>
+          <TextInput
+            id="login-phone"
+            name="phone"
+            placeholder="(123) 456-7890"
+            value={phone}
+            className="w-full mt-2"
+            onChange={setPhone}
+          />
+          <MultiSelect
+            name="smsNotifications"
+            helperText=" "
+            options={[
+              {
+                label: "Receive notifications via SMS",
+                value: "sms-notifications",
+              },
+            ]}
+            value={receiveNotifications ? ["sms-notifications"] : []}
+            onChange={(val) =>
+              setReceiveNotifications(val.includes("sms-notifications"))
+            }
+            maxSelections={1}
+          />
+        </div>
 
         <label htmlFor="login-location">Location*</label>
         <DropdownSelect
@@ -327,11 +358,7 @@ function CreateAccountPage() {
         />
         {bioError && <p className="mt-1 text-xs text-error">{bioError}</p>}
 
-        <label //selected here will appear selected in "interests" section of mentee/mentor forms
-          htmlFor="login-interests"
-        >
-          Areas of Interest
-        </label>
+        <label htmlFor="login-interests">Areas of Interest</label>
         <MultiSelect
           name="mentorInterests"
           helperText=" "
@@ -384,7 +411,55 @@ function CreateAccountPage() {
             </Select>
           </div>
         </div>
+
+        <div>
+          <MultiSelect
+            name="agreeTerms"
+            helperText=" "
+            options={[
+              { label: "I agree to the Terms and Conditions*", value: "terms" },
+            ]}
+            value={agreedToTerms ? ["terms"] : []}
+            onChange={(val) => {
+              setAgreedToTerms(val.includes("terms"));
+              setAgreementError(null);
+            }}
+            maxSelections={1}
+          />
+          <Link
+            href="/documents/terms-conditions"
+            className="text-xs text-accent underline ml-4 mt-2 block"
+          >
+            View Terms and Conditions
+          </Link>
+        </div>
+
+        <div>
+          <MultiSelect
+            name="agreePrivacy"
+            helperText=" "
+            options={[
+              { label: "I agree to the Privacy Policy*", value: "privacy" },
+            ]}
+            value={agreedToPrivacy ? ["privacy"] : []}
+            onChange={(val) => {
+              setAgreedToPrivacy(val.includes("privacy"));
+              setAgreementError(null);
+            }}
+            maxSelections={1}
+          />
+          <Link
+            href="/documents/privacy-policy"
+            className="text-xs text-accent underline ml-4 mt-2 block"
+          >
+            View Privacy Policy
+          </Link>
+        </div>
       </div>
+
+      {agreementError && (
+        <p className="mt-1 text-xs text-error">{agreementError}</p>
+      )}
 
       <div className="flex-1 max-w-xl mt-5">
         <Button
