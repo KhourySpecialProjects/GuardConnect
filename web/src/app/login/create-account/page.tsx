@@ -197,9 +197,7 @@ function CreateAccountPage() {
       <h1 className="text-left text-md font-medium text-secondary mb-1">
         Please fill out the following information to create your account.
       </h1>
-      <h1 className="text-s sm:text-sm text-accent mb-6">
-        *Required Information
-      </h1>
+      <h1 className="text-s sm:text-sm text-accent mb-6">*Required Information</h1>
 
       <div className="flex-1 max-w-lg space-y-6">
         <label htmlFor="login-fullname">Full Name*</label>
@@ -240,14 +238,11 @@ function CreateAccountPage() {
             setPasswordError(null);
           }}
         />
-        {passwordError && (
-          <p className="mt-1 text-xs text-error">{passwordError}</p>
-        )}
+        {passwordError && <p className="mt-1 text-xs text-error">{passwordError}</p>}
 
         <div>
           <label htmlFor="login-phone">
-            Phone Number{" "}
-            <span className="font-regular text-accent">(Not Required)</span>
+            Phone Number <span className="font-regular text-accent">(Not Required)</span>
           </label>
           <TextInput
             id="login-phone"
@@ -262,14 +257,13 @@ function CreateAccountPage() {
             helperText=" "
             options={[
               {
-                label: "Receive notifications via SMS",
+                label:
+                  "I agree to receive SMS notifications from GuardConnect. Message and data rates may apply. Reply STOP to unsubscribe or HELP for help.",
                 value: "sms-notifications",
               },
             ]}
             value={receiveNotifications ? ["sms-notifications"] : []}
-            onChange={(val) =>
-              setReceiveNotifications(val.includes("sms-notifications"))
-            }
+            onChange={(val) => setReceiveNotifications(val.includes("sms-notifications"))}
             maxSelections={1}
           />
         </div>
@@ -287,23 +281,17 @@ function CreateAccountPage() {
           options={rankOptions}
           value={branch ?? ""}
           onChange={(val) => {
-            setBranch(
-              val as "army-national-guard" | "air-force-national-guard",
-            );
+            setBranch(val as "army-national-guard" | "air-force-national-guard");
             setBranchError(null);
           }}
           onDropdownChange={(branch, rank) => {
-            setBranch(
-              branch as "army-national-guard" | "air-force-national-guard",
-            );
+            setBranch(branch as "army-national-guard" | "air-force-national-guard");
             setRankSelection(rank);
             setBranchError(null);
           }}
           className="w-full mt-2"
         />
-        {branchError && (
-          <p className="mt-1 text-xs text-error">{branchError}</p>
-        )}
+        {branchError && <p className="mt-1 text-xs text-error">{branchError}</p>}
 
         <label htmlFor="login-dept">What is your department?*</label>
         <TextInput
@@ -325,9 +313,7 @@ function CreateAccountPage() {
           onChange={setCareerField}
         />
 
-        <label htmlFor="login-duty-status">
-          Are you active duty or part-time?*
-        </label>
+        <label htmlFor="login-duty-status">Are you active duty or part-time?*</label>
         <SingleSelectButtonGroup
           options={[
             { label: "Active Duty", value: "active-duty" },
@@ -377,10 +363,7 @@ function CreateAccountPage() {
                 setSignalVisibility(value as "private" | "public");
               }}
             >
-              <SelectTrigger
-                id="signal-visibility"
-                className="w-full sm:min-w-64"
-              >
+              <SelectTrigger id="signal-visibility" className="w-full sm:min-w-64">
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
               <SelectContent>
@@ -398,10 +381,7 @@ function CreateAccountPage() {
                 setEmailVisibility(value as "private" | "public");
               }}
             >
-              <SelectTrigger
-                id="email-visibility"
-                className="w-full sm:min-w-64"
-              >
+              <SelectTrigger id="email-visibility" className="w-full sm:min-w-64">
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
               <SelectContent>
@@ -416,9 +396,7 @@ function CreateAccountPage() {
           <MultiSelect
             name="agreeTerms"
             helperText=" "
-            options={[
-              { label: "I agree to the Terms and Conditions*", value: "terms" },
-            ]}
+            options={[{ label: "I agree to the Terms and Conditions*", value: "terms" }]}
             value={agreedToTerms ? ["terms"] : []}
             onChange={(val) => {
               setAgreedToTerms(val.includes("terms"));
@@ -438,9 +416,7 @@ function CreateAccountPage() {
           <MultiSelect
             name="agreePrivacy"
             helperText=" "
-            options={[
-              { label: "I agree to the Privacy Policy*", value: "privacy" },
-            ]}
+            options={[{ label: "I agree to the Privacy Policy*", value: "privacy" }]}
             value={agreedToPrivacy ? ["privacy"] : []}
             onChange={(val) => {
               setAgreedToPrivacy(val.includes("privacy"));
@@ -457,9 +433,7 @@ function CreateAccountPage() {
         </div>
       </div>
 
-      {agreementError && (
-        <p className="mt-1 text-xs text-error">{agreementError}</p>
-      )}
+      {agreementError && <p className="mt-1 text-xs text-error">{agreementError}</p>}
 
       <div className="flex-1 max-w-xl mt-5">
         <Button

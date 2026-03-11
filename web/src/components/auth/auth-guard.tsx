@@ -14,6 +14,8 @@ const PUBLIC_ROUTES = [
   "/documents/privacy-policy",
   "/documents/terms-conditions",
 ];
+const ALWAYS_ACCESSIBLE = ["/documents/terms-conditions", "/documents/privacy-policy"];
+
 
 export function AuthGuard({ children }: PropsWithChildren) {
   const router = useRouter();
@@ -29,8 +31,13 @@ export function AuthGuard({ children }: PropsWithChildren) {
     [pathname],
   );
 
+  const isAlwaysAccessible = useMemo(
+    () => ALWAYS_ACCESSIBLE.some((route) => pathname === route || pathname.startsWith(`${route}/`)),
+    [pathname],
+  );
+
   const shouldRedirectToLogin = !isPublicRoute && !isPending && !sessionData;
-  const shouldRedirectToApp = isPublicRoute && !isPending && !!sessionData;
+  const shouldRedirectToApp = isPublicRoute && !isAlwaysAccessible && !isPending && !!sessionData;
 
   useEffect(() => {
     if (shouldRedirectToLogin) {
