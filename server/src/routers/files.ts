@@ -10,7 +10,7 @@ import {
   protectedProcedure,
   router,
 } from "../trpc/trpc.js";
-import { InternalServerError } from "../types/errors.js";
+import { InternalServerError, NotFoundError } from "../types/errors.js";
 import {
   confirmUploadInputSchema,
   createPresignedUploadInputSchema,
@@ -195,6 +195,10 @@ const deleteFile = protectedProcedure
         await fileRepository.deleteFile(input.fileId);
         return { ok: deleted };
       } catch (err) {
+        if (err instanceof NotFoundError) {
+          // Idempotent delete: missing file records should not fail callers.
+          return { ok: true };
+        }
         log.error(err, "Failed to delete file");
         throw new InternalServerError("Failed to delete file");
       }
