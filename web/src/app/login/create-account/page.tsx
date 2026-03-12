@@ -262,7 +262,8 @@ function CreateAccountPage() {
             helperText=" "
             options={[
               {
-                label: "Receive notifications via SMS",
+                label:
+                  "I agree to receive SMS notifications from GuardConnect. Message and data rates may apply. Reply STOP to unsubscribe or HELP for help.",
                 value: "sms-notifications",
               },
             ]}
