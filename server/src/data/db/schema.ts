@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   customType,
   index,
@@ -696,6 +697,81 @@ export const mentorshipEmbeddings = pgTable(
   ],
 );
 
+// KNOWLEDGE BASE: hierarchical folders
+export const knowledgeFolders = pgTable(
+  "knowledge_folders",
+  {
+    folderId: uuid("folder_id").primaryKey().defaultRandom(),
+    parentFolderId: uuid("parent_folder_id").references(
+      (): AnyPgColumn => knowledgeFolders.folderId,
+      { onDelete: "cascade" },
+    ),
+    title: text("title").notNull(),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("ix_knowledge_folders_parent_folder_id").on(table.parentFolderId),
+    index("ix_knowledge_folders_created_by").on(table.createdBy),
+  ],
+);
+
+// KNOWLEDGE BASE: items stored in folders
+export const knowledgeItems = pgTable(
+  "knowledge_items",
+  {
+    itemId: uuid("item_id").primaryKey().defaultRandom(),
+    folderId: uuid("folder_id").references(() => knowledgeFolders.folderId, {
+      onDelete: "set null",
+    }),
+    name: text("name").notNull(),
+    description: text("description"),
+    body: text("body"),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("ix_knowledge_items_folder_id").on(table.folderId),
+    index("ix_knowledge_items_created_by").on(table.createdBy),
+    index("ix_knowledge_items_name").on(table.name),
+  ],
+);
+
+// KNOWLEDGE BASE: one optional attachment per knowledge item
+export const knowledgeAttachments = pgTable(
+  "knowledge_attachments",
+  {
+    attachmentId: uuid("attachment_id").primaryKey().defaultRandom(),
+    itemId: uuid("item_id")
+      .references(() => knowledgeItems.itemId, { onDelete: "cascade" })
+      .notNull(),
+    fileId: uuid("file_id")
+      .references(() => files.fileId, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("ux_knowledge_attachments_item_id").on(table.itemId),
+    index("ix_knowledge_attachments_file_id").on(table.fileId),
+  ],
+);
+
 // INVITE CODES - for managing user invitations with role assignments
 export const inviteCodes = pgTable(
   "invite_codes",
@@ -745,3 +821,9 @@ export type InviteCode = typeof inviteCodes.$inferSelect;
 export type NewInviteCode = typeof inviteCodes.$inferInsert;
 export type MentorshipEmbedding = typeof mentorshipEmbeddings.$inferSelect;
 export type NewMentorshipEmbedding = typeof mentorshipEmbeddings.$inferInsert;
+export type KnowledgeFolder = typeof knowledgeFolders.$inferSelect;
+export type NewKnowledgeFolder = typeof knowledgeFolders.$inferInsert;
+export type KnowledgeItem = typeof knowledgeItems.$inferSelect;
+export type NewKnowledgeItem = typeof knowledgeItems.$inferInsert;
+export type KnowledgeAttachment = typeof knowledgeAttachments.$inferSelect;
+export type NewKnowledgeAttachment = typeof knowledgeAttachments.$inferInsert;
