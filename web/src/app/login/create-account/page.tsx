@@ -179,14 +179,41 @@ function CreateAccountPage() {
       const { error } = await authClient.signIn.email({ email, password });
 
       if (error) {
-        const message = error.message ?? "Unable to create account right now.";
-        toast.error(`${message} Please try again.`);
-      } else {
+        const message =
+          error.message ?? "Unable to sign in after creating account.";
+        toast.error(`${message} Please try logging in manually.`);
         router.replace("/login");
+      } else {
+        toast.success("Account created successfully!");
+        router.replace("/communications");
       }
-    } finally {
+    } catch (error) {
+      // Even if createUser fails, try to sign in - the account might have been created
+      // This handles the case where account creation succeeds but response validation fails
+      try {
+        const { error: signInError } = await authClient.signIn.email({
+          email,
+          password,
+        });
+
+        if (!signInError) {
+          // Account was actually created and we can sign in!
+          toast.success("Account created successfully!");
+          router.replace("/communications");
+          setIsCreateAccount(false);
+          return;
+        }
+      } catch {
+        // Sign in also failed, so account really wasn't created
+      }
+
+      const message =
+        error instanceof Error ? error.message : "Unable to create account";
+      toast.error(`Account creation failed: ${message}`);
       setIsCreateAccount(false);
+      return;
     }
+    setIsCreateAccount(false);
   };
 
   return (
@@ -287,11 +314,18 @@ function CreateAccountPage() {
         <SingleSelectButtonGroup
           options={rankOptions}
           value={branch ?? ""}
+          dropdownValue={rankSelection}
           onChange={(val) => {
             setBranch(
               val as "army-national-guard" | "air-force-national-guard",
             );
             setBranchError(null);
+            // Set default rank when branch is selected
+            if (val === "army-national-guard") {
+              setRankSelection("e1-private");
+            } else if (val === "air-force-national-guard") {
+              setRankSelection("e1-airman-basic");
+            }
           }}
           onDropdownChange={(branch, rank) => {
             setBranch(

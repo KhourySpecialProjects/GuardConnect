@@ -19,6 +19,7 @@ interface SingleSelectButtonGroupProps {
   value: string;
   onChange: (value: string) => void;
   onDropdownChange?: (parentValue: string, dropdownValue: string) => void;
+  dropdownValue?: string;
   className?: string;
   legend?: string;
 }
@@ -28,6 +29,7 @@ export function SingleSelectButtonGroup({
   value,
   onChange,
   onDropdownChange,
+  dropdownValue: externalDropdownValue,
   className,
   legend = "Select an option",
 }: SingleSelectButtonGroupProps) {
@@ -48,7 +50,10 @@ export function SingleSelectButtonGroup({
       {options.map((option) => {
         const isActive = option.value === value;
         const hasDropdown = option.dropdownOptions?.length;
-        const dropdownValue = dropdownValues[option.value] || "";
+        const dropdownValue =
+          isActive && externalDropdownValue
+            ? externalDropdownValue
+            : dropdownValues[option.value] || "";
 
         return (
           <div key={option.value} className="flex flex-col w-full">
