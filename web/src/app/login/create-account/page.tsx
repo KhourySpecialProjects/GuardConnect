@@ -91,85 +91,53 @@ function CreateAccountPage() {
 
   const [isCreateAccount, setIsCreateAccount] = useState(false);
   const handleCreateAccount = async () => {
-    console.log("handleCreateAccount started");
-    console.log("inviteCode:", inviteCode);
-
     setDutyError(null);
     setEmailError(null);
     setPasswordError(null);
     setBioError(null);
     setBranchError(null);
 
-    console.log("About to sign out...");
     await authClient.signOut();
-    console.log("Signed out");
 
     if (!inviteCode) {
-      console.log("No invite code found!");
       toast.error(
         "Invite code is missing. Please return to the sign-up page and try again.",
       );
       return;
     }
 
-    console.log("Checking validations...");
-    console.log("dutySelection:", dutySelection);
     if (!dutySelection) {
-      console.log("FAILED: No duty selection");
       setDutyError("Please select whether you are active duty or part-time.");
       return;
     }
 
-    console.log("email:", email);
     if (!email) {
-      console.log("FAILED: No email");
       setEmailError("Email is required.");
       return;
     }
 
-    console.log("password:", password ? "[hidden]" : "empty");
     if (!password) {
-      console.log("FAILED: No password");
       setPasswordError("Password is required.");
       return;
     }
 
-    console.log("multiLineText:", multiLineText);
     if (!multiLineText) {
-      console.log("FAILED: No bio");
       setBioError("Short biography is required.");
       return;
     }
 
-    console.log("branch:", branch);
     if (!branch) {
-      console.log("FAILED: No branch");
       setBranchError("Branch is required");
       return;
     }
 
-    console.log("rankSelection:", rankSelection);
     if (!rankSelection) {
-      console.log("FAILED: No rank");
       setBranchError("Rank is required");
       return;
     }
 
-    console.log("All validations passed!");
-
     setIsCreateAccount(true);
     try {
-      console.log("Creating account with:", {
-        inviteCode,
-        email,
-        name: fullname,
-        rank: rankSelection,
-        branch,
-        department,
-        about: multiLineText,
-        location: locationSelection
-      });
-
       await trpc.user.createUser.mutate({
         inviteCode,
         userData: {
@@ -194,21 +162,17 @@ function CreateAccountPage() {
         },
       });
 
-      console.log("Account created successfully, attempting sign in...");
       const { error } = await authClient.signIn.email({ email, password });
 
       if (error) {
-        console.error("Sign in error:", error);
         const message = error.message ?? "Unable to sign in after creating account.";
         toast.error(`${message} Please try logging in manually.`);
         router.replace("/login");
       } else {
-        console.log("Sign in successful, redirecting to communications...");
         toast.success("Account created successfully!");
         router.replace("/communications");
       }
     } catch (error) {
-      console.error("Account creation failed:", error);
       const message = error instanceof Error ? error.message : "Unable to create account";
       toast.error(`Account creation failed: ${message}`);
       setIsCreateAccount(false);
@@ -433,10 +397,7 @@ function CreateAccountPage() {
           type="button"
           className="inline-flex items-center gap-2 px-6"
           disabled={isCreateAccount}
-          onClick={() => {
-            console.log("Button clicked!");
-            handleCreateAccount();
-          }}
+          onClick={handleCreateAccount}
           aria-label="Create a new account"
         >
           {isCreateAccount && <Spinner />}
