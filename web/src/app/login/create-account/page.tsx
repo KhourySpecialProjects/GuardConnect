@@ -284,13 +284,14 @@ function CreateAccountPage() {
             className="w-full mt-2"
             onChange={setPhone}
           />
+
           <MultiSelect
             name="smsNotifications"
             helperText=" "
             options={[
               {
                 label:
-                  "I agree to receive SMS notifications from GuardConnect. Message and data rates may apply. Reply STOP to unsubscribe or HELP for help.",
+                  "I agree to receive SMS broadcast notifications from GuardConnect. Message frequency varies. Message & data rates may apply. Reply STOP to opt out or HELP for assistance.",
                 value: "sms-notifications",
               },
             ]}
@@ -300,6 +301,25 @@ function CreateAccountPage() {
             }
             maxSelections={1}
           />
+          <span className="block mt-1 text-xs">
+            <Link
+              href="/documents/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent"
+            >
+              Privacy Policy
+            </Link>
+            {" | "}
+            <Link
+              href="/documents/terms-conditions"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent"
+            >
+              Terms & Conditions
+            </Link>
+          </span>
         </div>
 
         <label htmlFor="login-location">Location*</label>
