@@ -1,6 +1,7 @@
 import { commsRouter } from "../routers/comms.js";
 import { filesRouter } from "../routers/files.js";
 import { inviteCodeRouter } from "../routers/invite-codes.js";
+import { knowledgeRouter } from "../routers/knowledge.js";
 import { mentorshipRouter } from "../routers/mentorship.js";
 import { messageBlastRouter } from "../routers/message-blasts.js";
 import { notificationsRouter } from "../routers/notifications.js";
@@ -19,6 +20,7 @@ export const appRouter = router({
   notifications: notificationsRouter,
   messageBlasts: messageBlastRouter,
   inviteCodes: inviteCodeRouter,
+  knowledge: knowledgeRouter,
 });
 
 export type AppRouter = typeof appRouter;
