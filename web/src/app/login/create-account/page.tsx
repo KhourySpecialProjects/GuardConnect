@@ -173,6 +173,22 @@ function CreateAccountPage() {
         router.replace("/communications");
       }
     } catch (error) {
+      // Even if createUser fails, try to sign in - the account might have been created
+      // This handles the case where account creation succeeds but response validation fails
+      try {
+        const { error: signInError } = await authClient.signIn.email({ email, password });
+
+        if (!signInError) {
+          // Account was actually created and we can sign in!
+          toast.success("Account created successfully!");
+          router.replace("/communications");
+          setIsCreateAccount(false);
+          return;
+        }
+      } catch (signInErr) {
+        // Sign in also failed, so account really wasn't created
+      }
+
       const message = error instanceof Error ? error.message : "Unable to create account";
       toast.error(`Account creation failed: ${message}`);
       setIsCreateAccount(false);
@@ -261,11 +277,18 @@ function CreateAccountPage() {
         <SingleSelectButtonGroup
           options={rankOptions}
           value={branch ?? ""}
+          dropdownValue={rankSelection}
           onChange={(val) => {
             setBranch(
               val as "army-national-guard" | "air-force-national-guard",
             );
             setBranchError(null);
+            // Set default rank when branch is selected
+            if (val === "army-national-guard") {
+              setRankSelection("e1-private");
+            } else if (val === "air-force-national-guard") {
+              setRankSelection("e1-airman-basic");
+            }
           }}
           onDropdownChange={(branch, rank) => {
             setBranch(

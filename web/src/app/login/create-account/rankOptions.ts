@@ -4,7 +4,6 @@ export interface AirRankOption {
 }
 
 export const airForceRanks: AirRankOption[] = [
-  { label: "Select rank...", value: "" },
   { label: "E-1 (Airman Basic)", value: "e1-airman-basic" },
   { label: "E-2 (Airman)", value: "e2-airman" },
   { label: "E-3 (Airman First Class)", value: "e3-airman-first-class" },
@@ -40,7 +39,6 @@ export interface ArmyRankOption {
 }
 
 export const armyRanks: ArmyRankOption[] = [
-  { label: "Select rank...", value: "" },
   { label: "E-1 (Private)", value: "e1-private" },
   { label: "E-2 (Private Second Class)", value: "e2-private-second-class" },
   { label: "E-3 (Private First Class)", value: "e3-private-first-class" },
