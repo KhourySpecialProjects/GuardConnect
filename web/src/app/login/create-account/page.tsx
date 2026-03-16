@@ -165,7 +165,8 @@ function CreateAccountPage() {
       const { error } = await authClient.signIn.email({ email, password });
 
       if (error) {
-        const message = error.message ?? "Unable to sign in after creating account.";
+        const message =
+          error.message ?? "Unable to sign in after creating account.";
         toast.error(`${message} Please try logging in manually.`);
         router.replace("/login");
       } else {
@@ -176,7 +177,10 @@ function CreateAccountPage() {
       // Even if createUser fails, try to sign in - the account might have been created
       // This handles the case where account creation succeeds but response validation fails
       try {
-        const { error: signInError } = await authClient.signIn.email({ email, password });
+        const { error: signInError } = await authClient.signIn.email({
+          email,
+          password,
+        });
 
         if (!signInError) {
           // Account was actually created and we can sign in!
@@ -185,11 +189,12 @@ function CreateAccountPage() {
           setIsCreateAccount(false);
           return;
         }
-      } catch (signInErr) {
+      } catch {
         // Sign in also failed, so account really wasn't created
       }
 
-      const message = error instanceof Error ? error.message : "Unable to create account";
+      const message =
+        error instanceof Error ? error.message : "Unable to create account";
       toast.error(`Account creation failed: ${message}`);
       setIsCreateAccount(false);
       return;

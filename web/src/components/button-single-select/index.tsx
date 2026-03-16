@@ -50,7 +50,10 @@ export function SingleSelectButtonGroup({
       {options.map((option) => {
         const isActive = option.value === value;
         const hasDropdown = option.dropdownOptions?.length;
-        const dropdownValue = isActive && externalDropdownValue ? externalDropdownValue : (dropdownValues[option.value] || "");
+        const dropdownValue =
+          isActive && externalDropdownValue
+            ? externalDropdownValue
+            : dropdownValues[option.value] || "";
 
         return (
           <div key={option.value} className="flex flex-col w-full">
