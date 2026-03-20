@@ -1,5 +1,8 @@
+import {
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} from "@aws-sdk/client-secrets-manager";
 import twilio from "twilio";
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 interface SMSResult {
   phoneNumber: string;
@@ -30,19 +33,28 @@ export class TwilioSMSService {
   private readonly DEFAULT_BATCH_SIZE = 10;
   private readonly DEFAULT_BATCH_DELAY_MS = 1000;
 
-  private constructor(accountSid: string, authToken: string, fromNumber: string) {
+  private constructor(
+    accountSid: string,
+    authToken: string,
+    fromNumber: string,
+  ) {
     this.client = twilio(accountSid, authToken);
     this.fromNumber = fromNumber;
   }
 
   static async create(): Promise<TwilioSMSService> {
-    const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER } = await getTwilioSecrets();
+    const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER } =
+      await getTwilioSecrets();
 
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
       throw new Error("Missing Twilio credentials in Secrets Manager.");
     }
 
-    return new TwilioSMSService(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER);
+    return new TwilioSMSService(
+      TWILIO_ACCOUNT_SID,
+      TWILIO_AUTH_TOKEN,
+      TWILIO_PHONE_NUMBER,
+    );
   }
 
   /**
@@ -103,7 +115,9 @@ export class TwilioSMSService {
       );
 
       // Send batch in parallel
-      const batchPromises = batch.map((phoneNumber) => this.sendSMS(phoneNumber, message));
+      const batchPromises = batch.map((phoneNumber) =>
+        this.sendSMS(phoneNumber, message),
+      );
 
       const batchResults = await Promise.allSettled(batchPromises);
 
