@@ -82,7 +82,7 @@ export class MessageBlastRepository {
       throw new ConflictError("Failed to create broadcast");
     }
 
-    const smsService = new TwilioSMSService();
+    const smsService = await TwilioSMSService.create();
 
     const [sender] = await db
       .select({

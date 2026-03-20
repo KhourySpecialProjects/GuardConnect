@@ -1,4 +1,5 @@
 import twilio from "twilio";
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 interface SMSResult {
   phoneNumber: string;
@@ -14,25 +15,34 @@ interface BroadcastResult {
   results: SMSResult[];
 }
 
+const client = new SecretsManagerClient({ region: "us-east-1" });
+
+async function getTwilioSecrets() {
+  const response = await client.send(
+    new GetSecretValueCommand({ SecretId: "prod/guardconnect/twilio" }),
+  );
+  return JSON.parse(response.SecretString!);
+}
+
 export class TwilioSMSService {
   private client: ReturnType<typeof twilio>;
   private fromNumber: string;
   private readonly DEFAULT_BATCH_SIZE = 10;
   private readonly DEFAULT_BATCH_DELAY_MS = 1000;
 
-  constructor() {
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_PHONE_NUMBER;
-
-    if (!accountSid || !authToken || !fromNumber) {
-      throw new Error(
-        "Missing Twilio credentials. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER in your environment variables.",
-      );
-    }
-
+  private constructor(accountSid: string, authToken: string, fromNumber: string) {
     this.client = twilio(accountSid, authToken);
     this.fromNumber = fromNumber;
+  }
+
+  static async create(): Promise<TwilioSMSService> {
+    const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER } = await getTwilioSecrets();
+
+    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+      throw new Error("Missing Twilio credentials in Secrets Manager.");
+    }
+
+    return new TwilioSMSService(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER);
   }
 
   /**
@@ -93,9 +103,7 @@ export class TwilioSMSService {
       );
 
       // Send batch in parallel
-      const batchPromises = batch.map((phoneNumber) =>
-        this.sendSMS(phoneNumber, message),
-      );
+      const batchPromises = batch.map((phoneNumber) => this.sendSMS(phoneNumber, message));
 
       const batchResults = await Promise.allSettled(batchPromises);
 
