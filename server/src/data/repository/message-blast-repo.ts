@@ -1,4 +1,4 @@
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, isNotNull, sql } from "drizzle-orm";
 import { messageBlasts, users } from "../../data/db/schema.js";
 import { db } from "../../data/db/sql.js";
 import { TwilioSMSService } from "../../service/twilio-service.js";
@@ -78,7 +78,7 @@ export class MessageBlastRepository {
       throw new ConflictError("Failed to create broadcast");
     }
 
-    const smsService = new TwilioSMSService();
+    const smsService = await TwilioSMSService.create();
 
     const [sender] = await db
       .select({
@@ -87,12 +87,42 @@ export class MessageBlastRepository {
       .from(users)
       .where(eq(users.id, created.senderId));
 
+    const audience = () => {
+      if (targetAudience) {
+        if (targetAudience.army.departments) {
+          return targetAudience.army.departments[0] ?? "";
+        } else if (targetAudience.airforce.departments) {
+          return targetAudience.airforce.departments[0] ?? "";
+        } else {
+          return "";
+        }
+      }
+      return "";
+    };
+
+    const phoneNumbers = (await this.getBroadcastNumbers(audience()))
+      .map((row) => row.phoneNumber)
+      .filter((p): p is string => p !== null);
+
     await smsService.broadcast(
-      ["+17742054619", "+14086129083"],
-      `GuardConnect broadcast from ${sender}:\n**${created.title}**\n${created.content}`,
+      phoneNumbers,
+      `GuardConnect broadcast from ${sender?.name}:\n**${created.title}**\n${created.content}`,
     );
 
     return this.parseMessageBlastRow(created);
+  }
+
+  async getBroadcastNumbers(audience: string) {
+    return await db
+      .selectDistinct({
+        phoneNumber: users.phoneNumber,
+      })
+      .from(users)
+      .where(
+        audience
+          ? and(isNotNull(users.phoneNumber), eq(users.department, audience))
+          : isNotNull(users.phoneNumber),
+      );
   }
 
   /**
