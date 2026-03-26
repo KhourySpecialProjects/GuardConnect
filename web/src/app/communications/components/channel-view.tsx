@@ -357,7 +357,6 @@ export function ChannelView({ channelId }: ChannelViewProps) {
       if (parsedChannelId === null) {
         return;
       }
-      
       // guard to prevent multiple reactions of the same emoji by one user
       if (active) {
       const message = messagesState.find((m) => m.id === messageId);
@@ -451,7 +450,9 @@ export function ChannelView({ channelId }: ChannelViewProps) {
               ),
             );
             if (channelMessagesQueryKey) {
-              queryClient.invalidateQueries({ queryKey: channelMessagesQueryKey });
+              queryClient.invalidateQueries({ 
+                queryKey: channelMessagesQueryKey,
+               });
             }
           },
           onError: () => {
@@ -464,7 +465,11 @@ export function ChannelView({ channelId }: ChannelViewProps) {
         },
       );
     },
-    [parsedChannelId, queryClient, mutateReaction, channelMessagesQueryKey, messagesState],
+    [parsedChannelId, 
+    queryClient,
+    mutateReaction,
+    channelMessagesQueryKey,
+    messagesState],
   );
 
   if (parsedChannelId === null) {
