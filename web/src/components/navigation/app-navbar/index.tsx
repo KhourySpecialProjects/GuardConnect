@@ -49,7 +49,7 @@ const AppNavBarItem = ({
         aria-label={item.label}
         aria-current={isActive ? "page" : undefined}
         onClick={onNavigate}
-        className={`group relative flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl transition-all duration-300
+        className={`group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-3xl transition-all duration-300
           ${
             isActive
               ? "bg-accent ring-3 ring-background scale-105"
@@ -93,11 +93,11 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
     <nav
       className={cn(
         // Dynamic viewport height; only the action buttons scroll so top icons stay fixed.
-        "fixed inset-y-0 left-0 z-40 flex w-24 max-h-[100dvh] flex-col items-center overflow-y-auto overflow-x-visible bg-primary px-3 py-6 shadow-lg shadow-black/20",
+        "fixed inset-y-0 left-0 z-40 flex w-24 max-h-[100dvh] flex-col items-center overflow-hidden overflow-x-visible bg-primary px-3 py-6 shadow-lg shadow-black/20",
         className,
       )}
     >
-      <div className="flex w-full flex-col items-center">
+      <div className="flex w-full shrink min-h-0 flex-col items-center">
         <Link
           href="/communications"
           aria-label="Go to My Channels"
@@ -114,7 +114,7 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
           />
         </Link>
 
-        <ul className="mt-10 flex flex-col items-center gap-6">
+        <ul className="mt-6 flex flex-col items-center gap-5">
           {navItems.map((item) => (
             <AppNavBarItem
               key={item.id}
@@ -126,8 +126,8 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
         </ul>
       </div>
 
-      <div className="mt-8 flex w-full flex-1 min-h-0 flex-col items-center overflow-y-auto overflow-x-visible">
-        <div className="mt-auto flex w-full flex-col items-center gap-3 overflow-x-visible pb-6 md:pb-10">
+      <div className="mt-8 flex w-full flex-1 min-h-0 flex-col items-center overflow-hidden overflow-x-visible">
+        <div className="mt-auto flex w-full flex-col items-center gap-4 overflow-x-visible pb-20">
           <Protected requiredRole="broadcast:create">
             <Link
               href="/broadcasts/new"
