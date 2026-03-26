@@ -93,7 +93,7 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
     <nav
       className={cn(
         // Dynamic viewport height; only the action buttons scroll so top icons stay fixed.
-        "fixed inset-y-0 left-0 z-40 flex w-24 max-h-[100dvh] flex-col items-center overflow-visible bg-primary px-3 py-6 shadow-lg shadow-black/20",
+        "fixed inset-y-0 left-0 z-40 flex w-24 max-h-[100dvh] flex-col items-center overflow-y-auto overflow-x-visible bg-primary px-3 py-6 shadow-lg shadow-black/20",
         className,
       )}
     >
@@ -126,8 +126,8 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
         </ul>
       </div>
 
-      <div className="mt-8 flex w-full flex-1 min-h-0 flex-col items-center overflow-visible">
-        <div className="mt-auto flex w-full flex-col items-center gap-3 overflow-visible pb-6 md:pb-10">
+      <div className="mt-8 flex w-full flex-1 min-h-0 flex-col items-center overflow-y-auto overflow-x-visible">
+        <div className="mt-auto flex w-full flex-col items-center gap-3 overflow-x-visible pb-6 md:pb-10">
           <Protected requiredRole="broadcast:create">
             <Link
               href="/broadcasts/new"
