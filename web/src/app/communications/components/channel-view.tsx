@@ -357,6 +357,15 @@ export function ChannelView({ channelId }: ChannelViewProps) {
       if (parsedChannelId === null) {
         return;
       }
+      
+      // guard to prevent multiple reactions of the same emoji by one user
+      if (active) {
+      const message = messagesState.find((m) => m.id === messageId);
+      const alreadyReacted = message?.reactions?.some(
+        (r) => r.emoji === emoji && r.reactedByCurrentUser,
+      );
+      if (alreadyReacted) return;
+    }
 
       setMessagesState((prevMessages) =>
         prevMessages.map((message) => {
@@ -441,6 +450,9 @@ export function ChannelView({ channelId }: ChannelViewProps) {
                   : message,
               ),
             );
+            if (channelMessagesQueryKey) {
+              queryClient.invalidateQueries({ queryKey: channelMessagesQueryKey });
+            }
           },
           onError: () => {
             if (channelMessagesQueryKey) {
@@ -452,7 +464,7 @@ export function ChannelView({ channelId }: ChannelViewProps) {
         },
       );
     },
-    [parsedChannelId, queryClient, mutateReaction, channelMessagesQueryKey],
+    [parsedChannelId, queryClient, mutateReaction, channelMessagesQueryKey, messagesState],
   );
 
   if (parsedChannelId === null) {
