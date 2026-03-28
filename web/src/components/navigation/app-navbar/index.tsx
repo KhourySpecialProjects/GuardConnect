@@ -56,7 +56,7 @@ const AppNavBarItem = ({
               : "bg-primary-dark hover:bg-accent"
           } group-hover:-translate-y-2`}
       >
-        <Icon className="h-7 w-7 text-background" />
+        <Icon className="h-6 w-6 text-background" />
         <span
           className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50"
           role="presentation"
@@ -93,7 +93,7 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
     <nav
       className={cn(
         // Dynamic viewport height; only the action buttons scroll so top icons stay fixed.
-        "fixed inset-y-0 left-0 z-40 flex w-24 max-h-[100dvh] flex-col items-center overflow-hidden overflow-x-visible bg-primary px-3 py-6 shadow-lg shadow-black/20",
+        "fixed inset-y-0 left-0 z-40 flex w-24 max-h-[100dvh] flex-col items-center overflow-hidden bg-primary px-3 py-6 shadow-lg shadow-black/20",
         className,
       )}
     >
@@ -126,8 +126,8 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
         </ul>
       </div>
 
-      <div className="mt-8 flex w-full flex-1 min-h-0 flex-col items-center overflow-hidden overflow-x-visible">
-        <div className="mt-auto flex w-full flex-col items-center gap-4 overflow-x-visible pb-20">
+      <div className="mt-8 flex w-full flex-1 min-h-0 flex-col items-center overflow-hidden">
+        <div className="mt-auto flex w-full shrink min-h-0 flex-col items-center gap-4 pb-20">
           <Protected requiredRole="broadcast:create">
             <Link
               href="/broadcasts/new"
