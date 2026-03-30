@@ -131,7 +131,7 @@ const MENTOR_DATA: Record<
     personalInterests: string;
     whyInterestedResponses: string[];
     careerAdvice: string;
-    preferredMeetingFormat: "hybrid" | "virtual" | "in-person" ;
+    preferredMeetingFormat: "hybrid" | "virtual" | "in-person";
     hoursPerMonthCommitment: number;
   }
 > = {

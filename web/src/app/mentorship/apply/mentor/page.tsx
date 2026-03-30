@@ -164,8 +164,7 @@ export default function MentorshipApplyMentorPage() {
         | "senior-ncos"
         | "junior-officers"
         | "senior-officers"
-        | "transitioning"
-        | "no-preference";
+        | "transitioning";
 
       const preferredMenteeCareerStages:
         | PreferredMenteeCareerStage[]
@@ -288,7 +287,6 @@ export default function MentorshipApplyMentorPage() {
       label: "Soldiers transitioning from active duty or civilian careers",
       value: "transitioning-soldiers",
     },
-    { label: "No preference", value: "no-preference" },
   ];
 
   const mentorMeetingFormat: MultiSelectOption[] = [

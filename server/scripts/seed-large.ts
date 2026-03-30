@@ -17,26 +17,102 @@ const matchingService = new MatchingService();
 
 // ─── Name pool ────────────────────────────────────────────────────────────────
 const FIRST_NAMES = [
-  "Alex", "Jordan", "Morgan", "Taylor", "Casey", "Riley", "Avery", "Quinn",
-  "Blake", "Drew", "Reese", "Skyler", "Parker", "Dakota", "Hayden", "Emery",
-  "Finley", "Rowan", "Sage", "River", "Phoenix", "Marlowe", "Kendall", "Peyton",
-  "Lennox", "Harlow", "Sloane", "Tatum", "Beckett", "Elliot",
+  "Alex",
+  "Jordan",
+  "Morgan",
+  "Taylor",
+  "Casey",
+  "Riley",
+  "Avery",
+  "Quinn",
+  "Blake",
+  "Drew",
+  "Reese",
+  "Skyler",
+  "Parker",
+  "Dakota",
+  "Hayden",
+  "Emery",
+  "Finley",
+  "Rowan",
+  "Sage",
+  "River",
+  "Phoenix",
+  "Marlowe",
+  "Kendall",
+  "Peyton",
+  "Lennox",
+  "Harlow",
+  "Sloane",
+  "Tatum",
+  "Beckett",
+  "Elliot",
 ];
 const LAST_NAMES = [
-  "Rivera", "Casey", "Blake", "Quinn", "Holloway", "Langston", "Monroe",
-  "Steele", "Vance", "Archer", "Mercer", "Haynes", "Caldwell", "Briggs",
-  "Holt", "Stanton", "Cross", "Sutton", "Lowe", "Chandler", "Preston",
-  "Graves", "Whitmore", "Ashford", "Kimball", "Novak", "Decker", "Frost",
-  "Garner", "Hale",
+  "Rivera",
+  "Casey",
+  "Blake",
+  "Quinn",
+  "Holloway",
+  "Langston",
+  "Monroe",
+  "Steele",
+  "Vance",
+  "Archer",
+  "Mercer",
+  "Haynes",
+  "Caldwell",
+  "Briggs",
+  "Holt",
+  "Stanton",
+  "Cross",
+  "Sutton",
+  "Lowe",
+  "Chandler",
+  "Preston",
+  "Graves",
+  "Whitmore",
+  "Ashford",
+  "Kimball",
+  "Novak",
+  "Decker",
+  "Frost",
+  "Garner",
+  "Hale",
 ];
 const RANKS = [
-  "E-4", "E-5", "E-6", "E-7", "O-1", "O-2", "O-3", "CW2", "CW3", "SGT",
-  "SSG", "SFC", "MSG", "1LT", "CPT", "MAJ",
+  "E-4",
+  "E-5",
+  "E-6",
+  "E-7",
+  "O-1",
+  "O-2",
+  "O-3",
+  "CW2",
+  "CW3",
+  "SGT",
+  "SSG",
+  "SFC",
+  "MSG",
+  "1LT",
+  "CPT",
+  "MAJ",
 ];
 const LOCATIONS = [
-  "Boston, MA", "Austin, TX", "Chicago, IL", "Denver, CO", "Seattle, WA",
-  "Atlanta, GA", "Phoenix, AZ", "Nashville, TN", "Portland, OR", "Miami, FL",
-  "Columbus, OH", "Indianapolis, IN", "San Antonio, TX", "Charlotte, NC",
+  "Boston, MA",
+  "Austin, TX",
+  "Chicago, IL",
+  "Denver, CO",
+  "Seattle, WA",
+  "Atlanta, GA",
+  "Phoenix, AZ",
+  "Nashville, TN",
+  "Portland, OR",
+  "Miami, FL",
+  "Columbus, OH",
+  "Indianapolis, IN",
+  "San Antonio, TX",
+  "Charlotte, NC",
 ];
 
 // ─── Mentor variation pools ────────────────────────────────────────────────────
@@ -53,14 +129,38 @@ const MENTOR_STRENGTHS_POOL = [
   ["cyber", "information-assurance"],
 ];
 const MENTOR_WHY_POOL = [
-  ["I want to give back to those earlier in their career.", "Mentorship shaped who I am today."],
-  ["I believe sharing experience accelerates growth.", "I had great mentors and want to pay it forward."],
-  ["Helping others navigate challenges is deeply rewarding.", "I enjoy seeing people reach their potential."],
-  ["I want to share lessons from my mistakes so others don't repeat them.", "Mentoring keeps me sharp too."],
-  ["Every junior member deserves a guide.", "I learned the hard way and want to make it easier for others."],
-  ["Connection and growth are what drive me.", "I want to leave a legacy through the people I develop."],
-  ["I thrive when I'm helping someone level up.", "The best investment you can make is in people."],
-  ["I want to bridge the gap between experience and opportunity.", "Mentorship changed my trajectory."],
+  [
+    "I want to give back to those earlier in their career.",
+    "Mentorship shaped who I am today.",
+  ],
+  [
+    "I believe sharing experience accelerates growth.",
+    "I had great mentors and want to pay it forward.",
+  ],
+  [
+    "Helping others navigate challenges is deeply rewarding.",
+    "I enjoy seeing people reach their potential.",
+  ],
+  [
+    "I want to share lessons from my mistakes so others don't repeat them.",
+    "Mentoring keeps me sharp too.",
+  ],
+  [
+    "Every junior member deserves a guide.",
+    "I learned the hard way and want to make it easier for others.",
+  ],
+  [
+    "Connection and growth are what drive me.",
+    "I want to leave a legacy through the people I develop.",
+  ],
+  [
+    "I thrive when I'm helping someone level up.",
+    "The best investment you can make is in people.",
+  ],
+  [
+    "I want to bridge the gap between experience and opportunity.",
+    "Mentorship changed my trajectory.",
+  ],
 ];
 const MENTOR_ADVICE_POOL = [
   "Consistency beats intensity every time.",
@@ -86,8 +186,12 @@ const MENTOR_INTERESTS_POOL = [
   "martial arts, writing",
   "fishing, volunteering",
 ];
-const MEETING_FORMATS = ["hybrid", "virtual", "in-person"] as const satisfies readonly ("hybrid" | "virtual" | "in-person")[];
-const MENTOR_CAREER_STAGES = [
+const MEETING_FORMATS = [
+  "hybrid",
+  "virtual",
+  "in-person",
+] as const satisfies readonly ("hybrid" | "virtual" | "in-person")[];
+const _MENTOR_CAREER_STAGES = [
   ["junior-ncos", "transitioning"],
   ["senior-ncos", "officers"],
   ["junior-ncos", "senior-ncos"],
@@ -116,7 +220,10 @@ const MENTEE_HOPE_POOL = [
   ["Exposure to career paths I haven't considered", "A trusted sounding board"],
   ["Help building confidence as a leader", "Tactical advice from experience"],
   ["Guidance on transitioning out", "Introduction to civilian networks"],
-  ["Support setting and achieving goals", "Someone who's been where I want to go"],
+  [
+    "Support setting and achieving goals",
+    "Someone who's been where I want to go",
+  ],
   ["Mentorship on communication skills", "Help preparing for key assessments"],
 ];
 const MENTEE_QUALITIES_POOL = [
@@ -146,7 +253,8 @@ function pick<T>(arr: readonly T[], i: number): T {
 
 function uniqueName(index: number): { name: string; email: string } {
   const first = FIRST_NAMES[index % FIRST_NAMES.length];
-  const last = LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length];
+  const last =
+    LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length];
   const name = `${first} ${last}`;
   const email = `${first.toLowerCase()}.${last.toLowerCase()}${index}@example.com`;
   return { name, email };
@@ -159,12 +267,24 @@ async function ensureUser(
   rank: string,
   location: string,
 ) {
-  const [existing] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
   if (existing) return existing;
 
   const [created] = await db
     .insert(users)
-    .values({ id, name, email, rank, positionType: "active", location, emailVerified: true })
+    .values({
+      id,
+      name,
+      email,
+      rank,
+      positionType: "active",
+      location,
+      emailVerified: true,
+    })
     .returning();
   if (!created) throw new Error(`Failed to create user ${id}`);
   return created;
@@ -174,7 +294,9 @@ async function ensurePasswordAccount(userId: string) {
   const [existing] = await db
     .select()
     .from(account)
-    .where(and(eq(account.userId, userId), eq(account.providerId, "credential")))
+    .where(
+      and(eq(account.userId, userId), eq(account.providerId, "credential")),
+    )
     .limit(1);
   if (existing) return;
 
@@ -197,7 +319,11 @@ async function seedMentor(index: number) {
   await ensureUser(id, name, email, rank, location);
   await ensurePasswordAccount(id);
 
-  const [existing] = await db.select().from(mentors).where(eq(mentors.userId, id)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(mentors)
+    .where(eq(mentors.userId, id))
+    .limit(1);
   if (existing) {
     console.log(`  skip mentor ${index + 1}/50 (${name}) — already exists`);
     return;
@@ -241,7 +367,11 @@ async function seedMentee(index: number) {
   await ensureUser(id, name, email, rank, location);
   await ensurePasswordAccount(id);
 
-  const [existing] = await db.select().from(mentees).where(eq(mentees.userId, id)).limit(1);
+  const [existing] = await db
+    .select()
+    .from(mentees)
+    .where(eq(mentees.userId, id))
+    .limit(1);
   if (existing) {
     console.log(`  skip mentee ${index + 1}/50 (${name}) — already exists`);
     return;
@@ -305,7 +435,10 @@ async function main() {
   console.log("\n── Recommendations ──────────────────────");
   for (let i = 0; i < 50; i++) {
     const menteeId = `seed-mentee-${i}`;
-    const suggestedMentorIds = Array.from({ length: 10 }, (_, j) => `seed-mentor-${(i + j) % 50}`);
+    const suggestedMentorIds = Array.from(
+      { length: 10 },
+      (_, j) => `seed-mentor-${(i + j) % 50}`,
+    );
     await db
       .insert(mentorRecommendations)
       .values({ userId: menteeId, recommendedMentorIds: suggestedMentorIds })
@@ -316,9 +449,15 @@ async function main() {
   }
 
   console.log("\nDone. Default password for all accounts: password");
-  console.log("Login as any mentee: seed-mentee-0@example.com ... seed-mentee-49@example.com");
-  console.log("Login as any mentor: seed-mentor-0@example.com ... seed-mentor-49@example.com");
-  console.log("(actual emails follow the pattern: firstname.lastnameN@example.com)");
+  console.log(
+    "Login as any mentee: seed-mentee-0@example.com ... seed-mentee-49@example.com",
+  );
+  console.log(
+    "Login as any mentor: seed-mentor-0@example.com ... seed-mentor-49@example.com",
+  );
+  console.log(
+    "(actual emails follow the pattern: firstname.lastnameN@example.com)",
+  );
 }
 
 main()
