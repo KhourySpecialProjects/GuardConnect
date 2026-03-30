@@ -100,3 +100,54 @@ export const getMentorshipDataInputSchema = z.object({
 export type GetMentorshipDataInput = z.infer<
   typeof getMentorshipDataInputSchema
 >;
+
+export const updateOptInInputSchema = z.object({
+  role: z.enum(["mentor", "mentee"]),
+  isAccepting: z.boolean(),
+});
+
+export type UpdateOptInInput = z.infer<typeof updateOptInInputSchema>;
+
+export const mentorshipAdminStatsOutputSchema = z.object({
+  mentors: z.object({
+    requested: z.number(),
+    approved: z.number(),
+    active: z.number(),
+    total: z.number(),
+    acceptingNewMatches: z.number(),
+  }),
+  mentees: z.object({
+    active: z.number(),
+    inactive: z.number(),
+    matched: z.number(),
+    total: z.number(),
+  }),
+  matches: z.object({
+    pending: z.number(),
+    accepted: z.number(),
+    declined: z.number(),
+    total: z.number(),
+    declineRate: z.number(),
+  }),
+});
+
+export type MentorshipAdminStatsOutput = z.infer<
+  typeof mentorshipAdminStatsOutputSchema
+>;
+
+export const getPendingMentorsInputSchema = z.object({
+  status: z.enum(["requested", "approved", "active"]).default("requested"),
+});
+
+export type GetPendingMentorsInput = z.infer<
+  typeof getPendingMentorsInputSchema
+>;
+
+export const updateMentorStatusInputSchema = z.object({
+  mentorUserId: z.string(),
+  status: z.enum(["requested", "approved", "active"]),
+});
+
+export type UpdateMentorStatusInput = z.infer<
+  typeof updateMentorStatusInputSchema
+>;

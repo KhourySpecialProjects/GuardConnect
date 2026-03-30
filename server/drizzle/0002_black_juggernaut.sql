@@ -1,0 +1,2 @@
+ALTER TABLE "mentees" ADD COLUMN "is_accepting_new_matches" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "mentors" ADD COLUMN "is_accepting_new_matches" boolean DEFAULT true NOT NULL;

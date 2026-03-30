@@ -60,7 +60,10 @@ export class MatchingService {
   }): Promise<void> {
     try {
       const { userId } = input;
-      const whyInterestedText = buildText(input.whyInterestedResponses, "");
+      const whyInterestedText = buildText(
+        input.whyInterestedResponses,
+        "mentor-why-interested",
+      );
       const strengthsText = buildText(input.strengths);
       const personalInterestsText = buildText(input.personalInterests);
       const profileText =
@@ -107,7 +110,10 @@ export class MatchingService {
         [input.learningGoals, input.roleModelInspiration]
           .filter(Boolean)
           .join(" ") || "mentee-why-interested";
-      const hopeText = buildText(input.hopeToGainResponses, "");
+      const hopeText = buildText(
+        input.hopeToGainResponses,
+        "mentee-hope-to-gain",
+      );
       const profileParts = [
         input.personalInterests,
         input.roleModelInspiration,

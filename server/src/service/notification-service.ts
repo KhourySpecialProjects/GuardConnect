@@ -163,6 +163,71 @@ export class NotificationService {
       }
     }
   }
+  /**
+   * Send a push notification to all active subscriptions for a specific user.
+   * Silently skips if the user has no registered subscriptions.
+   * @param userId Target user ID
+   * @param payload Notification payload
+   */
+  async sendToUser(userId: string, payload: NotificationPayload) {
+    const rows: ActivePushSubscription[] =
+      await this.repo.getSubscriptionsByUserId(userId);
+
+    if (rows.length === 0) {
+      log.debug({ userId }, "No active push subscriptions for user, skipping");
+      return;
+    }
+
+    log.info(
+      { userId, subscriptionCount: rows.length },
+      "Sending notification to user",
+    );
+
+    for (const row of rows) {
+      const subscription = {
+        endpoint: row.endpoint,
+        keys: {
+          p256dh: row.p256dh,
+          auth: row.auth,
+        },
+      };
+
+      try {
+        await webpush.sendNotification(subscription, JSON.stringify(payload));
+      } catch (err: unknown) {
+        if (err instanceof WebPushError) {
+          const status = err.statusCode;
+          if (status === 404 || status === 410) {
+            await this.repo.removeSubscriptionByEndpoint(row.endpoint);
+            log.info(
+              { endpoint: row.endpoint, status },
+              "Removed expired/unsubscribed web-push subscription",
+            );
+          } else if (status === 401) {
+            log.warn(
+              { endpoint: row.endpoint, status, err },
+              "Unauthorized web-push: check VAPID keys",
+            );
+          } else if (status === 429) {
+            log.warn(
+              { endpoint: row.endpoint, status, err },
+              "Rate limited by push service",
+            );
+          } else {
+            log.error(
+              { endpoint: row.endpoint, status, err },
+              "Error sending web-push notification to user",
+            );
+          }
+        } else {
+          log.error(
+            { endpoint: row.endpoint, err },
+            "Unexpected error sending web-push notification to user",
+          );
+        }
+      }
+    }
+  }
 }
 
 // singleton instance exported for app-wide use

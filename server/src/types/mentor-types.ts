@@ -21,7 +21,6 @@ export const mentorSchema = z.object({
         "junior-officers",
         "senior-officers",
         "transitioning",
-        "no-preference",
       ]),
     )
     .nullable()
@@ -59,7 +58,6 @@ export const createMentorInputSchema = z.object({
         "junior-officers",
         "senior-officers",
         "transitioning",
-        "no-preference",
       ]),
     )
     .optional(),
@@ -107,6 +105,7 @@ export const getMentorOutputSchema = z.object({
   preferredMenteeCareerStages: z.array(z.string()).nullish(),
   preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
+  isAcceptingNewMatches: z.boolean().default(true),
   createdAt: z.date(),
   updatedAt: z.date(),
 

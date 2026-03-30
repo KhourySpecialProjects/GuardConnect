@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray, notInArray } from "drizzle-orm";
 import {
   mentees,
   mentors,
@@ -124,6 +124,7 @@ export class MenteeRepository {
         mentorQualities: mentees.mentorQualities,
         preferredMeetingFormat: mentees.preferredMeetingFormat,
         hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentees.isAcceptingNewMatches,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
         // Enriched user profile fields
@@ -169,6 +170,7 @@ export class MenteeRepository {
         mentorQualities: mentees.mentorQualities,
         preferredMeetingFormat: mentees.preferredMeetingFormat,
         hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentees.isAcceptingNewMatches,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
         // Enriched user profile fields
@@ -312,6 +314,7 @@ export class MenteeRepository {
         mentorQualities: mentees.mentorQualities,
         preferredMeetingFormat: mentees.preferredMeetingFormat,
         hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentees.isAcceptingNewMatches,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
         // Enriched user profile fields
@@ -352,6 +355,7 @@ export class MenteeRepository {
         mentorQualities: mentees.mentorQualities,
         preferredMeetingFormat: mentees.preferredMeetingFormat,
         hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentees.isAcceptingNewMatches,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
         // Enriched user profile fields
@@ -366,6 +370,36 @@ export class MenteeRepository {
       .from(mentees)
       .innerJoin(users, eq(users.id, mentees.userId))
       .where(inArray(mentees.userId, userIds));
+  }
+
+  /**
+   * Get mentee counts grouped by status for admin stats.
+   */
+  async getMenteeStats(): Promise<
+    Record<"active" | "inactive" | "matched", number>
+  > {
+    const rows = await db
+      .select({ status: mentees.status, value: count() })
+      .from(mentees)
+      .groupBy(mentees.status);
+
+    const result = { active: 0, inactive: 0, matched: 0 };
+    for (const row of rows) {
+      result[row.status] = Number(row.value);
+    }
+    return result;
+  }
+
+  /**
+   * Update whether a mentee is accepting new matches.
+   * @param userId Mentee user ID
+   * @param isAccepting Whether the mentee is accepting new matches
+   */
+  async updateMenteeOptIn(userId: string, isAccepting: boolean): Promise<void> {
+    await db
+      .update(mentees)
+      .set({ isAcceptingNewMatches: isAccepting })
+      .where(eq(mentees.userId, userId));
   }
 
   /**
@@ -397,6 +431,7 @@ export class MenteeRepository {
         preferredMenteeCareerStages: mentors.preferredMenteeCareerStages,
         preferredMeetingFormat: mentors.preferredMeetingFormat,
         hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentors.isAcceptingNewMatches,
         createdAt: mentors.createdAt,
         updatedAt: mentors.updatedAt,
         // Enriched user profile fields
@@ -419,5 +454,25 @@ export class MenteeRepository {
       );
 
     return { mentee, activeMentors };
+  }
+
+  /**
+   * Get user IDs of all active mentees who have no accepted mentorship match.
+   * Used to trigger recommendation generation when a new mentor becomes active.
+   */
+  async getUnmatchedMenteeUserIds(): Promise<string[]> {
+    const matched = db
+      .select({ userId: mentorshipMatches.requestorUserId })
+      .from(mentorshipMatches)
+      .where(eq(mentorshipMatches.status, "accepted"));
+
+    const rows = await db
+      .select({ userId: mentees.userId })
+      .from(mentees)
+      .where(
+        and(eq(mentees.status, "active"), notInArray(mentees.userId, matched)),
+      );
+
+    return rows.map((r) => r.userId);
   }
 }

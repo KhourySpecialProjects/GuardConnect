@@ -15,6 +15,13 @@
       "when": 1771880763918,
       "tag": "0001_robust_captain_america",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774300633592,
+      "tag": "0002_black_juggernaut",
+      "breakpoints": true
     }
   ]
 }

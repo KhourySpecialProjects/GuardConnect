@@ -1,16 +1,24 @@
 import { z } from "zod";
 import { MenteeRepository } from "../data/repository/mentee-repo.js";
 import { MentorRepository } from "../data/repository/mentor-repo.js";
+import { GLOBAL_ADMIN_KEY } from "../data/roles.js";
 import { MatchingService } from "../service/matching-service.js";
 import { MentorshipService } from "../service/mentorship-service.js";
+import notificationService from "../service/notification-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
-import { protectedProcedure, router } from "../trpc/trpc.js";
+import { protectedProcedure, roleProcedure, router } from "../trpc/trpc.js";
 import { createMenteeInputSchema } from "../types/mentee-types.js";
 import {
   createMentorInputSchema,
   createMentorOutputSchema,
 } from "../types/mentor-types.js";
-import { mentorshipDataOutputSchema } from "../types/mentorship-types.js";
+import {
+  getPendingMentorsInputSchema,
+  mentorshipAdminStatsOutputSchema,
+  mentorshipDataOutputSchema,
+  updateMentorStatusInputSchema,
+  updateOptInInputSchema,
+} from "../types/mentorship-types.js";
 import log from "../utils/logger.js";
 
 const mentorRepo = new MentorRepository();
@@ -19,6 +27,7 @@ const mentorshipService = new MentorshipService(
   mentorRepo,
   menteeRepo,
   new MatchingService(),
+  notificationService,
 );
 
 const createMentor = protectedProcedure
@@ -148,6 +157,63 @@ const getMentorshipData = protectedProcedure
     }),
   );
 
+const updateOptIn = protectedProcedure
+  .input(updateOptInInputSchema)
+  .output(z.void())
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/mentorship.updateOptIn",
+      summary:
+        "Update whether the current user is accepting new mentorship matches",
+      tags: ["Mentorship"],
+    },
+  })
+  .mutation(({ input, ctx }) =>
+    withErrorHandling("updateOptIn", async () => {
+      return await mentorshipService.updateOptIn(
+        ctx.auth.user.id,
+        input.role,
+        input.isAccepting,
+      );
+    }),
+  );
+
+const getPendingMentors = roleProcedure([GLOBAL_ADMIN_KEY])
+  .input(getPendingMentorsInputSchema)
+  .query(({ input }) =>
+    withErrorHandling("getPendingMentors", async () => {
+      return await mentorshipService.getMentorsByStatus(input.status);
+    }),
+  );
+
+const updateMentorStatus = roleProcedure([GLOBAL_ADMIN_KEY])
+  .input(updateMentorStatusInputSchema)
+  .mutation(({ input }) =>
+    withErrorHandling("updateMentorStatus", async () => {
+      await mentorshipService.updateMentorStatus(
+        input.mentorUserId,
+        input.status,
+      );
+    }),
+  );
+
+const getAdminStats = roleProcedure([GLOBAL_ADMIN_KEY])
+  .output(mentorshipAdminStatsOutputSchema)
+  .meta({
+    openapi: {
+      method: "GET",
+      path: "/mentorship.getAdminStats",
+      summary: "Get admin statistics for the mentorship program",
+      tags: ["Mentorship"],
+    },
+  })
+  .query(() =>
+    withErrorHandling("getAdminStats", async () => {
+      return await mentorshipService.getAdminStats();
+    }),
+  );
+
 export const mentorshipRouter = router({
   createMentor,
   createMentee,
@@ -155,4 +221,8 @@ export const mentorshipRouter = router({
   declineMentorshipRequest,
   acceptMentorshipRequest,
   getMentorshipData,
+  updateOptIn,
+  getPendingMentors,
+  updateMentorStatus,
+  getAdminStats,
 });

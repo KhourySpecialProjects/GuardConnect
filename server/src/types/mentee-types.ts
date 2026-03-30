@@ -95,6 +95,7 @@ export const getMenteeOutputSchema = z.object({
   mentorQualities: z.array(z.string()).nullish(),
   preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
+  isAcceptingNewMatches: z.boolean().default(true),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
 

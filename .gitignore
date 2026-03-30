@@ -11,7 +11,7 @@ server/src/data/db/migrations/meta/
 
 storage/
 
-
+.claude/
 # Local Terraform directories
 **/.terraform/
 

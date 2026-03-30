@@ -85,6 +85,7 @@ prioritized_existing AS (
     JOIN existing_recommendations er ON er.mentor_user_id = m.user_id
     LEFT JOIN user_existing_matches uem ON uem.mentor_user_id = m.user_id
     WHERE m.status = 'active'
+      AND m.is_accepting_new_matches = true
 ),
 existing_count AS (
     SELECT COUNT(*) AS cnt FROM prioritized_existing
@@ -140,13 +141,15 @@ scored_mentors AS (
         ) * ${sql.raw(String(VECTOR_SIMILARITY_WEIGHT))} AS vector_score,
         
         -- Meeting format compatibility (weight: 0.15)
-        -- Full match: 1.0, partial match: 0.8, no match: 0.3
+        -- Full match: 1.0, partial match: 0.6, no preference involved: 0.8, no match: 0.3
         CASE
             -- Exact match
             WHEN m.preferred_meeting_format = md.mentee_meeting_format THEN 1.0
-            -- Either has hybrid
-            WHEN m.preferred_meeting_format = 'hybrid' AND md.mentee_meeting_format != 'hybrid' THEN 0.8
-            WHEN m.preferred_meeting_format != 'hybrid' AND md.mentee_meeting_format = 'hybrid' THEN 0.8
+            -- Either has no preference
+            WHEN m.preferred_meeting_format IS NULL OR md.mentee_meeting_format IS NULL THEN 0.8
+            -- Hybrid matches with in-person or virtual
+            WHEN m.preferred_meeting_format = 'hybrid' OR md.mentee_meeting_format = 'hybrid' THEN 0.7
+            -- No match but still consider (diffusion)
             ELSE 0.3
         END * ${sql.raw(String(MEETING_FORMAT_WEIGHT))} AS format_score,
         
@@ -179,12 +182,13 @@ scored_mentors AS (
         
     FROM mentors m
     CROSS JOIN mentee_data md
-    LEFT JOIN mentorship_embeddings mentor_emb 
+    LEFT JOIN mentorship_embeddings mentor_emb
         ON mentor_emb.user_id = m.user_id AND mentor_emb.user_type = 'mentor'
-    LEFT JOIN mentor_mentee_counts mmc 
+    LEFT JOIN mentor_mentee_counts mmc
         ON mmc.mentor_user_id = m.user_id
     WHERE m.user_id != ${userId}
       AND m.status = 'active'
+      AND m.is_accepting_new_matches = true
       AND m.user_id NOT IN (SELECT mentor_user_id FROM user_existing_matches)
 ),
 
@@ -209,6 +213,7 @@ algorithmic_ranked_candidates AS (
         hours_per_month_commitment,
         created_at,
         updated_at,
+        is_accepting_new_matches,
         has_requested,
         priority,
         from_existing,
@@ -272,11 +277,12 @@ combined AS (
 -- ------------------------------------------------------------
 inserted AS (
     INSERT INTO mentor_recommendations (user_id, recommended_mentor_ids, expires_at)
-    SELECT 
+    SELECT
         ${userId},
         to_jsonb(array_agg(user_id)),
         NOW() + INTERVAL '30 days'
     FROM combined
+    HAVING array_agg(user_id) IS NOT NULL
     ON CONFLICT (user_id) DO UPDATE SET
         recommended_mentor_ids = EXCLUDED.recommended_mentor_ids,
         expires_at = EXCLUDED.expires_at
