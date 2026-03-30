@@ -146,7 +146,6 @@ scored_mentors AS (
             -- Exact match
             WHEN m.preferred_meeting_format = md.mentee_meeting_format THEN 1.0
             -- Either has no preference
-            WHEN m.preferred_meeting_format = 'no-preference' OR md.mentee_meeting_format = 'no-preference' THEN 0.9
             WHEN m.preferred_meeting_format IS NULL OR md.mentee_meeting_format IS NULL THEN 0.8
             -- Hybrid matches with in-person or virtual
             WHEN m.preferred_meeting_format = 'hybrid' OR md.mentee_meeting_format = 'hybrid' THEN 0.7

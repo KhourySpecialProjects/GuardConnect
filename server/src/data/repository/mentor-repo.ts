@@ -52,7 +52,6 @@ export class MentorRepository {
       | "in-person"
       | "virtual"
       | "hybrid"
-      | "no-preference",
     hoursPerMonthCommitment?: number,
   ): Promise<CreateMentorOutput> {
     // Check if mentor already exists for this user

@@ -50,7 +50,6 @@ export class MenteeRepository {
       | "in-person"
       | "virtual"
       | "hybrid"
-      | "no-preference",
     hoursPerMonthCommitment?: number,
   ): Promise<CreateMenteeOutput> {
     // Check if mentee already exists for this user
@@ -226,7 +225,6 @@ export class MenteeRepository {
       | "in-person"
       | "virtual"
       | "hybrid"
-      | "no-preference",
     hoursPerMonthCommitment?: number,
   ): Promise<UpdateMenteeOutput> {
     const updateData: Partial<typeof mentees.$inferInsert> = {

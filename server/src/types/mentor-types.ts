@@ -21,13 +21,12 @@ export const mentorSchema = z.object({
         "junior-officers",
         "senior-officers",
         "transitioning",
-        "no-preference",
       ]),
     )
     .nullable()
     .optional(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .enum(["in-person", "virtual", "hybrid"])
     .nullable()
     .optional(),
   hoursPerMonthCommitment: z.number().int().positive().nullable().optional(),
@@ -59,12 +58,11 @@ export const createMentorInputSchema = z.object({
         "junior-officers",
         "senior-officers",
         "transitioning",
-        "no-preference",
       ]),
     )
     .optional(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .enum(["in-person", "virtual", "hybrid"])
     .optional(),
   hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
@@ -87,7 +85,7 @@ export const createMentorOutputSchema = z.object({
   careerAdvice: z.string().nullish(),
   preferredMenteeCareerStages: z.array(z.string()).nullish(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .enum(["in-person", "virtual", "hybrid"])
     .nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   createdAt: z.date(),
@@ -110,7 +108,7 @@ export const getMentorOutputSchema = z.object({
   careerAdvice: z.string().nullish(),
   preferredMenteeCareerStages: z.array(z.string()).nullish(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .enum(["in-person", "virtual", "hybrid"])
     .nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   isAcceptingNewMatches: z.boolean().default(true),

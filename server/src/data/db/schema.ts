@@ -79,7 +79,6 @@ export const meetingFormatEnum = pgEnum("meeting_format_enum", [
   "in-person",
   "virtual",
   "hybrid",
-  "no-preference",
 ]);
 
 export const careerStageEnum = pgEnum("career_stage_enum", [
@@ -89,7 +88,6 @@ export const careerStageEnum = pgEnum("career_stage_enum", [
   "junior-officers",
   "senior-officers",
   "transitioning",
-  "no-preference",
 ]);
 
 export const mentorshipUserTypeEnum = pgEnum("mentorship_user_type_enum", [

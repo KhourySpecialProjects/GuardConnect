@@ -13,7 +13,7 @@ export const menteeSchema = z.object({
   hopeToGainResponses: z.array(z.string()).nullable().optional(),
   mentorQualities: z.array(z.string()).nullable().optional(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .enum(["in-person", "virtual", "hybrid"])
     .nullable()
     .optional(),
   hoursPerMonthCommitment: z.number().int().positive().nullable().optional(),
@@ -37,7 +37,7 @@ export const createMenteeInputSchema = z.object({
   hopeToGainResponses: z.array(z.string()).optional(),
   mentorQualities: z.array(z.string()).optional(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .enum(["in-person", "virtual", "hybrid"])
     .optional(),
   hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
@@ -81,7 +81,6 @@ export type CreateMenteeOutput = {
     | "in-person"
     | "virtual"
     | "hybrid"
-    | "no-preference"
     | null;
   hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
@@ -101,7 +100,7 @@ export const getMenteeOutputSchema = z.object({
   hopeToGainResponses: z.array(z.string()).nullish(),
   mentorQualities: z.array(z.string()).nullish(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .enum(["in-person", "virtual", "hybrid"])
     .nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   isAcceptingNewMatches: z.boolean().default(true),
@@ -141,7 +140,6 @@ export type UpdateMenteeOutput = {
     | "in-person"
     | "virtual"
     | "hybrid"
-    | "no-preference"
     | null;
   hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
