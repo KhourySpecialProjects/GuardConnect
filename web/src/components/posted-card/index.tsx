@@ -42,6 +42,7 @@ type PostedCardProps = {
   content: string;
   attachments?: AttachmentDescriptor[];
   reactions?: MessageReaction[];
+  createdAt?: string | Date;
   onReactionToggle?: (params: {
     messageId: number;
     emoji: string;
@@ -50,6 +51,19 @@ type PostedCardProps = {
 };
 
 type AttachmentStatus = "idle" | "uploading" | "uploaded" | "error";
+
+function formatTimestamp(value?: string | Date): string {
+  if (!value) return "";
+  const date = typeof value === "string" ? new Date(value) : value;
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
 
 export const PostedCard = ({
   channelId,
@@ -60,6 +74,7 @@ export const PostedCard = ({
   content,
   attachments,
   reactions = [],
+  createdAt,
   onReactionToggle,
 }: PostedCardProps) => {
   const trpc = useTRPC();
@@ -299,6 +314,11 @@ export const PostedCard = ({
                 <div className="text-secondary text-xs font-semibold italic sm:text-sm">
                   {rank}
                 </div>
+                {createdAt ? (
+                  <div className="text-xs font-normal not-italic text-secondary/60 mt-0.5">
+                    {formatTimestamp(createdAt)}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

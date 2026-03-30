@@ -59,6 +59,7 @@ export function MessageList({
           attachments={message.attachments}
           reactions={message.reactions}
           onReactionToggle={onReactionToggle}
+          createdAt={message.createdAt}
         />
       ))}
     </div>
