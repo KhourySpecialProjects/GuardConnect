@@ -1,7 +1,7 @@
 "use client";
 
 import type { RoleKey } from "@server/data/roles";
-import { ShieldCheck, UserPlus } from "lucide-react";
+import { BarChart2, ShieldCheck, UserPlus } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -34,6 +34,15 @@ const adminFeatures: AdminFeature[] = [
     href: "/admin/invites",
     icon: UserPlus,
     requiredRole: "global:create-invite",
+  },
+  {
+    id: "mentorship-stats",
+    title: "Mentorship Stats",
+    description:
+      "View mentorship program statistics including mentor/mentee counts, active pairs, pending requests, and decline rates.",
+    href: "/mentorship/admin",
+    icon: BarChart2,
+    requiredRole: "global:admin",
   },
 ];
 
