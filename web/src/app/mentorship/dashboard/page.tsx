@@ -736,9 +736,7 @@ export default function MentorshipDashboard() {
                   Accepting matches
                 </span>
                 <Switch
-                  checked={
-                    data?.mentor?.profile?.isAcceptingNewMatches ?? true
-                  }
+                  checked={data?.mentor?.profile?.isAcceptingNewMatches ?? true}
                   onCheckedChange={(val) =>
                     updateOptIn.mutate({ role: "mentor", isAccepting: val })
                   }

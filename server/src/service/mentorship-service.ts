@@ -1,5 +1,4 @@
 import { and, count, eq, isNull, notInArray, or, sql } from "drizzle-orm";
-import log from "../utils/logger.js";
 import {
   mentorRecommendations,
   mentors,
@@ -21,6 +20,7 @@ import type {
   MentorshipDataOutput,
   SuggestedMentor,
 } from "../types/mentorship-types.js";
+import log from "../utils/logger.js";
 import type { MatchingService } from "./matching-service.js";
 import type { NotificationService } from "./notification-service.js";
 
@@ -73,7 +73,10 @@ export class MentorshipService {
           careerAdvice: input.careerAdvice,
         });
       } catch (err) {
-        log.warn({ err, userId: input.userId }, "Mentor embedding failed — profile created but no embeddings");
+        log.warn(
+          { err, userId: input.userId },
+          "Mentor embedding failed — profile created but no embeddings",
+        );
       }
     }
 
@@ -110,13 +113,18 @@ export class MentorshipService {
           mentorQualities: input.mentorQualities,
         });
       } catch (err) {
-        log.warn({ err, userId: input.userId }, "Mentee embedding failed — profile created but no embeddings");
+        log.warn(
+          { err, userId: input.userId },
+          "Mentee embedding failed — profile created but no embeddings",
+        );
       }
 
       try {
         const available = await this.mentorRepo.countAvailableMentors();
         if (available > 0) {
-          await this.matchingService.generateMentorRecommendations(input.userId);
+          await this.matchingService.generateMentorRecommendations(
+            input.userId,
+          );
         } else {
           log.info(
             { userId: input.userId },
@@ -124,7 +132,10 @@ export class MentorshipService {
           );
         }
       } catch (err) {
-        log.warn({ err, userId: input.userId }, "Recommendation generation failed after mentee creation");
+        log.warn(
+          { err, userId: input.userId },
+          "Recommendation generation failed after mentee creation",
+        );
       }
     }
   }
@@ -419,7 +430,9 @@ export class MentorshipService {
 
       for (const menteeUserId of unmatchedMenteeIds) {
         try {
-          await this.matchingService.generateMentorRecommendations(menteeUserId);
+          await this.matchingService.generateMentorRecommendations(
+            menteeUserId,
+          );
         } catch (err) {
           log.error(
             { menteeUserId, err },

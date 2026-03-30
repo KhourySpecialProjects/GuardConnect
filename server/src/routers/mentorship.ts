@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { MenteeRepository } from "../data/repository/mentee-repo.js";
 import { MentorRepository } from "../data/repository/mentor-repo.js";
+import { GLOBAL_ADMIN_KEY } from "../data/roles.js";
 import { MatchingService } from "../service/matching-service.js";
 import { MentorshipService } from "../service/mentorship-service.js";
 import notificationService from "../service/notification-service.js";
@@ -12,13 +13,12 @@ import {
   createMentorOutputSchema,
 } from "../types/mentor-types.js";
 import {
+  getPendingMentorsInputSchema,
   mentorshipAdminStatsOutputSchema,
   mentorshipDataOutputSchema,
-  updateOptInInputSchema,
   updateMentorStatusInputSchema,
-  getPendingMentorsInputSchema,
+  updateOptInInputSchema,
 } from "../types/mentorship-types.js";
-import { GLOBAL_ADMIN_KEY } from "../data/roles.js";
 import log from "../utils/logger.js";
 
 const mentorRepo = new MentorRepository();
@@ -164,7 +164,8 @@ const updateOptIn = protectedProcedure
     openapi: {
       method: "POST",
       path: "/mentorship.updateOptIn",
-      summary: "Update whether the current user is accepting new mentorship matches",
+      summary:
+        "Update whether the current user is accepting new mentorship matches",
       tags: ["Mentorship"],
     },
   })

@@ -7,7 +7,12 @@ type SwitchProps = {
   id?: string;
 };
 
-export function Switch({ checked, onCheckedChange, disabled, id }: SwitchProps) {
+export function Switch({
+  checked,
+  onCheckedChange,
+  disabled,
+  id,
+}: SwitchProps) {
   return (
     <button
       id={id}

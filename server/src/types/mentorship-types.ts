@@ -131,17 +131,23 @@ export const mentorshipAdminStatsOutputSchema = z.object({
   }),
 });
 
-export type MentorshipAdminStatsOutput = z.infer<typeof mentorshipAdminStatsOutputSchema>;
+export type MentorshipAdminStatsOutput = z.infer<
+  typeof mentorshipAdminStatsOutputSchema
+>;
 
 export const getPendingMentorsInputSchema = z.object({
   status: z.enum(["requested", "approved", "active"]).default("requested"),
 });
 
-export type GetPendingMentorsInput = z.infer<typeof getPendingMentorsInputSchema>;
+export type GetPendingMentorsInput = z.infer<
+  typeof getPendingMentorsInputSchema
+>;
 
 export const updateMentorStatusInputSchema = z.object({
   mentorUserId: z.string(),
   status: z.enum(["requested", "approved", "active"]),
 });
 
-export type UpdateMentorStatusInput = z.infer<typeof updateMentorStatusInputSchema>;
+export type UpdateMentorStatusInput = z.infer<
+  typeof updateMentorStatusInputSchema
+>;

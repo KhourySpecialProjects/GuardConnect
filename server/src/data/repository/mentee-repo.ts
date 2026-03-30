@@ -383,7 +383,9 @@ export class MenteeRepository {
   /**
    * Get mentee counts grouped by status for admin stats.
    */
-  async getMenteeStats(): Promise<Record<"active" | "inactive" | "matched", number>> {
+  async getMenteeStats(): Promise<
+    Record<"active" | "inactive" | "matched", number>
+  > {
     const rows = await db
       .select({ status: mentees.status, value: count() })
       .from(mentees)
@@ -476,10 +478,7 @@ export class MenteeRepository {
       .select({ userId: mentees.userId })
       .from(mentees)
       .where(
-        and(
-          eq(mentees.status, "active"),
-          notInArray(mentees.userId, matched),
-        ),
+        and(eq(mentees.status, "active"), notInArray(mentees.userId, matched)),
       );
 
     return rows.map((r) => r.userId);

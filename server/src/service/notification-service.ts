@@ -178,7 +178,10 @@ export class NotificationService {
       return;
     }
 
-    log.info({ userId, subscriptionCount: rows.length }, "Sending notification to user");
+    log.info(
+      { userId, subscriptionCount: rows.length },
+      "Sending notification to user",
+    );
 
     for (const row of rows) {
       const subscription = {

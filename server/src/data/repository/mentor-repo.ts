@@ -207,7 +207,9 @@ export class MentorRepository {
   /**
    * Get mentor counts grouped by status for admin stats.
    */
-  async getMentorStats(): Promise<Record<"requested" | "approved" | "active", number>> {
+  async getMentorStats(): Promise<
+    Record<"requested" | "approved" | "active", number>
+  > {
     const rows = await db
       .select({ status: mentors.status, value: count() })
       .from(mentors)
@@ -362,7 +364,12 @@ export class MentorRepository {
     const [result] = await db
       .select({ value: count() })
       .from(mentors)
-      .where(and(eq(mentors.status, "active"), eq(mentors.isAcceptingNewMatches, true)));
+      .where(
+        and(
+          eq(mentors.status, "active"),
+          eq(mentors.isAcceptingNewMatches, true),
+        ),
+      );
     return result?.value ?? 0;
   }
 

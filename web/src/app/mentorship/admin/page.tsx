@@ -95,10 +95,14 @@ function MentorApplicationsList() {
       onSuccess: () => {
         setPendingId(null);
         queryClient.invalidateQueries(
-          trpc.mentorship.getPendingMentors.queryOptions({ status: "requested" }),
+          trpc.mentorship.getPendingMentors.queryOptions({
+            status: "requested",
+          }),
         );
         queryClient.invalidateQueries(
-          trpc.mentorship.getPendingMentors.queryOptions({ status: "approved" }),
+          trpc.mentorship.getPendingMentors.queryOptions({
+            status: "approved",
+          }),
         );
         queryClient.invalidateQueries(
           trpc.mentorship.getPendingMentors.queryOptions({ status: "active" }),
@@ -254,10 +258,7 @@ export default function MentorshipAdminPage() {
                     value={data.mentors.total}
                     subtitle={`${data.mentors.acceptingNewMatches} accepting new matches`}
                   />
-                  <StatCard
-                    title="Total Mentees"
-                    value={data.mentees.total}
-                  />
+                  <StatCard title="Total Mentees" value={data.mentees.total} />
                   <StatCard
                     title="Active Pairs"
                     value={data.matches.accepted}
