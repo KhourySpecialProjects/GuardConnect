@@ -248,13 +248,14 @@ const EXPERIENCE_LEVELS = ["entry-level", "mid-level", "senior"] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function pick<T>(arr: readonly T[], i: number): T {
-  return arr[i % arr.length];
+  return arr[i % arr.length] as T;
 }
 
 function uniqueName(index: number): { name: string; email: string } {
-  const first = FIRST_NAMES[index % FIRST_NAMES.length];
+  const first = FIRST_NAMES[index % FIRST_NAMES.length] ?? "Alex";
   const last =
-    LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length];
+    LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length] ??
+    "Smith";
   const name = `${first} ${last}`;
   const email = `${first.toLowerCase()}.${last.toLowerCase()}${index}@example.com`;
   return { name, email };
