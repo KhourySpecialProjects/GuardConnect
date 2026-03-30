@@ -15,6 +15,7 @@ import ListView, {
 } from "@/components/list-view";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { useTRPC } from "@/lib/trpc";
 
 type DashboardMentor = {
@@ -40,10 +41,12 @@ type DashboardMentee = {
   location?: string | null;
   personalInterests?: string | string[] | null;
   learningGoals?: string | null;
+  experienceLevel?: string | null;
   preferredMeetingFormat?: string | null;
   hoursPerMonthCommitment?: number | null;
   hopeToGainResponses?: string[] | null;
   roleModelInspiration?: string | null;
+  mentorQualities?: string[] | null;
   detailedPosition?: string | null;
   positionType?: string | null;
   email?: string | null;
@@ -91,6 +94,14 @@ export default function MentorshipDashboard() {
 
   const rejectRequest = useMutation(
     trpc.mentorship.declineMentorshipRequest.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: mentorshipQueryKey });
+      },
+    }),
+  );
+
+  const updateOptIn = useMutation(
+    trpc.mentorship.updateOptIn.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: mentorshipQueryKey });
       },
@@ -300,29 +311,39 @@ export default function MentorshipDashboard() {
     };
 
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {matchedMentors.length > 0 && (
           <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Active Matches
+            </p>
             {matchedMentors.map((mentor: CollapsibleCardProps) => (
               <CollapsibleCard key={mentor.name} {...mentor} />
             ))}
           </div>
         )}
         {suggestedMentors.length > 0 ? (
-          <ListView
-            title="Suggested Mentors"
-            items={suggestedMentors}
-            rowOptions={renderSuggestedMentorRowOptions}
-            modalContent={renderSuggestedMentorModal}
-            modalFooter={renderSuggestedMentorModalFooter}
-          />
-        ) : (
+          <div className="flex flex-col gap-2">
+            {matchedMentors.length > 0 && (
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Suggested
+              </p>
+            )}
+            <ListView
+              title="Suggested Mentors"
+              items={suggestedMentors}
+              rowOptions={renderSuggestedMentorRowOptions}
+              modalContent={renderSuggestedMentorModal}
+              modalFooter={renderSuggestedMentorModalFooter}
+            />
+          </div>
+        ) : matchedMentors.length === 0 ? (
           <Card className="flex flex-col items-center">
             <div className="font-medium italic text-center px-6 py-4">
               No mentor suggestions available at this time.
             </div>
           </Card>
-        )}
+        ) : null}
       </div>
     );
   };
@@ -398,9 +419,11 @@ export default function MentorshipDashboard() {
             item.mentee.positionType ??
             undefined,
           learningGoals: item.mentee.learningGoals ?? undefined,
+          experienceLevel: item.mentee.experienceLevel ?? undefined,
           personalInterests,
           hopeToGainResponses: item.mentee.hopeToGainResponses ?? undefined,
           roleModelInspiration: item.mentee.roleModelInspiration ?? undefined,
+          mentorQualities: item.mentee.mentorQualities ?? undefined,
           preferredMeetingFormat:
             item.mentee.preferredMeetingFormat ?? undefined,
           hoursPerMonthCommitment:
@@ -423,10 +446,26 @@ export default function MentorshipDashboard() {
 
       return (
         <div className="space-y-4">
+          {mentee.learningGoals && (
+            <div>
+              <p className="text-sm font-medium text-secondary/70">
+                Learning Goals
+              </p>
+              <p className="font-semibold">{mentee.learningGoals}</p>
+            </div>
+          )}
+          {mentee.experienceLevel && (
+            <div>
+              <p className="text-sm font-medium text-secondary/70">
+                Experience Level
+              </p>
+              <p className="font-semibold">{mentee.experienceLevel}</p>
+            </div>
+          )}
           {mentee.preferredMeetingFormat && (
             <div>
               <p className="text-sm font-medium text-secondary/70">
-                What is your preferred meeting format?
+                Preferred Meeting Format
               </p>
               <p className="font-semibold">{mentee.preferredMeetingFormat}</p>
             </div>
@@ -434,7 +473,7 @@ export default function MentorshipDashboard() {
           {mentee.hoursPerMonthCommitment && (
             <div>
               <p className="text-sm font-medium text-secondary/70">
-                What is your expected commitment?
+                Commitment
               </p>
               <p className="font-semibold">
                 {mentee.hoursPerMonthCommitment} hours/month
@@ -444,7 +483,7 @@ export default function MentorshipDashboard() {
           {personalInterests.length > 0 && (
             <div>
               <p className="text-sm font-medium text-secondary/70">
-                What are your personal interests?
+                Personal Interests
               </p>
               {personalInterests.length > 1 ? (
                 <ul className="list-disc space-y-1 pl-5 font-semibold">
@@ -460,28 +499,39 @@ export default function MentorshipDashboard() {
           {mentee.roleModelInspiration && (
             <div>
               <p className="text-sm font-medium text-secondary/70">
-                Who is a role model or inspiration for you?
+                Role Model / Inspiration
               </p>
               <p className="font-semibold">{mentee.roleModelInspiration}</p>
             </div>
           )}
-          {mentee.hopeToGainResponses &&
-            mentee.hopeToGainResponses.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-secondary/70">
-                  What do you hope to gain from the mentorship program?
-                </p>
-                {hopeToGain.length > 1 ? (
-                  <ul className="list-disc space-y-1 pl-5 font-semibold">
-                    {hopeToGain.map((response) => (
-                      <li key={response}>{response}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="font-semibold">{hopeToGain[0] ?? ""}</p>
-                )}
-              </div>
-            )}
+          {hopeToGain.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-secondary/70">
+                What They Hope to Gain
+              </p>
+              {hopeToGain.length > 1 ? (
+                <ul className="list-disc space-y-1 pl-5 font-semibold">
+                  {hopeToGain.map((response) => (
+                    <li key={response}>{response}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="font-semibold">{hopeToGain[0] ?? ""}</p>
+              )}
+            </div>
+          )}
+          {mentee.mentorQualities && mentee.mentorQualities.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-secondary/70">
+                Qualities They Value in a Mentor
+              </p>
+              <ul className="list-disc space-y-1 pl-5 font-semibold">
+                {mentee.mentorQualities.map((q) => (
+                  <li key={q}>{q}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       );
     };
@@ -566,22 +616,32 @@ export default function MentorshipDashboard() {
     }
 
     return (
-      <div className="flex flex-col gap-4">
-        {pendingRequests.length > 0 && (
-          <ListView
-            title="Pending Requests"
-            items={pendingRequests}
-            modalContent={renderMenteeRequestModal}
-            rowOptions={renderMenteeRequestRowOptions}
-            modalFooter={renderMenteeRequestModalFooter}
-          />
-        )}
-
+      <div className="flex flex-col gap-6">
         {matchedMentees.length > 0 && (
           <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Active Matches
+            </p>
             {matchedMentees.map((mentee: CollapsibleCardProps) => (
               <CollapsibleCard key={mentee.name} {...mentee} />
             ))}
+          </div>
+        )}
+
+        {pendingRequests.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {matchedMentees.length > 0 && (
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Pending
+              </p>
+            )}
+            <ListView
+              title="Pending Requests"
+              items={pendingRequests}
+              modalContent={renderMenteeRequestModal}
+              rowOptions={renderMenteeRequestRowOptions}
+              modalFooter={renderMenteeRequestModalFooter}
+            />
           </div>
         )}
       </div>
@@ -631,19 +691,62 @@ export default function MentorshipDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="flex flex-col">
           <div className="mb-10">
-            <h1 className="text-2xl text-header font-semibold mb-5">
-              {data?.mentee?.activeMentors &&
-              data.mentee.activeMentors.length > 1
-                ? "Your Mentors"
-                : "Your Mentor"}
-            </h1>
+            <div className="flex items-center justify-between mb-5">
+              <h1 className="text-2xl text-header font-semibold">
+                {!data?.mentee?.activeMentors ||
+                data.mentee.activeMentors.length === 0
+                  ? "Find a Mentor"
+                  : data.mentee.activeMentors.length > 1
+                    ? "Your Mentors"
+                    : "Your Mentor"}
+              </h1>
+              {hasMenteeProfile && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    Accepting matches
+                  </span>
+                  <Switch
+                    checked={
+                      data?.mentee?.profile?.isAcceptingNewMatches ?? true
+                    }
+                    onCheckedChange={(val) =>
+                      updateOptIn.mutate({ role: "mentee", isAccepting: val })
+                    }
+                    disabled={updateOptIn.isPending}
+                  />
+                </div>
+              )}
+            </div>
             {renderYourMentor()}
           </div>
-          <h1 className="text-2xl text-header font-semibold mb-5">
-            {data?.mentor?.activeMentees && data.mentor.activeMentees.length > 1
-              ? "Your Mentees"
-              : "Your Mentee"}
-          </h1>
+          <div className="flex items-center justify-between mb-5">
+            <h1 className="text-2xl text-header font-semibold">
+              {!data?.mentor?.activeMentees ||
+              data.mentor.activeMentees.length === 0
+                ? hasMentorProfile
+                  ? "Mentee Requests"
+                  : "Your Mentee"
+                : data.mentor.activeMentees.length > 1
+                  ? "Your Mentees"
+                  : "Your Mentee"}
+            </h1>
+            {hasMentorProfile && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Accepting matches
+                </span>
+                <Switch
+                  checked={
+                    data?.mentor?.profile?.isAcceptingNewMatches ?? true
+                  }
+                  onCheckedChange={(val) =>
+                    updateOptIn.mutate({ role: "mentor", isAccepting: val })
+                  }
+                  disabled={updateOptIn.isPending}
+                />
+              </div>
+            )}
+          </div>
           {renderYourMentee()}
         </div>
         <div className="flex flex-col">
