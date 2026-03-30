@@ -61,9 +61,7 @@ export const createMentorInputSchema = z.object({
       ]),
     )
     .optional(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid"])
-    .optional(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).optional(),
   hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
 
@@ -84,9 +82,7 @@ export const createMentorOutputSchema = z.object({
   whyInterestedResponses: z.array(z.string()).nullish(),
   careerAdvice: z.string().nullish(),
   preferredMenteeCareerStages: z.array(z.string()).nullish(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid"])
-    .nullish(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -107,9 +103,7 @@ export const getMentorOutputSchema = z.object({
   whyInterestedResponses: z.array(z.string()).nullish(),
   careerAdvice: z.string().nullish(),
   preferredMenteeCareerStages: z.array(z.string()).nullish(),
-  preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid"])
-    .nullish(),
+  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
   isAcceptingNewMatches: z.boolean().default(true),
   createdAt: z.date(),
