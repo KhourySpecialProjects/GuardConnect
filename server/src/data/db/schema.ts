@@ -79,6 +79,7 @@ export const meetingFormatEnum = pgEnum("meeting_format_enum", [
   "in-person",
   "virtual",
   "hybrid",
+  "no-preference",
 ]);
 
 export const careerStageEnum = pgEnum("career_stage_enum", [
@@ -441,6 +442,9 @@ export const mentors = pgTable(
     >(), // Array of career stage enum values
     preferredMeetingFormat: meetingFormatEnum("preferred_meeting_format"),
     hoursPerMonthCommitment: integer("hours_per_month_commitment"),
+    isAcceptingNewMatches: boolean("is_accepting_new_matches")
+      .default(true)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -554,6 +558,9 @@ export const mentees = pgTable(
     mentorQualities: jsonb("mentor_qualities").$type<string[]>(), // What qualities look for
     preferredMeetingFormat: meetingFormatEnum("preferred_meeting_format"),
     hoursPerMonthCommitment: integer("hours_per_month_commitment"),
+    isAcceptingNewMatches: boolean("is_accepting_new_matches")
+      .default(true)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
