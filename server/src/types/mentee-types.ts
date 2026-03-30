@@ -13,7 +13,7 @@ export const menteeSchema = z.object({
   hopeToGainResponses: z.array(z.string()).nullable().optional(),
   mentorQualities: z.array(z.string()).nullable().optional(),
   preferredMeetingFormat: z
-    .enum(["in-person", "virtual", "hybrid"])
+    .enum(["in-person", "virtual", "hybrid", "no-preference"])
     .nullable()
     .optional(),
   hoursPerMonthCommitment: z.number().int().positive().nullable().optional(),
@@ -36,7 +36,9 @@ export const createMenteeInputSchema = z.object({
   roleModelInspiration: z.string().optional(),
   hopeToGainResponses: z.array(z.string()).optional(),
   mentorQualities: z.array(z.string()).optional(),
-  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).optional(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .optional(),
   hoursPerMonthCommitment: z.number().int().positive().optional(),
 });
 
@@ -75,7 +77,12 @@ export type CreateMenteeOutput = {
   roleModelInspiration?: string | null;
   hopeToGainResponses?: string[] | null;
   mentorQualities?: string[] | null;
-  preferredMeetingFormat?: "in-person" | "virtual" | "hybrid" | null;
+  preferredMeetingFormat?:
+    | "in-person"
+    | "virtual"
+    | "hybrid"
+    | "no-preference"
+    | null;
   hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -93,8 +100,11 @@ export const getMenteeOutputSchema = z.object({
   roleModelInspiration: z.string().nullish(),
   hopeToGainResponses: z.array(z.string()).nullish(),
   mentorQualities: z.array(z.string()).nullish(),
-  preferredMeetingFormat: z.enum(["in-person", "virtual", "hybrid"]).nullish(),
+  preferredMeetingFormat: z
+    .enum(["in-person", "virtual", "hybrid", "no-preference"])
+    .nullish(),
   hoursPerMonthCommitment: z.number().nullish(),
+  isAcceptingNewMatches: z.boolean().default(true),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
 
@@ -127,7 +137,12 @@ export type UpdateMenteeOutput = {
   roleModelInspiration?: string | null;
   hopeToGainResponses?: string[] | null;
   mentorQualities?: string[] | null;
-  preferredMeetingFormat?: "in-person" | "virtual" | "hybrid" | null;
+  preferredMeetingFormat?:
+    | "in-person"
+    | "virtual"
+    | "hybrid"
+    | "no-preference"
+    | null;
   hoursPerMonthCommitment?: number | null;
   createdAt: string | Date;
   updatedAt: string | Date;

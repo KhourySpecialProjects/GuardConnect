@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import {
   mentees,
   mentors,
@@ -48,7 +48,11 @@ export class MentorRepository {
     whyInterestedResponses?: string[],
     careerAdvice?: string,
     preferredMenteeCareerStages?: string[],
-    preferredMeetingFormat?: "in-person" | "virtual" | "hybrid",
+    preferredMeetingFormat?:
+      | "in-person"
+      | "virtual"
+      | "hybrid"
+      | "no-preference",
     hoursPerMonthCommitment?: number,
   ): Promise<CreateMentorOutput> {
     // Check if mentor already exists for this user
@@ -129,6 +133,7 @@ export class MentorRepository {
         preferredMenteeCareerStages: mentors.preferredMenteeCareerStages,
         preferredMeetingFormat: mentors.preferredMeetingFormat,
         hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentors.isAcceptingNewMatches,
         createdAt: mentors.createdAt,
         updatedAt: mentors.updatedAt,
         // Enriched user profile fields
@@ -175,6 +180,7 @@ export class MentorRepository {
         preferredMenteeCareerStages: mentors.preferredMenteeCareerStages,
         preferredMeetingFormat: mentors.preferredMeetingFormat,
         hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentors.isAcceptingNewMatches,
         createdAt: mentors.createdAt,
         updatedAt: mentors.updatedAt,
         // Enriched user profile fields
@@ -196,6 +202,34 @@ export class MentorRepository {
     }
 
     return mentor;
+  }
+
+  /**
+   * Get mentor counts grouped by status for admin stats.
+   */
+  async getMentorStats(): Promise<Record<"requested" | "approved" | "active", number>> {
+    const rows = await db
+      .select({ status: mentors.status, value: count() })
+      .from(mentors)
+      .groupBy(mentors.status);
+
+    const result = { requested: 0, approved: 0, active: 0 };
+    for (const row of rows) {
+      result[row.status] = Number(row.value);
+    }
+    return result;
+  }
+
+  /**
+   * Update whether a mentor is accepting new matches.
+   * @param userId Mentor user ID
+   * @param isAccepting Whether the mentor is accepting new matches
+   */
+  async updateMentorOptIn(userId: string, isAccepting: boolean): Promise<void> {
+    await db
+      .update(mentors)
+      .set({ isAcceptingNewMatches: isAccepting })
+      .where(eq(mentors.userId, userId));
   }
 
   /**
@@ -223,6 +257,7 @@ export class MentorRepository {
         mentorQualities: mentees.mentorQualities,
         preferredMeetingFormat: mentees.preferredMeetingFormat,
         hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentees.isAcceptingNewMatches,
         menteeCreatedAt: mentees.createdAt,
         menteeUpdatedAt: mentees.updatedAt,
         // Enriched user profile fields
@@ -262,6 +297,7 @@ export class MentorRepository {
         mentorQualities: row.mentorQualities,
         preferredMeetingFormat: row.preferredMeetingFormat,
         hoursPerMonthCommitment: row.hoursPerMonthCommitment,
+        isAcceptingNewMatches: row.isAcceptingNewMatches,
         createdAt: row.menteeCreatedAt,
         updatedAt: row.menteeUpdatedAt,
         name: row.name,
@@ -300,6 +336,7 @@ export class MentorRepository {
         preferredMenteeCareerStages: mentors.preferredMenteeCareerStages,
         preferredMeetingFormat: mentors.preferredMeetingFormat,
         hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentors.isAcceptingNewMatches,
         createdAt: mentors.createdAt,
         updatedAt: mentors.updatedAt,
         // Enriched user profile fields
@@ -314,6 +351,19 @@ export class MentorRepository {
       .from(mentors)
       .innerJoin(users, eq(users.id, mentors.userId))
       .where(inArray(mentors.userId, userIds));
+  }
+
+  /**
+   * Count mentors that are available for new mentorship matches.
+   * Used as a guard before running the recommendation algorithm to
+   * prevent a NULL insert when no active mentors exist.
+   */
+  async countAvailableMentors(): Promise<number> {
+    const [result] = await db
+      .select({ value: count() })
+      .from(mentors)
+      .where(and(eq(mentors.status, "active"), eq(mentors.isAcceptingNewMatches, true)));
+    return result?.value ?? 0;
   }
 
   /**
@@ -344,6 +394,7 @@ export class MentorRepository {
         mentorQualities: mentees.mentorQualities,
         preferredMeetingFormat: mentees.preferredMeetingFormat,
         hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentees.isAcceptingNewMatches,
         createdAt: mentees.createdAt,
         updatedAt: mentees.updatedAt,
         // Enriched user profile fields
@@ -366,5 +417,62 @@ export class MentorRepository {
       );
 
     return { mentor, activeMentees };
+  }
+
+  /**
+   * Get all mentors with a given status, joined with user profile data.
+   */
+  async getMentorsByStatus(
+    status: "requested" | "approved" | "active",
+  ): Promise<GetMentorOutput[]> {
+    return db
+      .select({
+        mentorId: mentors.mentorId,
+        userId: mentors.userId,
+        mentorshipPreferences: mentors.mentorshipPreferences,
+        yearsOfService: mentors.yearsOfService,
+        eligibilityData: mentors.eligibilityData,
+        status: mentors.status,
+        resumeFileId: mentors.resumeFileId,
+        strengths: mentors.strengths,
+        personalInterests: mentors.personalInterests,
+        whyInterestedResponses: mentors.whyInterestedResponses,
+        careerAdvice: mentors.careerAdvice,
+        preferredMenteeCareerStages: mentors.preferredMenteeCareerStages,
+        preferredMeetingFormat: mentors.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentors.isAcceptingNewMatches,
+        createdAt: mentors.createdAt,
+        updatedAt: mentors.updatedAt,
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        imageFileId: users.image,
+        rank: users.rank,
+        positionType: users.positionType,
+        location: users.location,
+      })
+      .from(mentors)
+      .innerJoin(users, eq(users.id, mentors.userId))
+      .where(eq(mentors.status, status))
+      .orderBy(mentors.createdAt);
+  }
+
+  /**
+   * Update a mentor's status (e.g. requested → approved → active)
+   */
+  async updateMentorStatus(
+    mentorUserId: string,
+    status: "requested" | "approved" | "active",
+  ): Promise<void> {
+    const result = await db
+      .update(mentors)
+      .set({ status })
+      .where(eq(mentors.userId, mentorUserId))
+      .returning({ userId: mentors.userId });
+
+    if (result.length === 0) {
+      throw new NotFoundError(`Mentor with userId ${mentorUserId} not found`);
+    }
   }
 }

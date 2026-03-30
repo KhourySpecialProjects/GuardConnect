@@ -1,4 +1,5 @@
-import { and, eq, isNull, notInArray, or, sql } from "drizzle-orm";
+import { and, count, eq, isNull, notInArray, or, sql } from "drizzle-orm";
+import log from "../utils/logger.js";
 import {
   mentorRecommendations,
   mentors,
@@ -16,10 +17,12 @@ import type {
   GetMentorOutput,
 } from "../types/mentor-types.js";
 import type {
+  MentorshipAdminStatsOutput,
   MentorshipDataOutput,
   SuggestedMentor,
 } from "../types/mentorship-types.js";
 import type { MatchingService } from "./matching-service.js";
+import type { NotificationService } from "./notification-service.js";
 
 /**
  * Service to handle mentorship data aggregation
@@ -37,6 +40,7 @@ export class MentorshipService {
     private mentorRepo: MentorRepository,
     private menteeRepo: MenteeRepository,
     private matchingService?: MatchingService,
+    private notificationService?: NotificationService,
   ) {}
 
   /**
@@ -60,13 +64,17 @@ export class MentorshipService {
     );
 
     if (this.matchingService) {
-      await this.matchingService.createOrUpdateMentorEmbeddings({
-        userId: input.userId,
-        whyInterestedResponses: input.whyInterestedResponses,
-        strengths: input.strengths,
-        personalInterests: input.personalInterests,
-        careerAdvice: input.careerAdvice,
-      });
+      try {
+        await this.matchingService.createOrUpdateMentorEmbeddings({
+          userId: input.userId,
+          whyInterestedResponses: input.whyInterestedResponses,
+          strengths: input.strengths,
+          personalInterests: input.personalInterests,
+          careerAdvice: input.careerAdvice,
+        });
+      } catch (err) {
+        log.warn({ err, userId: input.userId }, "Mentor embedding failed — profile created but no embeddings");
+      }
     }
 
     return mentor;
@@ -92,16 +100,32 @@ export class MentorshipService {
     );
 
     if (this.matchingService) {
-      await this.matchingService.createOrUpdateMenteeEmbeddings({
-        userId: input.userId,
-        learningGoals: input.learningGoals,
-        personalInterests: input.personalInterests,
-        roleModelInspiration: input.roleModelInspiration,
-        hopeToGainResponses: input.hopeToGainResponses,
-        mentorQualities: input.mentorQualities,
-      });
+      try {
+        await this.matchingService.createOrUpdateMenteeEmbeddings({
+          userId: input.userId,
+          learningGoals: input.learningGoals,
+          personalInterests: input.personalInterests,
+          roleModelInspiration: input.roleModelInspiration,
+          hopeToGainResponses: input.hopeToGainResponses,
+          mentorQualities: input.mentorQualities,
+        });
+      } catch (err) {
+        log.warn({ err, userId: input.userId }, "Mentee embedding failed — profile created but no embeddings");
+      }
 
-      await this.matchingService.generateMentorRecommendations(input.userId);
+      try {
+        const available = await this.mentorRepo.countAvailableMentors();
+        if (available > 0) {
+          await this.matchingService.generateMentorRecommendations(input.userId);
+        } else {
+          log.info(
+            { userId: input.userId },
+            "Skipping recommendation generation — no active mentors available",
+          );
+        }
+      } catch (err) {
+        log.warn({ err, userId: input.userId }, "Recommendation generation failed after mentee creation");
+      }
     }
   }
 
@@ -135,6 +159,14 @@ export class MentorshipService {
       status: "pending",
       message,
     });
+
+    // Notify the mentor that they have a new mentorship request
+    if (this.notificationService) {
+      await this.notificationService.sendToUser(mentorUserId, {
+        title: "New Mentorship Request",
+        body: "A mentee has requested your mentorship. Review their profile on GuardConnect.",
+      });
+    }
   }
 
   /**
@@ -164,6 +196,15 @@ export class MentorshipService {
       .update(mentorshipMatches)
       .set({ status: "declined" })
       .where(eq(mentorshipMatches.matchId, matchId));
+
+    // Refresh recommendations for the mentee so they see a new suggestion
+    const menteeUserId = match[0]?.requestorUserId;
+    if (menteeUserId && this.matchingService) {
+      const available = await this.mentorRepo.countAvailableMentors();
+      if (available > 0) {
+        await this.matchingService.generateMentorRecommendations(menteeUserId);
+      }
+    }
   }
 
   /**
@@ -339,6 +380,125 @@ export class MentorshipService {
       })),
       // Note: mentorRecommendations use mentors from getMentorsByUserIds which include enriched fields
       mentorRecommendations: mentorRecs,
+    };
+  }
+
+  /**
+   * Get mentors filtered by status for admin review
+   */
+  async getMentorsByStatus(status: "requested" | "approved" | "active") {
+    return this.mentorRepo.getMentorsByStatus(status);
+  }
+
+  /**
+   * Update a mentor's status. When a mentor becomes active, triggers
+   * recommendation generation for all unmatched mentees.
+   */
+  async updateMentorStatus(
+    mentorUserId: string,
+    status: "requested" | "approved" | "active",
+  ): Promise<void> {
+    await this.mentorRepo.updateMentorStatus(mentorUserId, status);
+
+    if (status === "active" && this.matchingService) {
+      const unmatchedMenteeIds =
+        await this.menteeRepo.getUnmatchedMenteeUserIds();
+
+      if (unmatchedMenteeIds.length === 0) {
+        log.info(
+          { mentorUserId },
+          "Mentor activated — no unmatched mentees to generate recommendations for",
+        );
+        return;
+      }
+
+      log.info(
+        { mentorUserId, unmatchedCount: unmatchedMenteeIds.length },
+        "Mentor activated — generating recommendations for unmatched mentees",
+      );
+
+      for (const menteeUserId of unmatchedMenteeIds) {
+        try {
+          await this.matchingService.generateMentorRecommendations(menteeUserId);
+        } catch (err) {
+          log.error(
+            { menteeUserId, err },
+            "Failed to generate recommendations for mentee after mentor activation",
+          );
+        }
+      }
+    }
+  }
+
+  /**
+   * Update opt-in status for mentor or mentee
+   */
+  async updateOptIn(
+    userId: string,
+    role: "mentor" | "mentee",
+    isAccepting: boolean,
+  ): Promise<void> {
+    if (role === "mentor") {
+      await this.mentorRepo.updateMentorOptIn(userId, isAccepting);
+    } else {
+      await this.menteeRepo.updateMenteeOptIn(userId, isAccepting);
+    }
+  }
+
+  /**
+   * Get admin statistics for the mentorship program
+   */
+  async getAdminStats(): Promise<MentorshipAdminStatsOutput> {
+    const [mentorStats, menteeStats, matchRows, acceptingMentorsRow] =
+      await Promise.all([
+        this.mentorRepo.getMentorStats(),
+        this.menteeRepo.getMenteeStats(),
+        db
+          .select({ status: mentorshipMatches.status, value: count() })
+          .from(mentorshipMatches)
+          .groupBy(mentorshipMatches.status),
+        db
+          .select({ value: count() })
+          .from(mentors)
+          .where(
+            and(
+              eq(mentors.status, "active"),
+              eq(mentors.isAcceptingNewMatches, true),
+            ),
+          ),
+      ]);
+
+    const matchCounts = { pending: 0, accepted: 0, declined: 0 };
+    for (const row of matchRows) {
+      matchCounts[row.status] = Number(row.value);
+    }
+    const totalMatches =
+      matchCounts.pending + matchCounts.accepted + matchCounts.declined;
+    const declineRate =
+      totalMatches > 0
+        ? Math.round((matchCounts.declined / totalMatches) * 100)
+        : 0;
+
+    const totalMentors =
+      mentorStats.requested + mentorStats.approved + mentorStats.active;
+    const totalMentees =
+      menteeStats.active + menteeStats.inactive + menteeStats.matched;
+
+    return {
+      mentors: {
+        ...mentorStats,
+        total: totalMentors,
+        acceptingNewMatches: Number(acceptingMentorsRow[0]?.value ?? 0),
+      },
+      mentees: {
+        ...menteeStats,
+        total: totalMentees,
+      },
+      matches: {
+        ...matchCounts,
+        total: totalMatches,
+        declineRate,
+      },
     };
   }
 

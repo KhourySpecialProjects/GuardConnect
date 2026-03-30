@@ -86,6 +86,31 @@ export class NotificationRepository {
   }
 
   /**
+   * Get all active push subscriptions for a specific user.
+   * @param userId User ID
+   * @returns Array of active push subscriptions for that user
+   */
+  async getSubscriptionsByUserId(
+    userId: string,
+  ): Promise<ActivePushSubscription[]> {
+    return await db
+      .select({
+        endpoint: pushSubscriptions.endpoint,
+        p256dh: pushSubscriptions.p256dh,
+        auth: pushSubscriptions.auth,
+        topics: pushSubscriptions.topics,
+        userId: pushSubscriptions.userId,
+      })
+      .from(pushSubscriptions)
+      .where(
+        and(
+          eq(pushSubscriptions.userId, userId),
+          eq(pushSubscriptions.isActive, true),
+        ),
+      );
+  }
+
+  /**
    * Remove a subscription by endpoint string. Use this when you already have the raw endpoint URL.
    * @param endpoint Endpoint string
    */
