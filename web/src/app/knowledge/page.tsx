@@ -241,7 +241,9 @@ function KnowledgePage() {
 
   const handleNavigateUp = () => {
     if (openedItemId) {
-      router.push(currentFolderId ? `/knowledge?folder=${currentFolderId}` : "/knowledge");
+      router.push(
+        currentFolderId ? `/knowledge?folder=${currentFolderId}` : "/knowledge",
+      );
       return;
     }
     if (!currentFolder) {
@@ -415,14 +417,18 @@ function KnowledgePage() {
                   <button
                     type="button"
                     onClick={() => {
-                      router.push(crumb.id ? `/knowledge?folder=${crumb.id}` : "/knowledge");
+                      router.push(
+                        crumb.id
+                          ? `/knowledge?folder=${crumb.id}`
+                          : "/knowledge",
+                      );
                     }}
                     className="rounded px-1 py-0.5 text-primary hover:bg-primary/10"
                     disabled={isBusy}
                   >
                     {crumb.title}
                   </button>
-                  {(openedItem || index < breadcrumbs.length - 1) ? (
+                  {openedItem || index < breadcrumbs.length - 1 ? (
                     <ChevronRight className="mx-1 h-3.5 w-3.5 text-muted-foreground" />
                   ) : null}
                 </div>
@@ -439,7 +445,7 @@ function KnowledgePage() {
                   variant="outline"
                   size="sm"
                   onClick={handleNavigateUp}
-                  disabled={!currentFolderId && !openedItemId || isBusy}
+                  disabled={(!currentFolderId && !openedItemId) || isBusy}
                 >
                   Back
                 </Button>
@@ -521,7 +527,6 @@ function KnowledgePage() {
               </div>
             ) : null}
 
-
             {openedItemId ? (
               openedItemQuery.isLoading ? (
                 <p className="px-4 py-4 text-sm text-muted-foreground">
@@ -557,7 +562,9 @@ function KnowledgePage() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Last Modified
                     </p>
-                    <p className="text-sm">{formatDate(openedItem.updatedAt)}</p>
+                    <p className="text-sm">
+                      {formatDate(openedItem.updatedAt)}
+                    </p>
                   </div>
 
                   <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
@@ -650,7 +657,6 @@ function KnowledgePage() {
                 </div>
               </>
             )}
-
           </CardContent>
         </Card>
       </div>
