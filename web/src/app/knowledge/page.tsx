@@ -5,6 +5,7 @@ import { TRPCClientError } from "@trpc/client";
 import { ChevronRight, FileText, Folder, FolderOpen, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TitleShell } from "@/components/layouts/title-shell";
+import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -77,7 +78,9 @@ export default function KnowledgePage() {
     id: string;
   } | null>(null);
   const [search, setSearch] = useState("");
-  const [showCreateItemForm, setShowCreateItemForm] = useState(false);
+  const [showCreateFolderPopover, setShowCreateFolderPopover] = useState(false);
+  const [newFolderTitle, setNewFolderTitle] = useState("");
+  const [showCreateItemPopover, setShowCreateItemPopover] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemBody, setNewItemBody] = useState("");
@@ -250,9 +253,8 @@ export default function KnowledgePage() {
     setSelectedRow(null);
   };
 
-  const handleCreateFolder = async () => {
-    const title = window.prompt("Folder name:");
-    if (!title || !title.trim()) {
+  const handleCreateFolder = async (title: string) => {
+    if (!title.trim()) {
       return;
     }
 
@@ -272,21 +274,13 @@ export default function KnowledgePage() {
       }
       await refreshKnowledge();
       setSuccessMessage(`Created folder "${title.trim()}".`);
+      setShowCreateFolderPopover(false);
+      setNewFolderTitle("");
     } catch (error) {
       setErrorMessage(toErrorMessage(error));
     } finally {
       setPendingAction(null);
     }
-  };
-
-  const openCreateItemForm = () => {
-    if (!currentFolderId) {
-      setErrorMessage("Open a folder first to add an item.");
-      setSuccessMessage(null);
-      return;
-    }
-    clearMessages();
-    setShowCreateItemForm(true);
   };
 
   const resetCreateItemForm = () => {
@@ -361,7 +355,7 @@ export default function KnowledgePage() {
 
       await refreshKnowledge();
       setSelectedRow({ kind: "item", id: item.itemId });
-      setShowCreateItemForm(false);
+      setShowCreateItemPopover(false);
       resetCreateItemForm();
       setSuccessMessage(`Added item "${item.name}".`);
     } catch (error) {
@@ -458,7 +452,7 @@ export default function KnowledgePage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={handleCreateFolder}
+                  onClick={() => setShowCreateFolderPopover(true)}
                   disabled={isBusy}
                 >
                   <Plus className="h-4 w-4" />
@@ -467,7 +461,15 @@ export default function KnowledgePage() {
                 <Button
                   type="button"
                   size="sm"
-                  onClick={openCreateItemForm}
+                  onClick={() => {
+                    if (!currentFolderId) {
+                      setErrorMessage("Open a folder first to add an item.");
+                      setSuccessMessage(null);
+                      return;
+                    }
+                    clearMessages();
+                    setShowCreateItemPopover(true);
+                  }}
                   disabled={isBusy || !currentFolderId}
                 >
                   <Plus className="h-4 w-4" />
@@ -475,62 +477,6 @@ export default function KnowledgePage() {
                 </Button>
               </div>
             </div>
-
-            {showCreateItemForm ? (
-              <div className="space-y-2 border-b bg-muted/20 px-4 py-3">
-                <p className="text-sm font-semibold text-secondary">New Item</p>
-                <Input
-                  placeholder="Title"
-                  value={newItemTitle}
-                  onChange={(event) => setNewItemTitle(event.target.value)}
-                />
-                <Input
-                  placeholder="Description (optional)"
-                  value={newItemDescription}
-                  onChange={(event) =>
-                    setNewItemDescription(event.target.value)
-                  }
-                />
-                <Textarea
-                  placeholder="Body (optional)"
-                  value={newItemBody}
-                  onChange={(event) => setNewItemBody(event.target.value)}
-                  className="min-h-24"
-                />
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
-                    Attachment (optional)
-                  </p>
-                  <Input
-                    key={newItemAttachmentInputKey}
-                    type="file"
-                    onChange={(event) =>
-                      setNewItemAttachment(event.target.files?.[0] ?? null)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setShowCreateItemForm(false);
-                      resetCreateItemForm();
-                    }}
-                    disabled={isBusy}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleCreateItem}
-                    disabled={isBusy}
-                  >
-                    Create Item
-                  </Button>
-                </div>
-              </div>
-            ) : null}
 
             <div className="px-4 pb-3">
               <Input
@@ -653,6 +599,114 @@ export default function KnowledgePage() {
           </CardContent>
         </Card>
       </div>
+
+      <Modal
+        open={showCreateFolderPopover}
+        onOpenChange={(open) => {
+          setShowCreateFolderPopover(open);
+          if (!open) setNewFolderTitle("");
+        }}
+        title="New Folder"
+        className="max-w-2xl"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowCreateFolderPopover(false)}
+              disabled={isBusy}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleCreateFolder(newFolderTitle)}
+              disabled={isBusy || !newFolderTitle.trim()}
+            >
+              Create
+            </Button>
+          </>
+        }
+      >
+        <Input
+          placeholder="Folder name"
+          value={newFolderTitle}
+          onChange={(e) => setNewFolderTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleCreateFolder(newFolderTitle);
+          }}
+          disabled={isBusy}
+          autoFocus
+        />
+      </Modal>
+
+      <Modal
+        open={showCreateItemPopover}
+        onOpenChange={(open) => {
+          setShowCreateItemPopover(open);
+          if (!open) resetCreateItemForm();
+        }}
+        title="New Item"
+        className="max-w-2xl"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowCreateItemPopover(false);
+                resetCreateItemForm();
+              }}
+              disabled={isBusy}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleCreateItem()}
+              disabled={isBusy}
+            >
+              Create Item
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Input
+            placeholder="Title"
+            value={newItemTitle}
+            onChange={(e) => setNewItemTitle(e.target.value)}
+            disabled={isBusy}
+            autoFocus
+          />
+          <Input
+            placeholder="Description (optional)"
+            value={newItemDescription}
+            onChange={(e) => setNewItemDescription(e.target.value)}
+            disabled={isBusy}
+          />
+          <Textarea
+            placeholder="Body (optional)"
+            value={newItemBody}
+            onChange={(e) => setNewItemBody(e.target.value)}
+            className="min-h-32"
+            disabled={isBusy}
+          />
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              Attachment (optional)
+            </p>
+            <Input
+              key={newItemAttachmentInputKey}
+              type="file"
+              onChange={(e) =>
+                setNewItemAttachment(e.target.files?.[0] ?? null)
+              }
+              disabled={isBusy}
+            />
+          </div>
+        </div>
+      </Modal>
     </TitleShell>
   );
 }
