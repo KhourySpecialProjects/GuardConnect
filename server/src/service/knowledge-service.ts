@@ -41,6 +41,10 @@ export class KnowledgeService {
     return await this.knowledgeRepo.getItemsByFolder(folderId);
   }
 
+  async getItemById(itemId: string) {
+    return await this.knowledgeRepo.getItemById(itemId);
+  }
+
   async getItemAttachment(itemId: string) {
     return await this.knowledgeRepo.getItemAttachment(itemId);
   }
