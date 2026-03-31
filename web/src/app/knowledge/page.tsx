@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTRPCClient } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 
 type FolderRecord = {
   folderId: string;
@@ -76,6 +77,10 @@ function KnowledgePage() {
   const currentFolderId = searchParams.get("folder");
   const [folderLookup, setFolderLookup] = useState<FolderLookup>({});
   const [search, setSearch] = useState("");
+  const [selectedRow, setSelectedRow] = useState<{
+    kind: Row["kind"];
+    id: string;
+  } | null>(null);
   const [showCreateFolderPopover, setShowCreateFolderPopover] = useState(false);
   const [newFolderTitle, setNewFolderTitle] = useState("");
   const [showCreateItemPopover, setShowCreateItemPopover] = useState(false);
@@ -546,60 +551,77 @@ function KnowledgePage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-[minmax(0,1fr)_16rem_6rem] border-y bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span>Name</span>
-                  <span>Date Modified</span>
-                  <span>Size</span>
-                </div>
+                <div>
+                  <div className="grid grid-cols-[minmax(0,1fr)_16rem_6rem] border-y bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span>Name</span>
+                    <span>Date Modified</span>
+                    <span>Size</span>
+                  </div>
+                  <div className="max-h-[65vh] overflow-y-auto">
+                    {loading ? (
+                      <p className="px-4 py-4 text-sm text-muted-foreground">
+                        Loading...
+                      </p>
+                    ) : rows.length === 0 ? (
+                      <p className="px-4 py-4 text-sm text-muted-foreground">
+                        {currentFolderId
+                          ? "This folder is empty."
+                          : "No folders yet. Create one to get started."}
+                      </p>
+                    ) : (
+                      rows.map((row) => {
+                        const isSelected =
+                          selectedRow?.kind === row.kind &&
+                          selectedRow.id === row.id;
 
-                <div className="max-h-[65vh] overflow-y-auto">
-                  {loading ? (
-                    <p className="px-4 py-4 text-sm text-muted-foreground">
-                      Loading...
-                    </p>
-                  ) : rows.length === 0 ? (
-                    <p className="px-4 py-4 text-sm text-muted-foreground">
-                      {currentFolderId
-                        ? "This folder is empty."
-                        : "No folders yet. Create one to get started."}
-                    </p>
-                  ) : (
-                    rows.map((row) => (
-                      <button
-                        key={`${row.kind}-${row.id}`}
-                        type="button"
-                        className="grid w-full grid-cols-[minmax(0,1fr)_16rem_6rem] cursor-pointer items-center px-4 py-2 text-left hover:bg-primary/5"
-                        onDoubleClick={() => {
-                          if (row.kind === "folder") {
-                            handleOpenFolder(row.raw);
-                          } else {
-                            router.push(
-                              currentFolderId
-                                ? `/knowledge?folder=${currentFolderId}&item=${row.id}`
-                                : `/knowledge?item=${row.id}`,
-                            );
-                          }
-                        }}
-                      >
-                        <span className="flex min-w-0 items-center gap-2">
-                          {row.kind === "folder" ? (
-                            row.id === currentFolderId ? (
-                              <FolderOpen className="h-4 w-4 shrink-0 text-primary" />
-                            ) : (
-                              <Folder className="h-4 w-4 shrink-0 text-primary" />
-                            )
-                          ) : (
-                            <FileText className="h-4 w-4 shrink-0 text-accent" />
-                          )}
-                          <span className="truncate">{row.name}</span>
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(row.updatedAt)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">—</span>
-                      </button>
-                    ))
-                  )}
+                        return (
+                          <button
+                            key={`${row.kind}-${row.id}`}
+                            type="button"
+                            className={cn(
+                              "grid w-full grid-cols-[minmax(0,1fr)_16rem_6rem] cursor-pointer items-center px-4 py-2 text-left",
+                              isSelected
+                                ? "border-l-2 border-primary bg-primary/20"
+                                : "border-l-2 border-transparent hover:bg-primary/5",
+                            )}
+                            onClick={() =>
+                              setSelectedRow({ kind: row.kind, id: row.id })
+                            }
+                            onDoubleClick={() => {
+                              if (row.kind === "folder") {
+                                handleOpenFolder(row.raw);
+                              } else {
+                                router.push(
+                                  currentFolderId
+                                    ? `/knowledge?folder=${currentFolderId}&item=${row.id}`
+                                    : `/knowledge?item=${row.id}`,
+                                );
+                              }
+                            }}
+                          >
+                            <span className="flex min-w-0 items-center gap-2">
+                              {row.kind === "folder" ? (
+                                row.id === currentFolderId ? (
+                                  <FolderOpen className="h-4 w-4 shrink-0 text-primary" />
+                                ) : (
+                                  <Folder className="h-4 w-4 shrink-0 text-primary" />
+                                )
+                              ) : (
+                                <FileText className="h-4 w-4 shrink-0 text-accent" />
+                              )}
+                              <span className="truncate">{row.name}</span>
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {formatDate(row.updatedAt)}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              —
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               </>
             )}
