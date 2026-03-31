@@ -622,7 +622,7 @@ function KnowledgePage() {
                       <button
                         key={`${row.kind}-${row.id}`}
                         type="button"
-                        className="grid w-full grid-cols-[minmax(0,1fr)_16rem_6rem] items-center px-4 py-2 text-left hover:bg-primary/5"
+                        className="grid w-full grid-cols-[minmax(0,1fr)_16rem_6rem] cursor-pointer items-center px-4 py-2 text-left hover:bg-primary/5"
                         onDoubleClick={() => {
                           if (row.kind === "folder") {
                             handleOpenFolder(row.raw);
