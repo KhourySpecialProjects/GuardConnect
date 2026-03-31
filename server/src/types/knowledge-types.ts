@@ -44,6 +44,10 @@ export const getItemsInFolderInputSchema = z.object({
   folderId: uuidSchema,
 });
 
+export const getItemInputSchema = z.object({
+  itemId: uuidSchema,
+});
+
 export const getItemAttachmentInputSchema = z.object({
   itemId: uuidSchema,
 });

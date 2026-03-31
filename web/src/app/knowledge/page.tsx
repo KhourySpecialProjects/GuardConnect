@@ -3,8 +3,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { ChevronRight, FileText, Folder, FolderOpen, Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { TitleShell } from "@/components/layouts/title-shell";
+import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,7 +50,7 @@ type Row =
       raw: ItemRecord;
     };
 
-const formatDate = (value: string) => {
+const formatDate = (value: string | Date) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return "—";
@@ -66,18 +68,22 @@ const toErrorMessage = (error: unknown) => {
   return "Something went wrong. Please try again.";
 };
 
-export default function KnowledgePage() {
+function KnowledgePage() {
   const trpcClient = useTRPCClient();
   const queryClient = useQueryClient();
-
-  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const openedItemId = searchParams.get("item");
+  const currentFolderId = searchParams.get("folder");
   const [folderLookup, setFolderLookup] = useState<FolderLookup>({});
+  const [search, setSearch] = useState("");
   const [selectedRow, setSelectedRow] = useState<{
     kind: Row["kind"];
     id: string;
   } | null>(null);
-  const [search, setSearch] = useState("");
-  const [showCreateItemForm, setShowCreateItemForm] = useState(false);
+  const [showCreateFolderPopover, setShowCreateFolderPopover] = useState(false);
+  const [newFolderTitle, setNewFolderTitle] = useState("");
+  const [showCreateItemPopover, setShowCreateItemPopover] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemBody, setNewItemBody] = useState("");
@@ -109,6 +115,22 @@ export default function KnowledgePage() {
       trpcClient.knowledge.getItemsInFolder.query({
         folderId: currentFolderId ?? "",
       }) as Promise<ItemRecord[]>,
+  });
+
+  const openedItemQuery = useQuery({
+    queryKey: ["knowledge", "item", openedItemId],
+    enabled: Boolean(openedItemId),
+    queryFn: () =>
+      trpcClient.knowledge.getItem.query({ itemId: openedItemId ?? "" }),
+  });
+
+  const openedItemAttachmentQuery = useQuery({
+    queryKey: ["knowledge", "attachment", openedItemId],
+    enabled: Boolean(openedItemId),
+    queryFn: () =>
+      trpcClient.knowledge.getItemAttachment.query({
+        itemId: openedItemId ?? "",
+      }),
   });
 
   const registerFolders = useCallback((folders: FolderRecord[]) => {
@@ -180,22 +202,6 @@ export default function KnowledgePage() {
     return allRows.filter((row) => row.name.toLowerCase().includes(term));
   }, [folders, items, search]);
 
-  const selectedItem = useMemo(() => {
-    if (!selectedRow || selectedRow.kind !== "item") {
-      return null;
-    }
-    return items.find((item) => item.itemId === selectedRow.id) ?? null;
-  }, [items, selectedRow]);
-
-  const selectedItemAttachmentQuery = useQuery({
-    queryKey: ["knowledge", "attachment", selectedItem?.itemId ?? null],
-    enabled: Boolean(selectedItem?.itemId),
-    queryFn: () =>
-      trpcClient.knowledge.getItemAttachment.query({
-        itemId: selectedItem?.itemId ?? "",
-      }),
-  });
-
   const breadcrumbs = useMemo(() => {
     const root = [{ id: null as string | null, title: "Knowledge Base" }];
     if (!currentFolderId) {
@@ -238,21 +244,25 @@ export default function KnowledgePage() {
   };
 
   const handleOpenFolder = (folder: FolderRecord) => {
-    setCurrentFolderId(folder.folderId);
-    setSelectedRow(null);
+    router.push(`/knowledge?folder=${folder.folderId}`);
   };
 
   const handleNavigateUp = () => {
+    if (openedItemId) {
+      router.push(
+        currentFolderId ? `/knowledge?folder=${currentFolderId}` : "/knowledge",
+      );
+      return;
+    }
     if (!currentFolder) {
       return;
     }
-    setCurrentFolderId(currentFolder.parentFolderId);
-    setSelectedRow(null);
+    const parentId = currentFolder.parentFolderId;
+    router.push(parentId ? `/knowledge?folder=${parentId}` : "/knowledge");
   };
 
-  const handleCreateFolder = async () => {
-    const title = window.prompt("Folder name:");
-    if (!title || !title.trim()) {
+  const handleCreateFolder = async (title: string) => {
+    if (!title.trim()) {
       return;
     }
 
@@ -272,21 +282,13 @@ export default function KnowledgePage() {
       }
       await refreshKnowledge();
       setSuccessMessage(`Created folder "${title.trim()}".`);
+      setShowCreateFolderPopover(false);
+      setNewFolderTitle("");
     } catch (error) {
       setErrorMessage(toErrorMessage(error));
     } finally {
       setPendingAction(null);
     }
-  };
-
-  const openCreateItemForm = () => {
-    if (!currentFolderId) {
-      setErrorMessage("Open a folder first to add an item.");
-      setSuccessMessage(null);
-      return;
-    }
-    clearMessages();
-    setShowCreateItemForm(true);
   };
 
   const resetCreateItemForm = () => {
@@ -360,8 +362,7 @@ export default function KnowledgePage() {
       }
 
       await refreshKnowledge();
-      setSelectedRow({ kind: "item", id: item.itemId });
-      setShowCreateItemForm(false);
+      setShowCreateItemPopover(false);
       resetCreateItemForm();
       setSuccessMessage(`Added item "${item.name}".`);
     } catch (error) {
@@ -378,32 +379,17 @@ export default function KnowledgePage() {
     }
   };
 
-  const handleOpenItem = async (item: ItemRecord) => {
-    setPendingAction("open-item");
-    clearMessages();
-
-    try {
-      const attachment = await trpcClient.knowledge.getItemAttachment.query({
-        itemId: item.itemId,
-      });
-
-      if (!attachment) {
-        setErrorMessage("This item has no file attached.");
-        return;
-      }
-
-      const file = await trpcClient.files.getFile.query({
-        fileId: attachment.fileId,
-      });
-
-      window.open(file.data, "_blank", "noopener,noreferrer");
-      setSuccessMessage(`Opened "${item.name}".`);
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error));
-    } finally {
-      setPendingAction(null);
+  const handleOpenItemAttachment = async () => {
+    if (!openedItemAttachmentQuery.data) {
+      return;
     }
+    const file = await trpcClient.files.getFile.query({
+      fileId: openedItemAttachmentQuery.data.fileId,
+    });
+    window.open(file.data, "_blank", "noopener,noreferrer");
   };
+
+  const openedItem = openedItemQuery.data ?? null;
 
   return (
     <TitleShell title="Knowledge Base">
@@ -430,19 +416,27 @@ export default function KnowledgePage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setCurrentFolderId(crumb.id);
-                      setSelectedRow(null);
+                      router.push(
+                        crumb.id
+                          ? `/knowledge?folder=${crumb.id}`
+                          : "/knowledge",
+                      );
                     }}
                     className="rounded px-1 py-0.5 text-primary hover:bg-primary/10"
                     disabled={isBusy}
                   >
                     {crumb.title}
                   </button>
-                  {index < breadcrumbs.length - 1 ? (
+                  {openedItem || index < breadcrumbs.length - 1 ? (
                     <ChevronRight className="mx-1 h-3.5 w-3.5 text-muted-foreground" />
                   ) : null}
                 </div>
               ))}
+              {openedItem ? (
+                <span className="rounded px-1 py-0.5 text-sm font-medium">
+                  {openedItem.name}
+                </span>
+              ) : null}
 
               <div className="ml-auto flex items-center gap-2">
                 <Button
@@ -450,15 +444,15 @@ export default function KnowledgePage() {
                   variant="outline"
                   size="sm"
                   onClick={handleNavigateUp}
-                  disabled={!currentFolderId || isBusy}
+                  disabled={(!currentFolderId && !openedItemId) || isBusy}
                 >
-                  Up
+                  Back
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={handleCreateFolder}
+                  onClick={() => setShowCreateFolderPopover(true)}
                   disabled={isBusy}
                 >
                   <Plus className="h-4 w-4" />
@@ -467,7 +461,15 @@ export default function KnowledgePage() {
                 <Button
                   type="button"
                   size="sm"
-                  onClick={openCreateItemForm}
+                  onClick={() => {
+                    if (!currentFolderId) {
+                      setErrorMessage("Open a folder first to add an item.");
+                      setSuccessMessage(null);
+                      return;
+                    }
+                    clearMessages();
+                    setShowCreateItemPopover(true);
+                  }}
                   disabled={isBusy || !currentFolderId}
                 >
                   <Plus className="h-4 w-4" />
@@ -476,187 +478,272 @@ export default function KnowledgePage() {
               </div>
             </div>
 
-            {showCreateItemForm ? (
-              <div className="space-y-2 border-b bg-muted/20 px-4 py-3">
-                <p className="text-sm font-semibold text-secondary">New Item</p>
-                <Input
-                  placeholder="Title"
-                  value={newItemTitle}
-                  onChange={(event) => setNewItemTitle(event.target.value)}
-                />
-                <Input
-                  placeholder="Description (optional)"
-                  value={newItemDescription}
-                  onChange={(event) =>
-                    setNewItemDescription(event.target.value)
-                  }
-                />
-                <Textarea
-                  placeholder="Body (optional)"
-                  value={newItemBody}
-                  onChange={(event) => setNewItemBody(event.target.value)}
-                  className="min-h-24"
-                />
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
-                    Attachment (optional)
-                  </p>
+            {openedItemId ? (
+              openedItemQuery.isLoading ? (
+                <p className="px-4 py-4 text-sm text-muted-foreground">
+                  Loading...
+                </p>
+              ) : openedItemQuery.isError ? (
+                <div className="px-4 py-4">
+                  <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                    {toErrorMessage(openedItemQuery.error)}
+                  </div>
+                </div>
+              ) : openedItem ? (
+                <div className="space-y-4 px-4 pb-4">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Description
+                    </p>
+                    <p className="text-sm">
+                      {openedItem.description?.trim() || "—"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Body
+                    </p>
+                    <p className="whitespace-pre-wrap text-sm">
+                      {openedItem.body?.trim() || "—"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Last Modified
+                    </p>
+                    <p className="text-sm">
+                      {formatDate(openedItem.updatedAt)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
+                    <div className="text-xs text-muted-foreground">
+                      {openedItemAttachmentQuery.isLoading
+                        ? "Loading attachment..."
+                        : openedItemAttachmentQuery.data
+                          ? `Attachment: ${openedItemAttachmentQuery.data.fileName}`
+                          : "No attachment"}
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleOpenItemAttachment}
+                      disabled={
+                        openedItemAttachmentQuery.isLoading ||
+                        !openedItemAttachmentQuery.data
+                      }
+                    >
+                      Open Attachment
+                    </Button>
+                  </div>
+                </div>
+              ) : null
+            ) : (
+              <>
+                <div className="px-4 pb-3">
                   <Input
-                    key={newItemAttachmentInputKey}
-                    type="file"
-                    onChange={(event) =>
-                      setNewItemAttachment(event.target.files?.[0] ?? null)
-                    }
+                    placeholder="Search by name"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
                   />
                 </div>
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setShowCreateItemForm(false);
-                      resetCreateItemForm();
-                    }}
-                    disabled={isBusy}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleCreateItem}
-                    disabled={isBusy}
-                  >
-                    Create Item
-                  </Button>
-                </div>
-              </div>
-            ) : null}
 
-            <div className="px-4 pb-3">
-              <Input
-                placeholder="Search by name"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </div>
-
-            <div>
-              <div className="grid grid-cols-[minmax(0,1fr)_16rem_6rem] border-y bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <span>Name</span>
-                <span>Date Modified</span>
-                <span>Size</span>
-              </div>
-              <div className="max-h-[65vh] overflow-y-auto">
-                {loading ? (
-                  <p className="px-4 py-4 text-sm text-muted-foreground">
-                    Loading...
-                  </p>
-                ) : rows.length === 0 ? (
-                  <p className="px-4 py-4 text-sm text-muted-foreground">
-                    {currentFolderId
-                      ? "This folder is empty."
-                      : "No folders yet. Create one to get started."}
-                  </p>
-                ) : (
-                  rows.map((row) => {
-                    const isSelected =
-                      selectedRow?.kind === row.kind &&
-                      selectedRow.id === row.id;
-
-                    return (
-                      <button
-                        key={`${row.kind}-${row.id}`}
-                        type="button"
-                        className={cn(
-                          "grid w-full grid-cols-[minmax(0,1fr)_16rem_6rem] cursor-pointer items-center px-4 py-2 text-left",
-                          isSelected
-                            ? "border-l-2 border-primary bg-primary/20"
-                            : "border-l-2 border-transparent hover:bg-primary/5",
-                        )}
-                        onClick={() =>
-                          setSelectedRow({
-                            kind: row.kind,
-                            id: row.id,
-                          })
-                        }
-                        onDoubleClick={() => {
-                          if (row.kind === "folder") {
-                            handleOpenFolder(row.raw);
-                          } else {
-                            handleOpenItem(row.raw);
-                          }
-                        }}
-                      >
-                        <span className="flex min-w-0 items-center gap-2">
-                          {row.kind === "folder" ? (
-                            row.id === currentFolderId ? (
-                              <FolderOpen className="h-4 w-4 shrink-0 text-primary" />
-                            ) : (
-                              <Folder className="h-4 w-4 shrink-0 text-primary" />
-                            )
-                          ) : (
-                            <FileText className="h-4 w-4 shrink-0 text-accent" />
-                          )}
-                          <span className="truncate">{row.name}</span>
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(row.updatedAt)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">—</span>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {selectedItem ? (
-              <div className="space-y-2 border-t bg-muted/20 px-4 py-3">
-                <p className="text-sm font-semibold text-secondary">
-                  Item Contents
-                </p>
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <span className="font-medium">Title:</span>{" "}
-                    {selectedItem.name}
-                  </p>
-                  <p>
-                    <span className="font-medium">Description:</span>{" "}
-                    {selectedItem.description?.trim() || "—"}
-                  </p>
-                  <p className="whitespace-pre-wrap">
-                    <span className="font-medium">Body:</span>{" "}
-                    {selectedItem.body?.trim() || "—"}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
-                  <div className="text-xs text-muted-foreground">
-                    {selectedItemAttachmentQuery.isLoading
-                      ? "Loading attachment..."
-                      : selectedItemAttachmentQuery.data
-                        ? `Attachment: ${selectedItemAttachmentQuery.data.fileName}`
-                        : "No attachment"}
+                <div>
+                  <div className="grid grid-cols-[minmax(0,1fr)_16rem_6rem] border-y bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span>Name</span>
+                    <span>Date Modified</span>
+                    <span>Size</span>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleOpenItem(selectedItem)}
-                    disabled={
-                      isBusy ||
-                      selectedItemAttachmentQuery.isLoading ||
-                      !selectedItemAttachmentQuery.data
-                    }
-                  >
-                    Open Attachment
-                  </Button>
+                  <div className="max-h-[65vh] overflow-y-auto">
+                    {loading ? (
+                      <p className="px-4 py-4 text-sm text-muted-foreground">
+                        Loading...
+                      </p>
+                    ) : rows.length === 0 ? (
+                      <p className="px-4 py-4 text-sm text-muted-foreground">
+                        {currentFolderId
+                          ? "This folder is empty."
+                          : "No folders yet. Create one to get started."}
+                      </p>
+                    ) : (
+                      rows.map((row) => {
+                        const isSelected =
+                          selectedRow?.kind === row.kind &&
+                          selectedRow.id === row.id;
+
+                        return (
+                          <button
+                            key={`${row.kind}-${row.id}`}
+                            type="button"
+                            className={cn(
+                              "grid w-full grid-cols-[minmax(0,1fr)_16rem_6rem] cursor-pointer items-center px-4 py-2 text-left",
+                              isSelected
+                                ? "border-l-2 border-primary bg-primary/20"
+                                : "border-l-2 border-transparent hover:bg-primary/5",
+                            )}
+                            onClick={() =>
+                              setSelectedRow({ kind: row.kind, id: row.id })
+                            }
+                            onDoubleClick={() => {
+                              if (row.kind === "folder") {
+                                handleOpenFolder(row.raw);
+                              } else {
+                                router.push(
+                                  currentFolderId
+                                    ? `/knowledge?folder=${currentFolderId}&item=${row.id}`
+                                    : `/knowledge?item=${row.id}`,
+                                );
+                              }
+                            }}
+                          >
+                            <span className="flex min-w-0 items-center gap-2">
+                              {row.kind === "folder" ? (
+                                row.id === currentFolderId ? (
+                                  <FolderOpen className="h-4 w-4 shrink-0 text-primary" />
+                                ) : (
+                                  <Folder className="h-4 w-4 shrink-0 text-primary" />
+                                )
+                              ) : (
+                                <FileText className="h-4 w-4 shrink-0 text-accent" />
+                              )}
+                              <span className="truncate">{row.name}</span>
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {formatDate(row.updatedAt)}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              —
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      <Modal
+        open={showCreateFolderPopover}
+        onOpenChange={(open) => {
+          setShowCreateFolderPopover(open);
+          if (!open) setNewFolderTitle("");
+        }}
+        title="New Folder"
+        className="max-w-2xl"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowCreateFolderPopover(false)}
+              disabled={isBusy}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleCreateFolder(newFolderTitle)}
+              disabled={isBusy || !newFolderTitle.trim()}
+            >
+              Create
+            </Button>
+          </>
+        }
+      >
+        <Input
+          placeholder="Folder name"
+          value={newFolderTitle}
+          onChange={(e) => setNewFolderTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleCreateFolder(newFolderTitle);
+          }}
+          disabled={isBusy}
+          autoFocus
+        />
+      </Modal>
+
+      <Modal
+        open={showCreateItemPopover}
+        onOpenChange={(open) => {
+          setShowCreateItemPopover(open);
+          if (!open) resetCreateItemForm();
+        }}
+        title="New Item"
+        className="max-w-2xl"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowCreateItemPopover(false);
+                resetCreateItemForm();
+              }}
+              disabled={isBusy}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleCreateItem()}
+              disabled={isBusy}
+            >
+              Create Item
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Input
+            placeholder="Title"
+            value={newItemTitle}
+            onChange={(e) => setNewItemTitle(e.target.value)}
+            disabled={isBusy}
+            autoFocus
+          />
+          <Input
+            placeholder="Description (optional)"
+            value={newItemDescription}
+            onChange={(e) => setNewItemDescription(e.target.value)}
+            disabled={isBusy}
+          />
+          <Textarea
+            placeholder="Body (optional)"
+            value={newItemBody}
+            onChange={(e) => setNewItemBody(e.target.value)}
+            className="min-h-32"
+            disabled={isBusy}
+          />
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              Attachment (optional)
+            </p>
+            <Input
+              key={newItemAttachmentInputKey}
+              type="file"
+              onChange={(e) =>
+                setNewItemAttachment(e.target.files?.[0] ?? null)
+              }
+              disabled={isBusy}
+            />
+          </div>
+        </div>
+      </Modal>
     </TitleShell>
+  );
+}
+
+export default function KnowledgePageWrapper() {
+  return (
+    <Suspense>
+      <KnowledgePage />
+    </Suspense>
   );
 }

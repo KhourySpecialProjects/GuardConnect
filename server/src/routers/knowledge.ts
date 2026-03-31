@@ -12,6 +12,7 @@ import {
   deleteItemAttachmentInputSchema,
   getFoldersInFolderInputSchema,
   getItemAttachmentInputSchema,
+  getItemInputSchema,
   getItemsInFolderInputSchema,
   knowledgeAttachmentOutputSchema,
   knowledgeAttachmentWithFileOutputSchema,
@@ -75,6 +76,23 @@ const getItemsInFolder = protectedProcedure
   .query(({ input }) =>
     withErrorHandling("getItemsInFolder", async () => {
       return await knowledgeService.getItemsByFolder(input.folderId);
+    }),
+  );
+
+const getItem = protectedProcedure
+  .input(getItemInputSchema)
+  .output(knowledgeItemOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/knowledge.getItem",
+      summary: "Get a single knowledge item by id",
+      tags: ["Knowledge"],
+    },
+  })
+  .query(({ input }) =>
+    withErrorHandling("getItem", async () => {
+      return await knowledgeService.getItemById(input.itemId);
     }),
   );
 
@@ -246,6 +264,7 @@ export const knowledgeRouter = router({
   getRootFolders,
   getFoldersInFolder,
   getItemsInFolder,
+  getItem,
   getItemAttachment,
   createFolder,
   createFolderInFolder,
