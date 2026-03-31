@@ -620,10 +620,11 @@ function KnowledgePage() {
                           if (row.kind === "folder") {
                             handleOpenFolder(row.raw);
                           } else {
-                            const url = currentFolderId
-                              ? `/knowledge?folder=${currentFolderId}&item=${row.id}`
-                              : `/knowledge?item=${row.id}`;
-                            router.push(url);
+                            router.push(
+                              currentFolderId
+                                ? `/knowledge?folder=${currentFolderId}&item=${row.id}`
+                                : `/knowledge?item=${row.id}`,
+                            );
                           }
                         }}
                       >
