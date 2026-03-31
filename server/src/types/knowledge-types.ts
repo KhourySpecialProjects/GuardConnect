@@ -36,6 +36,10 @@ export const knowledgeAttachmentWithFileOutputSchema =
     metadata: z.unknown().nullable(),
   });
 
+export const getFolderAncestorsInputSchema = z.object({
+  folderId: uuidSchema,
+});
+
 export const getFoldersInFolderInputSchema = z.object({
   parentFolderId: uuidSchema,
 });
