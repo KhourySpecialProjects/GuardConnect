@@ -10,6 +10,7 @@ import {
   createItemAttachmentInputSchema,
   createItemInputSchema,
   deleteItemAttachmentInputSchema,
+  getFolderAncestorsInputSchema,
   getFoldersInFolderInputSchema,
   getItemAttachmentInputSchema,
   getItemInputSchema,
@@ -42,6 +43,23 @@ const getRootFolders = protectedProcedure
   .query(() =>
     withErrorHandling("getRootFolders", async () => {
       return await knowledgeService.getRootFolders();
+    }),
+  );
+
+const getFolderAncestors = protectedProcedure
+  .input(getFolderAncestorsInputSchema)
+  .output(z.array(knowledgeFolderOutputSchema))
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/knowledge.getFolderAncestors",
+      summary: "Get a folder and all its ancestors up to the root",
+      tags: ["Knowledge"],
+    },
+  })
+  .query(({ input }) =>
+    withErrorHandling("getFolderAncestors", async () => {
+      return await knowledgeService.getFolderWithAncestors(input.folderId);
     }),
   );
 
@@ -262,6 +280,7 @@ const deleteItemAttachment = protectedProcedure
 
 export const knowledgeRouter = router({
   getRootFolders,
+  getFolderAncestors,
   getFoldersInFolder,
   getItemsInFolder,
   getItem,

@@ -46,6 +46,30 @@ export class KnowledgeRepository {
   }
 
   /**
+   * Get a folder by id plus all its ancestors up to the root.
+   * Returns an array starting from the given folder up to the root.
+   */
+  async getFolderWithAncestors(folderId: string) {
+    const chain: (typeof knowledgeFolders.$inferSelect)[] = [];
+    let cursor: string | null = folderId;
+    const seen = new Set<string>();
+
+    while (cursor && !seen.has(cursor)) {
+      seen.add(cursor);
+      const [folder] = await db
+        .select()
+        .from(knowledgeFolders)
+        .where(eq(knowledgeFolders.folderId, cursor))
+        .limit(1);
+      if (!folder) break;
+      chain.push(folder);
+      cursor = folder.parentFolderId;
+    }
+
+    return chain;
+  }
+
+  /**
    * Get child folders for a parent folder.
    */
   async getChildFolders(parentFolderId: string) {
