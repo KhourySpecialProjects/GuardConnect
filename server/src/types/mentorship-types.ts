@@ -108,6 +108,13 @@ export const updateOptInInputSchema = z.object({
 
 export type UpdateOptInInput = z.infer<typeof updateOptInInputSchema>;
 
+
+export const enrollmentDaySchema = z.object({
+  date: z.string(),       // e.g. "2026-03-08"
+  mentors: z.number(),    // cumulative mentor count on that day
+  mentees: z.number(),    // cumulative mentee count on that day
+});
+
 export const mentorshipAdminStatsOutputSchema = z.object({
   mentors: z.object({
     requested: z.number(),
@@ -128,6 +135,13 @@ export const mentorshipAdminStatsOutputSchema = z.object({
     declined: z.number(),
     total: z.number(),
     declineRate: z.number(),
+  }),
+  growth: z.object({
+    newMentorsLast30Days: z.number(),
+    newMenteesLast30Days: z.number(),
+    mentorChangePercent: z.number(),  // compared to previous 30 days
+    menteeChangePercent: z.number(),  // compared to previous 30 days
+    dailyEnrollment: z.array(enrollmentDaySchema),
   }),
 });
 
@@ -151,3 +165,25 @@ export const updateMentorStatusInputSchema = z.object({
 export type UpdateMentorStatusInput = z.infer<
   typeof updateMentorStatusInputSchema
 >;
+
+export const adminPairSchema = z.object({
+  matchId: z.number(),
+  matchedAt: z.string(),
+  mentorUserId: z.string(),
+  mentorName: z.string().nullable(),
+  mentorEmail: z.string().nullable(),
+  mentorRank: z.string().nullable(),
+  menteeUserId: z.string(),
+  menteeName: z.string().nullable(),
+  menteeEmail: z.string().nullable(),
+  menteeRank: z.string().nullable(),
+});
+
+export const getAdminPairsOutputSchema = z.array(adminPairSchema);
+export type GetAdminPairsOutput = z.infer<typeof getAdminPairsOutputSchema>;
+
+export const getAdminMembersOutputSchema = z.object({
+  mentors: z.array(getMentorOutputSchema),
+  mentees: z.array(getMenteeOutputSchema),
+});
+export type GetAdminMembersOutput = z.infer<typeof getAdminMembersOutputSchema>;

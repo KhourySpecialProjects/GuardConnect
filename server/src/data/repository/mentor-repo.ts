@@ -478,4 +478,94 @@ export class MentorRepository {
       throw new NotFoundError(`Mentor with userId ${mentorUserId} not found`);
     }
   }
+
+  /**
+   * Get all accepted mentorship pairs with mentor and mentee user data
+   */
+  async getAcceptedPairs(): Promise<{
+    matchId: number;
+    matchedAt: string;
+    mentorUserId: string;
+    mentorName: string | null;
+    mentorEmail: string | null;
+    mentorRank: string | null;
+    menteeUserId: string;
+    menteeName: string | null;
+    menteeEmail: string | null;
+    menteeRank: string | null;
+  }[]> {
+    const rows = await db
+      .select({
+        matchId: mentorshipMatches.matchId,
+        matchedAt: mentorshipMatches.matchedAt,
+        mentorUserId: mentorshipMatches.mentorUserId,
+        menteeUserId: mentorshipMatches.requestorUserId,
+      })
+      .from(mentorshipMatches)
+      .where(eq(mentorshipMatches.status, "accepted"))
+      .orderBy(mentorshipMatches.matchedAt);
+
+    if (rows.length === 0) return [];
+
+    const mentorIds = rows.map((r) => r.mentorUserId).filter((id): id is string => id !== null);
+    const menteeIds = rows.map((r) => r.menteeUserId).filter((id): id is string => id !== null);
+    const allIds = Array.from(new Set([...mentorIds, ...menteeIds]));
+
+    const userRows = await db
+      .select({ id: users.id, name: users.name, email: users.email, rank: users.rank })
+      .from(users)
+      .where(inArray(users.id, allIds));
+
+    const userMap = new Map(userRows.map((u) => [u.id, u]));
+
+    return rows.map((r) => ({
+      matchId: r.matchId,
+      matchedAt: r.matchedAt instanceof Date ? r.matchedAt.toISOString() : r.matchedAt,
+      mentorUserId: r.mentorUserId ?? "",
+      mentorName: userMap.get(r.mentorUserId ?? "")?.name ?? null,
+      mentorEmail: userMap.get(r.mentorUserId ?? "")?.email ?? null,
+      mentorRank: userMap.get(r.mentorUserId ?? "")?.rank ?? null,
+      menteeUserId: r.menteeUserId ?? "",
+      menteeName: userMap.get(r.menteeUserId ?? "")?.name ?? null,
+      menteeEmail: userMap.get(r.menteeUserId ?? "")?.email ?? null,
+      menteeRank: userMap.get(r.menteeUserId ?? "")?.rank ?? null,
+    }));
+  }
+
+  /**
+   * Get all mentors for admin member list
+   */
+  async getAllMentors(): Promise<GetMentorOutput[]> {
+    return db
+      .select({
+        mentorId: mentors.mentorId,
+        userId: mentors.userId,
+        mentorshipPreferences: mentors.mentorshipPreferences,
+        yearsOfService: mentors.yearsOfService,
+        eligibilityData: mentors.eligibilityData,
+        status: mentors.status,
+        resumeFileId: mentors.resumeFileId,
+        strengths: mentors.strengths,
+        personalInterests: mentors.personalInterests,
+        whyInterestedResponses: mentors.whyInterestedResponses,
+        careerAdvice: mentors.careerAdvice,
+        preferredMenteeCareerStages: mentors.preferredMenteeCareerStages,
+        preferredMeetingFormat: mentors.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentors.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentors.isAcceptingNewMatches,
+        createdAt: mentors.createdAt,
+        updatedAt: mentors.updatedAt,
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        imageFileId: users.image,
+        rank: users.rank,
+        positionType: users.positionType,
+        location: users.location,
+      })
+      .from(mentors)
+      .innerJoin(users, eq(users.id, mentors.userId))
+      .orderBy(mentors.createdAt);
+  }
+
 }
