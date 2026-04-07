@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { ChevronRight, FileText, Folder, FolderOpen, Plus } from "lucide-react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { TitleShell } from "@/components/layouts/title-shell";
@@ -528,10 +529,14 @@ function KnowledgePage() {
                     </p>
                   </div>
 
-                  {attachmentUrlQuery.data?.contentType?.startsWith("image/") ? (
-                    <img
+                  {attachmentUrlQuery.data?.contentType?.startsWith(
+                    "image/",
+                  ) ? (
+                    <Image
                       src={attachmentUrlQuery.data.data}
-                      alt={openedItemAttachmentQuery.data?.fileName ?? "Attachment"}
+                      alt={
+                        openedItemAttachmentQuery.data?.fileName ?? "Attachment"
+                      }
                       className="max-w-full rounded-md"
                     />
                   ) : null}
@@ -749,7 +754,9 @@ function KnowledgePage() {
                 isBusy && "cursor-not-allowed opacity-50",
               )}
             >
-              <span className={newItemAttachment ? "" : "text-muted-foreground"}>
+              <span
+                className={newItemAttachment ? "" : "text-muted-foreground"}
+              >
                 {newItemAttachment ? newItemAttachment.name : "Choose File"}
               </span>
               <input
