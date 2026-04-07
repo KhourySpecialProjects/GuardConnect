@@ -1,7 +1,7 @@
 "use client";
 
 import type { RoleKey } from "@server/data/roles";
-import { BarChart2, ShieldCheck, UserPlus } from "lucide-react";
+import { BarChart2, ShieldCheck, UserPlus, Users } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -40,7 +40,7 @@ const adminFeatures: AdminFeature[] = [
     title: "Mentorship Stats",
     description:
       "View mentorship program statistics including mentor/mentee counts, active pairs, pending requests, and decline rates.",
-    href: "/mentorship/admin",
+    href: "/mentorship/admin" as Route,
     icon: BarChart2,
     requiredRole: "global:admin",
   },

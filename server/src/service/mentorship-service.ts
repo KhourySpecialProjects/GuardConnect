@@ -1,5 +1,16 @@
-import { and, count, eq, isNull, notInArray, or, sql } from "drizzle-orm";
 import {
+  and,
+  count,
+  eq,
+  gte,
+  isNull,
+  lt,
+  notInArray,
+  or,
+  sql,
+} from "drizzle-orm";
+import {
+  mentees,
   mentorRecommendations,
   mentors,
   mentorshipMatches,
@@ -16,6 +27,8 @@ import type {
   GetMentorOutput,
 } from "../types/mentor-types.js";
 import type {
+  GetAdminMembersOutput,
+  GetAdminPairsOutput,
   MentorshipAdminStatsOutput,
   MentorshipDataOutput,
   SuggestedMentor,
@@ -23,7 +36,6 @@ import type {
 import log from "../utils/logger.js";
 import type { MatchingService } from "./matching-service.js";
 import type { NotificationService } from "./notification-service.js";
-
 /**
  * Service to handle mentorship data aggregation
  *
@@ -462,24 +474,88 @@ export class MentorshipService {
    * Get admin statistics for the mentorship program
    */
   async getAdminStats(): Promise<MentorshipAdminStatsOutput> {
-    const [mentorStats, menteeStats, matchRows, acceptingMentorsRow] =
-      await Promise.all([
-        this.mentorRepo.getMentorStats(),
-        this.menteeRepo.getMenteeStats(),
-        db
-          .select({ status: mentorshipMatches.status, value: count() })
-          .from(mentorshipMatches)
-          .groupBy(mentorshipMatches.status),
-        db
-          .select({ value: count() })
-          .from(mentors)
-          .where(
-            and(
-              eq(mentors.status, "active"),
-              eq(mentors.isAcceptingNewMatches, true),
-            ),
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date(now);
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const [
+      mentorStats,
+      menteeStats,
+      matchRows,
+      acceptingMentorsRow,
+      newMentorsLast30,
+      newMenteesLast30,
+      newMentorsPrev30,
+      newMenteesPrev30,
+      mentorDailyRows,
+      menteeDailyRows,
+    ] = await Promise.all([
+      this.mentorRepo.getMentorStats(),
+      this.menteeRepo.getMenteeStats(),
+      db
+        .select({ status: mentorshipMatches.status, value: count() })
+        .from(mentorshipMatches)
+        .groupBy(mentorshipMatches.status),
+      db
+        .select({ value: count() })
+        .from(mentors)
+        .where(
+          and(
+            eq(mentors.status, "active"),
+            eq(mentors.isAcceptingNewMatches, true),
           ),
-      ]);
+        ),
+      // new mentors last 30 days
+      db
+        .select({ value: count() })
+        .from(mentors)
+        .where(gte(mentors.createdAt, thirtyDaysAgo)),
+      // new mentees last 30 days
+      db
+        .select({ value: count() })
+        .from(mentees)
+        .where(gte(mentees.createdAt, thirtyDaysAgo)),
+      // new mentors previous 30 days
+      db
+        .select({ value: count() })
+        .from(mentors)
+        .where(
+          and(
+            gte(mentors.createdAt, sixtyDaysAgo),
+            lt(mentors.createdAt, thirtyDaysAgo),
+          ),
+        ),
+      // new mentees previous 30 days
+      db
+        .select({ value: count() })
+        .from(mentees)
+        .where(
+          and(
+            gte(mentees.createdAt, sixtyDaysAgo),
+            lt(mentees.createdAt, thirtyDaysAgo),
+          ),
+        ),
+      // daily mentor signups last 30 days
+      db
+        .select({
+          date: sql<string>`DATE(${mentors.createdAt})`,
+          value: count(),
+        })
+        .from(mentors)
+        .where(gte(mentors.createdAt, thirtyDaysAgo))
+        .groupBy(sql`DATE(${mentors.createdAt})`),
+      // daily mentee signups last 30 days
+      db
+        .select({
+          date: sql<string>`DATE(${mentees.createdAt})`,
+          value: count(),
+        })
+        .from(mentees)
+        .where(gte(mentees.createdAt, thirtyDaysAgo))
+        .groupBy(sql`DATE(${mentees.createdAt})`),
+    ]);
 
     const matchCounts = { pending: 0, accepted: 0, declined: 0 };
     for (const row of matchRows) {
@@ -497,6 +573,53 @@ export class MentorshipService {
     const totalMentees =
       menteeStats.active + menteeStats.inactive + menteeStats.matched;
 
+    // build daily enrollment data for the chart
+    const mentorDailyMap = new Map(
+      mentorDailyRows.map((r) => [r.date, Number(r.value)]),
+    );
+    const menteeDailyMap = new Map(
+      menteeDailyRows.map((r) => [r.date, Number(r.value)]),
+    );
+
+    // generate last 30 days as array of dates
+    const dailyEnrollment = [];
+    let cumulativeMentors =
+      totalMentors - Number(newMentorsLast30[0]?.value ?? 0);
+    let cumulativeMentees =
+      totalMentees - Number(newMenteesLast30[0]?.value ?? 0);
+
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0] ?? "";
+      cumulativeMentors += mentorDailyMap.get(dateStr) ?? 0;
+      cumulativeMentees += menteeDailyMap.get(dateStr) ?? 0;
+      dailyEnrollment.push({
+        date: dateStr,
+        mentors: cumulativeMentors,
+        mentees: cumulativeMentees,
+      });
+    }
+
+    // calculate percent change vs previous 30 days
+    const newMentors = Number(newMentorsLast30[0]?.value ?? 0);
+    const newMentees = Number(newMenteesLast30[0]?.value ?? 0);
+    const prevMentors = Number(newMentorsPrev30[0]?.value ?? 0);
+    const prevMentees = Number(newMenteesPrev30[0]?.value ?? 0);
+
+    const mentorChangePercent =
+      prevMentors > 0
+        ? Math.round(((newMentors - prevMentors) / prevMentors) * 100)
+        : newMentors > 0
+          ? 100
+          : 0;
+    const menteeChangePercent =
+      prevMentees > 0
+        ? Math.round(((newMentees - prevMentees) / prevMentees) * 100)
+        : newMentees > 0
+          ? 100
+          : 0;
+
     return {
       mentors: {
         ...mentorStats,
@@ -512,7 +635,32 @@ export class MentorshipService {
         total: totalMatches,
         declineRate,
       },
+      growth: {
+        newMentorsLast30Days: newMentors,
+        newMenteesLast30Days: newMentees,
+        mentorChangePercent,
+        menteeChangePercent,
+        dailyEnrollment,
+      },
     };
+  }
+
+  /**
+   * Get all accepted mentorship pairs for admin view
+   */
+  async getAdminPairs(): Promise<GetAdminPairsOutput> {
+    return this.mentorRepo.getAcceptedPairs();
+  }
+
+  /**
+   * Get all mentors and mentees for admin member list
+   */
+  async getAdminMembers(): Promise<GetAdminMembersOutput> {
+    const [allMentors, allMentees] = await Promise.all([
+      this.mentorRepo.getAllMentors(),
+      this.menteeRepo.getAllMentees(),
+    ]);
+    return { mentors: allMentors, mentees: allMentees };
   }
 
   async getMentorshipData(userId: string): Promise<MentorshipDataOutput> {

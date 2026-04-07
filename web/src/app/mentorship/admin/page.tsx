@@ -1,206 +1,119 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  FileText,
+  Loader2,
+  PenLine,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import NavigationShell from "@/components/layouts/navigation-shell";
 import { TitleShell } from "@/components/layouts/title-shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHasRole } from "@/hooks/useHasRole";
-import { useTRPC } from "@/lib/trpc";
+import { authClient } from "@/lib/auth-client";
+import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
-type MentorStatus = "requested" | "approved" | "active";
-
-function StatCard({
-  title,
-  value,
-  subtitle,
-}: {
-  title: string;
-  value: number | string;
-  subtitle?: string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-3xl font-bold">{value}</p>
-        {subtitle && (
-          <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function StatusBreakdown({
-  label,
-  items,
-}: {
+// action buttons
+const actions: {
   label: string;
-  items: { name: string; value: number }[];
-}) {
-  return (
-    <div className="rounded-lg border bg-card p-4">
-      <p className="mb-3 text-sm font-semibold">{label}</p>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item.name} className="flex items-center justify-between">
-            <span className="text-sm capitalize text-muted-foreground">
-              {item.name}
-            </span>
-            <span className="text-sm font-medium">{item.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const STATUS_TABS: { value: MentorStatus; label: string }[] = [
-  { value: "requested", label: "Requested" },
-  { value: "approved", label: "Approved" },
-  { value: "active", label: "Active" },
+  href: Route;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  {
+    label: "View Pairs",
+    href: "/mentorship/admin/pairs" as Route,
+    icon: FileText,
+  },
+  {
+    label: "Mentorship Member List",
+    href: "/mentorship/admin/members" as Route,
+    icon: Users,
+  },
+  {
+    label: "Manage Mentor Applications",
+    href: "/mentorship/admin/applications" as Route,
+    icon: PenLine,
+  },
 ];
 
-const NEXT_STATUS: Record<MentorStatus, MentorStatus | null> = {
-  requested: "approved",
-  approved: "active",
-  active: null,
-};
-
-const NEXT_STATUS_LABEL: Record<MentorStatus, string> = {
-  requested: "Approve",
-  approved: "Activate",
-  active: "",
-};
-
-function MentorApplicationsList() {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<MentorStatus>("requested");
-  const [pendingId, setPendingId] = useState<string | null>(null);
-
-  const { data: mentors, isLoading } = useQuery(
-    trpc.mentorship.getPendingMentors.queryOptions({ status: activeTab }),
-  );
-
-  const updateStatus = useMutation(
-    trpc.mentorship.updateMentorStatus.mutationOptions({
-      onSuccess: () => {
-        setPendingId(null);
-        queryClient.invalidateQueries(
-          trpc.mentorship.getPendingMentors.queryOptions({
-            status: "requested",
-          }),
-        );
-        queryClient.invalidateQueries(
-          trpc.mentorship.getPendingMentors.queryOptions({
-            status: "approved",
-          }),
-        );
-        queryClient.invalidateQueries(
-          trpc.mentorship.getPendingMentors.queryOptions({ status: "active" }),
-        );
-        queryClient.invalidateQueries(
-          trpc.mentorship.getAdminStats.queryOptions(),
-        );
-      },
-      onError: () => setPendingId(null),
-    }),
-  );
-
-  const nextStatus = NEXT_STATUS[activeTab];
-
+// statistics card
+function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-4">
-      <p className="text-sm font-semibold">Mentor Applications</p>
-
-      {/* Tabs */}
-      <div className="flex gap-1 rounded-md border bg-muted p-1 w-fit">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setActiveTab(tab.value)}
-            className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-              activeTab === tab.value
-                ? "bg-background shadow text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {isLoading && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      )}
-
-      {!isLoading && mentors?.length === 0 && (
-        <p className="text-sm text-muted-foreground py-4 text-center">
-          No {activeTab} mentor applications.
-        </p>
-      )}
-
-      {!isLoading && mentors && mentors.length > 0 && (
-        <div className="divide-y">
-          {mentors.map((mentor) => (
-            <div
-              key={mentor.userId}
-              className="flex items-center justify-between py-3"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {mentor.name ?? "Unknown"}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {mentor.email}
-                </p>
-                {mentor.rank && (
-                  <p className="text-xs text-muted-foreground">{mentor.rank}</p>
-                )}
-              </div>
-
-              {nextStatus && (
-                <button
-                  type="button"
-                  disabled={pendingId === mentor.userId}
-                  onClick={() => {
-                    setPendingId(mentor.userId);
-                    updateStatus.mutate({
-                      mentorUserId: mentor.userId,
-                      status: nextStatus,
-                    });
-                  }}
-                  className="ml-4 shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-50"
-                >
-                  {pendingId === mentor.userId ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    NEXT_STATUS_LABEL[activeTab]
-                  )}
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col gap-3 shadow-sm">
+      <p className="text-base font-semibold text-center">{label}</p>
+      <p className="text-4xl font-bold italic text-accent text-center">
+        {value}
+      </p>
     </div>
   );
 }
 
+// growth card with trend indicator
+function GrowthCard({
+  label,
+  newCount,
+  changePercent,
+}: {
+  label: string;
+  newCount: number;
+  changePercent: number;
+}) {
+  const isUp = changePercent >= 0;
+  const TrendIcon = isUp ? TrendingUp : TrendingDown;
+  const trendColor = isUp ? "text-green-600" : "text-red-500";
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col gap-3 shadow-sm">
+      <p className="text-base font-semibold text-center">{label}</p>
+      <p className="text-4xl font-bold italic text-accent text-center">
+        {newCount}
+      </p>
+      <div
+        className={`flex items-center justify-center gap-1 text-base font-bold ${trendColor}`}
+      >
+        <TrendIcon className="h-4 w-4" />
+        <span>{Math.abs(changePercent)}% over the last 30 days</span>
+      </div>
+    </div>
+  );
+}
+
+// main page
 export default function MentorshipAdminPage() {
   const trpc = useTRPC();
+  const trpcClient = useTRPCClient();
   const isAdmin = useHasRole("global:admin");
+
+  const { data: sessionData } = authClient.useSession();
+  const userId = sessionData?.user.id ?? null;
+
+  const { data: userData } = useQuery({
+    queryKey: ["admin-user-profile", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) throw new Error("No user ID");
+      return trpcClient.user.getUserData.query({ user_id: userId });
+    },
+  });
+
+  const name = userData?.name ?? sessionData?.user.name ?? "";
+  const rank = userData?.rank ?? "";
+  const displayName = [rank, name].filter(Boolean).join(" ");
 
   const { data, isLoading, error } = useQuery({
     ...trpc.mentorship.getAdminStats.queryOptions(),
@@ -213,8 +126,8 @@ export default function MentorshipAdminPage() {
         <NavigationShell showCommsNav={false}>
           <TitleShell
             title="Access Denied"
-            backHref="/mentorship/dashboard"
-            backAriaLabel="Back to mentorship"
+            backHref="/admin"
+            backAriaLabel="Back to admin"
           >
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
               <p className="text-sm text-red-800">
@@ -231,86 +144,145 @@ export default function MentorshipAdminPage() {
     <AuthGuard>
       <NavigationShell showCommsNav={false}>
         <TitleShell
-          title="Mentorship Admin"
+          title="Admin Page"
           backHref="/admin"
           backAriaLabel="Back to admin"
         >
-          <div className="w-full max-w-5xl mx-auto space-y-6">
-            {isLoading && (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="w-full max-w-5xl mx-auto space-y-8">
+            {/* Welcome Header */}
+            <h1 className="text-3xl font-bold">
+              <span className="italic text-accent">Welcome Back,</span>{" "}
+              {displayName || "Admin"}.
+            </h1>
+
+            {/* Mentorship Actions */}
+            <section>
+              <h2 className="text-xl font-bold mb-4">Mentorship Actions</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {actions.map(({ label, href, icon: Icon }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-primary hover:bg-primary/90 text-white p-5 text-center text-sm font-semibold transition-colors"
+                  >
+                    <Icon className="h-6 w-6" />
+                    {label}
+                  </Link>
+                ))}
               </div>
-            )}
+            </section>
 
-            {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-                <p className="text-sm text-red-800">
-                  Failed to load mentorship stats. Please try again.
-                </p>
-              </div>
-            )}
+            {/* GuardConnect Statistics */}
+            <section>
+              <h2 className="text-xl font-bold mb-4">
+                GuardConnect Statistics
+              </h2>
 
-            {data && (
-              <>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <StatCard
-                    title="Total Mentors"
-                    value={data.mentors.total}
-                    subtitle={`${data.mentors.acceptingNewMatches} accepting new matches`}
-                  />
-                  <StatCard title="Total Mentees" value={data.mentees.total} />
-                  <StatCard
-                    title="Active Pairs"
-                    value={data.matches.accepted}
-                  />
-                  <StatCard
-                    title="Pending Requests"
-                    value={data.matches.pending}
-                  />
+              {isLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
+              )}
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <StatCard
-                    title="Total Match Requests"
-                    value={data.matches.total}
-                  />
-                  <StatCard
-                    title="Decline Rate"
-                    value={`${data.matches.declineRate}%`}
-                    subtitle={`${data.matches.declined} declined of ${data.matches.total} total`}
-                  />
+              {error && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+                  <p className="text-sm text-red-800">
+                    Failed to load statistics. Please try again.
+                  </p>
                 </div>
+              )}
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <StatusBreakdown
-                    label="Mentors by Status"
-                    items={[
-                      { name: "Requested", value: data.mentors.requested },
-                      { name: "Approved", value: data.mentors.approved },
-                      { name: "Active", value: data.mentors.active },
-                    ]}
-                  />
-                  <StatusBreakdown
-                    label="Mentees by Status"
-                    items={[
-                      { name: "Active", value: data.mentees.active },
-                      { name: "Matched", value: data.mentees.matched },
-                      { name: "Inactive", value: data.mentees.inactive },
-                    ]}
-                  />
-                  <StatusBreakdown
-                    label="Matches by Status"
-                    items={[
-                      { name: "Pending", value: data.matches.pending },
-                      { name: "Accepted", value: data.matches.accepted },
-                      { name: "Declined", value: data.matches.declined },
-                    ]}
-                  />
+              {data && (
+                <div className="space-y-6">
+                  {/* Main stats */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <StatCard
+                      label="Total Users"
+                      value={data.mentors.total + data.mentees.total}
+                    />
+                    <StatCard
+                      label="Users Active Now"
+                      value={data.mentors.active + data.mentees.active}
+                    />
+                    <StatCard
+                      label="Number of Mentees Waiting for Pairing"
+                      value={data.mentees.active}
+                    />
+                    <StatCard
+                      label="Number of Active Mentorship Pairs"
+                      value={data.matches.accepted}
+                    />
+                  </div>
+
+                  {/* Growth stats */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <GrowthCard
+                      label="New Mentors (Last 30 Days)"
+                      newCount={data.growth.newMentorsLast30Days}
+                      changePercent={data.growth.mentorChangePercent}
+                    />
+                    <GrowthCard
+                      label="New Mentees (Last 30 Days)"
+                      newCount={data.growth.newMenteesLast30Days}
+                      changePercent={data.growth.menteeChangePercent}
+                    />
+                  </div>
+
+                  {/* Enrollment chart */}
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <h3 className="text-base font-semibold mb-4">
+                      Program Enrollment (Last 30 Days)
+                    </h3>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <LineChart
+                        data={data.growth.dailyEnrollment}
+                        margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 11 }}
+                          tickFormatter={(val) => {
+                            const d = new Date(val);
+                            return `${d.getMonth() + 1}/${d.getDate()}`;
+                          }}
+                          interval={4}
+                        />
+                        <YAxis tick={{ fontSize: 11 }} />
+                        <Tooltip
+                          labelFormatter={(val) =>
+                            new Date(val).toLocaleDateString()
+                          }
+                          formatter={(value, name) => [
+                            value,
+                            name === "mentors" ? "Mentors" : "Mentees",
+                          ]}
+                        />
+                        <Legend
+                          formatter={(value) =>
+                            value === "mentors" ? "Mentors" : "Mentees"
+                          }
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="mentors"
+                          stroke="#283396"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="mentees"
+                          stroke="#dda139"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
-              </>
-            )}
-
-            <MentorApplicationsList />
+              )}
+            </section>
           </div>
         </TitleShell>
       </NavigationShell>

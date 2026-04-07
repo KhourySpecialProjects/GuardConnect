@@ -475,4 +475,39 @@ export class MenteeRepository {
 
     return rows.map((r) => r.userId);
   }
+
+  /**
+   * Get all mentees for admin member list
+   */
+  async getAllMentees(): Promise<GetMenteeOutput[]> {
+    return db
+      .select({
+        menteeId: mentees.menteeId,
+        userId: mentees.userId,
+        learningGoals: mentees.learningGoals,
+        experienceLevel: mentees.experienceLevel,
+        preferredMentorType: mentees.preferredMentorType,
+        status: mentees.status,
+        resumeFileId: mentees.resumeFileId,
+        personalInterests: mentees.personalInterests,
+        roleModelInspiration: mentees.roleModelInspiration,
+        hopeToGainResponses: mentees.hopeToGainResponses,
+        mentorQualities: mentees.mentorQualities,
+        preferredMeetingFormat: mentees.preferredMeetingFormat,
+        hoursPerMonthCommitment: mentees.hoursPerMonthCommitment,
+        isAcceptingNewMatches: mentees.isAcceptingNewMatches,
+        createdAt: mentees.createdAt,
+        updatedAt: mentees.updatedAt,
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        imageFileId: users.image,
+        rank: users.rank,
+        positionType: users.positionType,
+        location: users.location,
+      })
+      .from(mentees)
+      .innerJoin(users, eq(users.id, mentees.userId))
+      .orderBy(mentees.createdAt);
+  }
 }

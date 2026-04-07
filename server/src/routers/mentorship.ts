@@ -13,6 +13,8 @@ import {
   createMentorOutputSchema,
 } from "../types/mentor-types.js";
 import {
+  getAdminMembersOutputSchema,
+  getAdminPairsOutputSchema,
   getPendingMentorsInputSchema,
   mentorshipAdminStatsOutputSchema,
   mentorshipDataOutputSchema,
@@ -214,6 +216,38 @@ const getAdminStats = roleProcedure([GLOBAL_ADMIN_KEY])
     }),
   );
 
+const getAdminPairs = roleProcedure([GLOBAL_ADMIN_KEY])
+  .output(getAdminPairsOutputSchema)
+  .meta({
+    openapi: {
+      method: "GET",
+      path: "/mentorship.getAdminPairs",
+      summary: "Get all accepted mentorship pairs for admin view",
+      tags: ["Mentorship"],
+    },
+  })
+  .query(() =>
+    withErrorHandling("getAdminPairs", async () => {
+      return await mentorshipService.getAdminPairs();
+    }),
+  );
+
+const getAdminMembers = roleProcedure([GLOBAL_ADMIN_KEY])
+  .output(getAdminMembersOutputSchema)
+  .meta({
+    openapi: {
+      method: "GET",
+      path: "/mentorship.getAdminMembers",
+      summary: "Get all mentors and mentees for admin member list",
+      tags: ["Mentorship"],
+    },
+  })
+  .query(() =>
+    withErrorHandling("getAdminMembers", async () => {
+      return await mentorshipService.getAdminMembers();
+    }),
+  );
+
 export const mentorshipRouter = router({
   createMentor,
   createMentee,
@@ -225,4 +259,6 @@ export const mentorshipRouter = router({
   getPendingMentors,
   updateMentorStatus,
   getAdminStats,
+  getAdminPairs,
+  getAdminMembers,
 });
