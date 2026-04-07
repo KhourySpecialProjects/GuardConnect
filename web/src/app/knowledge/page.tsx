@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { ChevronRight, FileText, Folder, FolderOpen, Plus } from "lucide-react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { TitleShell } from "@/components/layouts/title-shell";
@@ -140,6 +141,15 @@ function KnowledgePage() {
       trpcClient.knowledge.getItemAttachment.query({
         itemId: openedItemId ?? "",
       }),
+  });
+
+  const attachmentFileId = openedItemAttachmentQuery.data?.fileId;
+
+  const attachmentUrlQuery = useQuery({
+    queryKey: ["knowledge", "attachment-url", attachmentFileId],
+    enabled: Boolean(attachmentFileId),
+    queryFn: () =>
+      trpcClient.files.getFile.query({ fileId: attachmentFileId ?? "" }),
   });
 
   const registerFolders = useCallback((folders: FolderRecord[]) => {
@@ -505,22 +515,23 @@ function KnowledgePage() {
               ) : openedItem ? (
                 <div className="space-y-4 px-4 pb-4">
                   <div className="space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Description
-                    </p>
-                    <p className="text-sm">
-                      {openedItem.description?.trim() || "—"}
-                    </p>
+                    <h1 className="text-2xl font-bold">{openedItem.name}</h1>
+
+                    {openedItem.description?.trim() ? (
+                      <p className="text-sm font-bold">
+                        {openedItem.description.trim()}
+                      </p>
+                    ) : null}
                   </div>
 
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Body
-                    </p>
-                    <p className="whitespace-pre-wrap text-sm">
-                      {openedItem.body?.trim() || "—"}
-                    </p>
-                  </div>
+                  {openedItem.body?.trim() ? (
+                    <>
+                      <hr />
+                      <p className="whitespace-pre-wrap text-sm">
+                        {openedItem.body.trim()}
+                      </p>
+                    </>
+                  ) : null}
 
                   <div className="space-y-1">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -530,6 +541,18 @@ function KnowledgePage() {
                       {formatDate(openedItem.updatedAt)}
                     </p>
                   </div>
+
+                  {attachmentUrlQuery.data?.contentType?.startsWith(
+                    "image/",
+                  ) ? (
+                    <Image
+                      src={attachmentUrlQuery.data.data}
+                      alt={
+                        openedItemAttachmentQuery.data?.fileName ?? "Attachment"
+                      }
+                      className="max-w-full rounded-md"
+                    />
+                  ) : null}
 
                   <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
                     <div className="text-xs text-muted-foreground">
@@ -734,14 +757,27 @@ function KnowledgePage() {
             <p className="text-xs text-muted-foreground">
               Attachment (optional)
             </p>
-            <Input
-              key={newItemAttachmentInputKey}
-              type="file"
-              onChange={(e) =>
-                setNewItemAttachment(e.target.files?.[0] ?? null)
-              }
-              disabled={isBusy}
-            />
+            <label
+              className={cn(
+                "flex h-9 w-full cursor-pointer items-center rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm",
+                isBusy && "cursor-not-allowed opacity-50",
+              )}
+            >
+              <span
+                className={newItemAttachment ? "" : "text-muted-foreground"}
+              >
+                {newItemAttachment ? newItemAttachment.name : "Choose File"}
+              </span>
+              <input
+                key={newItemAttachmentInputKey}
+                type="file"
+                className="hidden"
+                onChange={(e) =>
+                  setNewItemAttachment(e.target.files?.[0] ?? null)
+                }
+                disabled={isBusy}
+              />
+            </label>
           </div>
         </div>
       </Modal>
