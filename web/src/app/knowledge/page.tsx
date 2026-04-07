@@ -118,6 +118,15 @@ function KnowledgePage() {
       }) as Promise<ItemRecord[]>,
   });
 
+  const folderAncestorsQuery = useQuery({
+    queryKey: ["knowledge", "folders", "ancestors", currentFolderId],
+    enabled: Boolean(currentFolderId),
+    queryFn: () =>
+      trpcClient.knowledge.getFolderAncestors.query({
+        folderId: currentFolderId ?? "",
+      }) as Promise<FolderRecord[]>,
+  });
+
   const openedItemQuery = useQuery({
     queryKey: ["knowledge", "item", openedItemId],
     enabled: Boolean(openedItemId),
@@ -179,6 +188,10 @@ function KnowledgePage() {
   useEffect(() => {
     registerFolders((childFoldersQuery.data ?? []) as FolderRecord[]);
   }, [childFoldersQuery.data, registerFolders]);
+
+  useEffect(() => {
+    registerFolders((folderAncestorsQuery.data ?? []) as FolderRecord[]);
+  }, [folderAncestorsQuery.data, registerFolders]);
 
   const folders = currentFolderId
     ? ((childFoldersQuery.data ?? []) as FolderRecord[])
@@ -575,10 +588,9 @@ function KnowledgePage() {
                 </div>
 
                 <div>
-                  <div className="grid grid-cols-[minmax(0,1fr)_16rem_6rem] border-y bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <div className="grid grid-cols-[minmax(0,1fr)_16rem] border-y bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     <span>Name</span>
                     <span>Date Modified</span>
-                    <span>Size</span>
                   </div>
                   <div className="max-h-[65vh] overflow-y-auto">
                     {loading ? (
@@ -602,7 +614,7 @@ function KnowledgePage() {
                             key={`${row.kind}-${row.id}`}
                             type="button"
                             className={cn(
-                              "grid w-full grid-cols-[minmax(0,1fr)_16rem_6rem] cursor-pointer items-center px-4 py-2 text-left",
+                              "grid w-full grid-cols-[minmax(0,1fr)_16rem] cursor-pointer items-center px-4 py-2 text-left",
                               isSelected
                                 ? "border-l-2 border-primary bg-primary/20"
                                 : "border-l-2 border-transparent hover:bg-primary/5",
@@ -636,9 +648,6 @@ function KnowledgePage() {
                             </span>
                             <span className="text-sm text-muted-foreground">
                               {formatDate(row.updatedAt)}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              —
                             </span>
                           </button>
                         );

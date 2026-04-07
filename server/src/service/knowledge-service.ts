@@ -37,6 +37,10 @@ export class KnowledgeService {
     return await this.knowledgeRepo.getChildFolders(parentFolderId);
   }
 
+  async getFolderWithAncestors(folderId: string) {
+    return await this.knowledgeRepo.getFolderWithAncestors(folderId);
+  }
+
   async getItemsByFolder(folderId: string) {
     return await this.knowledgeRepo.getItemsByFolder(folderId);
   }
