@@ -44,10 +44,22 @@ export default function MentorApplicationsPage() {
     trpc.mentorship.updateMentorStatus.mutationOptions({
       onSuccess: () => {
         setPendingId(null);
-        queryClient.invalidateQueries(trpc.mentorship.getPendingMentors.queryOptions({ status: "requested" }));
-        queryClient.invalidateQueries(trpc.mentorship.getPendingMentors.queryOptions({ status: "approved" }));
-        queryClient.invalidateQueries(trpc.mentorship.getPendingMentors.queryOptions({ status: "active" }));
-        queryClient.invalidateQueries(trpc.mentorship.getAdminStats.queryOptions());
+        queryClient.invalidateQueries(
+          trpc.mentorship.getPendingMentors.queryOptions({
+            status: "requested",
+          }),
+        );
+        queryClient.invalidateQueries(
+          trpc.mentorship.getPendingMentors.queryOptions({
+            status: "approved",
+          }),
+        );
+        queryClient.invalidateQueries(
+          trpc.mentorship.getPendingMentors.queryOptions({ status: "active" }),
+        );
+        queryClient.invalidateQueries(
+          trpc.mentorship.getAdminStats.queryOptions(),
+        );
       },
       onError: () => setPendingId(null),
     }),
@@ -59,9 +71,15 @@ export default function MentorApplicationsPage() {
     return (
       <AuthGuard>
         <NavigationShell showCommsNav={false}>
-          <TitleShell title="Access Denied" backHref="/mentorship/admin" backAriaLabel="Back to admin">
+          <TitleShell
+            title="Access Denied"
+            backHref="/mentorship/admin"
+            backAriaLabel="Back to admin"
+          >
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-              <p className="text-sm text-red-800">You do not have permission to view this page.</p>
+              <p className="text-sm text-red-800">
+                You do not have permission to view this page.
+              </p>
             </div>
           </TitleShell>
         </NavigationShell>
@@ -72,9 +90,12 @@ export default function MentorApplicationsPage() {
   return (
     <AuthGuard>
       <NavigationShell showCommsNav={false}>
-        <TitleShell title="Mentor Applications" backHref="/mentorship/admin" backAriaLabel="Back to admin">
+        <TitleShell
+          title="Mentor Applications"
+          backHref="/mentorship/admin"
+          backAriaLabel="Back to admin"
+        >
           <div className="w-full max-w-4xl mx-auto space-y-4">
-
             {/* Tabs */}
             <div className="flex gap-1 rounded-md border bg-muted p-1 w-fit">
               {STATUS_TABS.map((tab) => (
@@ -101,18 +122,31 @@ export default function MentorApplicationsPage() {
 
             {!isLoading && mentors?.length === 0 && (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="text-sm text-gray-600">No {activeTab} mentor applications.</p>
+                <p className="text-sm text-gray-600">
+                  No {activeTab} mentor applications.
+                </p>
               </div>
             )}
 
             {!isLoading && mentors && mentors.length > 0 && (
               <div className="rounded-lg border bg-card divide-y">
                 {mentors.map((mentor) => (
-                  <div key={mentor.userId} className="flex items-center justify-between p-4">
+                  <div
+                    key={mentor.userId}
+                    className="flex items-center justify-between p-4"
+                  >
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{mentor.name ?? "Unknown"}</p>
-                      <p className="text-sm text-muted-foreground truncate">{mentor.email}</p>
-                      {mentor.rank && <p className="text-sm text-muted-foreground">{mentor.rank}</p>}
+                      <p className="font-medium truncate">
+                        {mentor.name ?? "Unknown"}
+                      </p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {mentor.email}
+                      </p>
+                      {mentor.rank && (
+                        <p className="text-sm text-muted-foreground">
+                          {mentor.rank}
+                        </p>
+                      )}
                     </div>
                     {nextStatus && (
                       <button
@@ -120,7 +154,10 @@ export default function MentorApplicationsPage() {
                         disabled={pendingId === mentor.userId}
                         onClick={() => {
                           setPendingId(mentor.userId);
-                          updateStatus.mutate({ mentorUserId: mentor.userId, status: nextStatus });
+                          updateStatus.mutate({
+                            mentorUserId: mentor.userId,
+                            status: nextStatus,
+                          });
                         }}
                         className="ml-4 shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
                       >

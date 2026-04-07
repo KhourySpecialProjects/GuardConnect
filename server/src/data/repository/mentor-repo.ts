@@ -482,18 +482,20 @@ export class MentorRepository {
   /**
    * Get all accepted mentorship pairs with mentor and mentee user data
    */
-  async getAcceptedPairs(): Promise<{
-    matchId: number;
-    matchedAt: string;
-    mentorUserId: string;
-    mentorName: string | null;
-    mentorEmail: string | null;
-    mentorRank: string | null;
-    menteeUserId: string;
-    menteeName: string | null;
-    menteeEmail: string | null;
-    menteeRank: string | null;
-  }[]> {
+  async getAcceptedPairs(): Promise<
+    {
+      matchId: number;
+      matchedAt: string;
+      mentorUserId: string;
+      mentorName: string | null;
+      mentorEmail: string | null;
+      mentorRank: string | null;
+      menteeUserId: string;
+      menteeName: string | null;
+      menteeEmail: string | null;
+      menteeRank: string | null;
+    }[]
+  > {
     const rows = await db
       .select({
         matchId: mentorshipMatches.matchId,
@@ -507,12 +509,21 @@ export class MentorRepository {
 
     if (rows.length === 0) return [];
 
-    const mentorIds = rows.map((r) => r.mentorUserId).filter((id): id is string => id !== null);
-    const menteeIds = rows.map((r) => r.menteeUserId).filter((id): id is string => id !== null);
+    const mentorIds = rows
+      .map((r) => r.mentorUserId)
+      .filter((id): id is string => id !== null);
+    const menteeIds = rows
+      .map((r) => r.menteeUserId)
+      .filter((id): id is string => id !== null);
     const allIds = Array.from(new Set([...mentorIds, ...menteeIds]));
 
     const userRows = await db
-      .select({ id: users.id, name: users.name, email: users.email, rank: users.rank })
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        rank: users.rank,
+      })
       .from(users)
       .where(inArray(users.id, allIds));
 
@@ -520,7 +531,8 @@ export class MentorRepository {
 
     return rows.map((r) => ({
       matchId: r.matchId,
-      matchedAt: r.matchedAt instanceof Date ? r.matchedAt.toISOString() : r.matchedAt,
+      matchedAt:
+        r.matchedAt instanceof Date ? r.matchedAt.toISOString() : r.matchedAt,
       mentorUserId: r.mentorUserId ?? "",
       mentorName: userMap.get(r.mentorUserId ?? "")?.name ?? null,
       mentorEmail: userMap.get(r.mentorUserId ?? "")?.email ?? null,
@@ -567,5 +579,4 @@ export class MentorRepository {
       .innerJoin(users, eq(users.id, mentors.userId))
       .orderBy(mentors.createdAt);
   }
-
 }

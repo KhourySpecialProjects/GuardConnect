@@ -1,9 +1,19 @@
-import { and, count, eq, isNull, notInArray, or, sql, gte, lt } from "drizzle-orm";
 import {
+  and,
+  count,
+  eq,
+  gte,
+  isNull,
+  lt,
+  notInArray,
+  or,
+  sql,
+} from "drizzle-orm";
+import {
+  mentees,
   mentorRecommendations,
   mentors,
   mentorshipMatches,
-  mentees,
 } from "../data/db/schema.js";
 import { db } from "../data/db/sql.js";
 import type { MenteeRepository } from "../data/repository/mentee-repo.js";
@@ -17,6 +27,8 @@ import type {
   GetMentorOutput,
 } from "../types/mentor-types.js";
 import type {
+  GetAdminMembersOutput,
+  GetAdminPairsOutput,
   MentorshipAdminStatsOutput,
   MentorshipDataOutput,
   SuggestedMentor,
@@ -24,11 +36,6 @@ import type {
 import log from "../utils/logger.js";
 import type { MatchingService } from "./matching-service.js";
 import type { NotificationService } from "./notification-service.js";
-
-import type {
-  GetAdminMembersOutput,
-  GetAdminPairsOutput,
-} from "../types/mentorship-types.js";
 /**
  * Service to handle mentorship data aggregation
  *
@@ -501,36 +508,50 @@ export class MentorshipService {
           ),
         ),
       // new mentors last 30 days
-      db.select({ value: count() }).from(mentors)
+      db
+        .select({ value: count() })
+        .from(mentors)
         .where(gte(mentors.createdAt, thirtyDaysAgo)),
       // new mentees last 30 days
-      db.select({ value: count() }).from(mentees)
+      db
+        .select({ value: count() })
+        .from(mentees)
         .where(gte(mentees.createdAt, thirtyDaysAgo)),
       // new mentors previous 30 days
-      db.select({ value: count() }).from(mentors)
-        .where(and(
-          gte(mentors.createdAt, sixtyDaysAgo),
-          lt(mentors.createdAt, thirtyDaysAgo),
-        )),
+      db
+        .select({ value: count() })
+        .from(mentors)
+        .where(
+          and(
+            gte(mentors.createdAt, sixtyDaysAgo),
+            lt(mentors.createdAt, thirtyDaysAgo),
+          ),
+        ),
       // new mentees previous 30 days
-      db.select({ value: count() }).from(mentees)
-        .where(and(
-          gte(mentees.createdAt, sixtyDaysAgo),
-          lt(mentees.createdAt, thirtyDaysAgo),
-        )),
+      db
+        .select({ value: count() })
+        .from(mentees)
+        .where(
+          and(
+            gte(mentees.createdAt, sixtyDaysAgo),
+            lt(mentees.createdAt, thirtyDaysAgo),
+          ),
+        ),
       // daily mentor signups last 30 days
-      db.select({
-        date: sql<string>`DATE(${mentors.createdAt})`,
-        value: count(),
-      })
+      db
+        .select({
+          date: sql<string>`DATE(${mentors.createdAt})`,
+          value: count(),
+        })
         .from(mentors)
         .where(gte(mentors.createdAt, thirtyDaysAgo))
         .groupBy(sql`DATE(${mentors.createdAt})`),
       // daily mentee signups last 30 days
-      db.select({
-        date: sql<string>`DATE(${mentees.createdAt})`,
-        value: count(),
-      })
+      db
+        .select({
+          date: sql<string>`DATE(${mentees.createdAt})`,
+          value: count(),
+        })
         .from(mentees)
         .where(gte(mentees.createdAt, thirtyDaysAgo))
         .groupBy(sql`DATE(${mentees.createdAt})`),
@@ -562,8 +583,10 @@ export class MentorshipService {
 
     // generate last 30 days as array of dates
     const dailyEnrollment = [];
-    let cumulativeMentors = totalMentors - Number(newMentorsLast30[0]?.value ?? 0);
-    let cumulativeMentees = totalMentees - Number(newMenteesLast30[0]?.value ?? 0);
+    let cumulativeMentors =
+      totalMentors - Number(newMentorsLast30[0]?.value ?? 0);
+    let cumulativeMentees =
+      totalMentees - Number(newMenteesLast30[0]?.value ?? 0);
 
     for (let i = 29; i >= 0; i--) {
       const d = new Date(now);
@@ -584,12 +607,18 @@ export class MentorshipService {
     const prevMentors = Number(newMentorsPrev30[0]?.value ?? 0);
     const prevMentees = Number(newMenteesPrev30[0]?.value ?? 0);
 
-    const mentorChangePercent = prevMentors > 0
-      ? Math.round(((newMentors - prevMentors) / prevMentors) * 100)
-      : newMentors > 0 ? 100 : 0;
-    const menteeChangePercent = prevMentees > 0
-      ? Math.round(((newMentees - prevMentees) / prevMentees) * 100)
-      : newMentees > 0 ? 100 : 0;
+    const mentorChangePercent =
+      prevMentors > 0
+        ? Math.round(((newMentors - prevMentors) / prevMentors) * 100)
+        : newMentors > 0
+          ? 100
+          : 0;
+    const menteeChangePercent =
+      prevMentees > 0
+        ? Math.round(((newMentees - prevMentees) / prevMentees) * 100)
+        : newMentees > 0
+          ? 100
+          : 0;
 
     return {
       mentors: {

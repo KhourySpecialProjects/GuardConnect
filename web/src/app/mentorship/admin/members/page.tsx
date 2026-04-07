@@ -25,9 +25,15 @@ export default function MentorshipMembersPage() {
     return (
       <AuthGuard>
         <NavigationShell showCommsNav={false}>
-          <TitleShell title="Access Denied" backHref="/mentorship/admin" backAriaLabel="Back to admin">
+          <TitleShell
+            title="Access Denied"
+            backHref="/mentorship/admin"
+            backAriaLabel="Back to admin"
+          >
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-              <p className="text-sm text-red-800">You do not have permission to view this page.</p>
+              <p className="text-sm text-red-800">
+                You do not have permission to view this page.
+              </p>
             </div>
           </TitleShell>
         </NavigationShell>
@@ -40,9 +46,12 @@ export default function MentorshipMembersPage() {
   return (
     <AuthGuard>
       <NavigationShell showCommsNav={false}>
-        <TitleShell title="Mentorship Member List" backHref="/mentorship/admin" backAriaLabel="Back to admin">
+        <TitleShell
+          title="Mentorship Member List"
+          backHref="/mentorship/admin"
+          backAriaLabel="Back to admin"
+        >
           <div className="w-full max-w-4xl mx-auto space-y-4">
-
             {/* Tabs */}
             <div className="flex gap-1 rounded-md border bg-muted p-1 w-fit">
               {(["mentors", "mentees"] as Tab[]).map((tab) => (
@@ -56,7 +65,9 @@ export default function MentorshipMembersPage() {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tab} {data && `(${activeTab === tab ? members?.length ?? 0 : (tab === "mentors" ? data.mentors.length : data.mentees.length)})`}
+                  {tab}{" "}
+                  {data &&
+                    `(${activeTab === tab ? (members?.length ?? 0) : tab === "mentors" ? data.mentors.length : data.mentees.length})`}
                 </button>
               ))}
             </div>
@@ -69,13 +80,17 @@ export default function MentorshipMembersPage() {
 
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-                <p className="text-sm text-red-800">Failed to load members. Please try again.</p>
+                <p className="text-sm text-red-800">
+                  Failed to load members. Please try again.
+                </p>
               </div>
             )}
 
             {members && members.length === 0 && (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="text-sm text-gray-600">No {activeTab} enrolled yet.</p>
+                <p className="text-sm text-gray-600">
+                  No {activeTab} enrolled yet.
+                </p>
               </div>
             )}
 
@@ -83,27 +98,42 @@ export default function MentorshipMembersPage() {
               <div className="rounded-lg border bg-card divide-y">
                 {/* Header */}
                 <div className="grid grid-cols-3 gap-4 px-4 py-3 bg-muted">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase">Name</p>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase">Rank</p>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase">Status</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Name
+                  </p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Rank
+                  </p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Status
+                  </p>
                 </div>
                 {members.map((member) => (
-                  <div key={member.userId} className="grid grid-cols-3 gap-4 px-4 py-4 items-center">
+                  <div
+                    key={member.userId}
+                    className="grid grid-cols-3 gap-4 px-4 py-4 items-center"
+                  >
                     <div>
-                      <p className="font-medium text-sm">{member.name ?? "Unknown"}</p>
-                      <p className="text-xs text-muted-foreground">{member.email ?? ""}</p>
+                      <p className="font-medium text-sm">
+                        {member.name ?? "Unknown"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {member.email ?? ""}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm">{member.rank ?? "—"}</p>
                     </div>
                     <div>
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        member.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : member.status === "matched"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          member.status === "active"
+                            ? "bg-green-100 text-green-800"
+                            : member.status === "matched"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {member.status}
                       </span>
                     </div>
@@ -111,7 +141,6 @@ export default function MentorshipMembersPage() {
                 ))}
               </div>
             )}
-
           </div>
         </TitleShell>
       </NavigationShell>

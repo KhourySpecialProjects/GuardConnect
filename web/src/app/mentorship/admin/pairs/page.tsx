@@ -21,9 +21,15 @@ export default function MentorshipPairsPage() {
     return (
       <AuthGuard>
         <NavigationShell showCommsNav={false}>
-          <TitleShell title="Access Denied" backHref="/mentorship/admin" backAriaLabel="Back to admin">
+          <TitleShell
+            title="Access Denied"
+            backHref="/mentorship/admin"
+            backAriaLabel="Back to admin"
+          >
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-              <p className="text-sm text-red-800">You do not have permission to view this page.</p>
+              <p className="text-sm text-red-800">
+                You do not have permission to view this page.
+              </p>
             </div>
           </TitleShell>
         </NavigationShell>
@@ -34,9 +40,12 @@ export default function MentorshipPairsPage() {
   return (
     <AuthGuard>
       <NavigationShell showCommsNav={false}>
-        <TitleShell title="Mentorship Pairs" backHref="/mentorship/admin" backAriaLabel="Back to admin">
+        <TitleShell
+          title="Mentorship Pairs"
+          backHref="/mentorship/admin"
+          backAriaLabel="Back to admin"
+        >
           <div className="w-full max-w-4xl mx-auto space-y-4">
-
             {isLoading && (
               <div className="flex justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -45,13 +54,17 @@ export default function MentorshipPairsPage() {
 
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-                <p className="text-sm text-red-800">Failed to load pairs. Please try again.</p>
+                <p className="text-sm text-red-800">
+                  Failed to load pairs. Please try again.
+                </p>
               </div>
             )}
 
             {data && data.length === 0 && (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="text-sm text-gray-600">No active mentorship pairs yet.</p>
+                <p className="text-sm text-gray-600">
+                  No active mentorship pairs yet.
+                </p>
               </div>
             )}
 
@@ -59,23 +72,48 @@ export default function MentorshipPairsPage() {
               <div className="rounded-lg border bg-card divide-y">
                 {/* Header */}
                 <div className="grid grid-cols-3 gap-4 px-4 py-3 bg-muted">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase">Mentor</p>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase">Mentee</p>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase">Matched On</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Mentor
+                  </p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Mentee
+                  </p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    Matched On
+                  </p>
                 </div>
                 {data.map((pair) => (
-                  <div key={pair.matchId} className="grid grid-cols-3 gap-4 px-4 py-4 items-center">
+                  <div
+                    key={pair.matchId}
+                    className="grid grid-cols-3 gap-4 px-4 py-4 items-center"
+                  >
                     {/* Mentor */}
                     <div>
-                      <p className="font-medium text-sm">{pair.mentorName ?? "Unknown"}</p>
-                      <p className="text-xs text-muted-foreground">{pair.mentorEmail ?? ""}</p>
-                      {pair.mentorRank && <p className="text-xs text-muted-foreground">{pair.mentorRank}</p>}
+                      <p className="font-medium text-sm">
+                        {pair.mentorName ?? "Unknown"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {pair.mentorEmail ?? ""}
+                      </p>
+                      {pair.mentorRank && (
+                        <p className="text-xs text-muted-foreground">
+                          {pair.mentorRank}
+                        </p>
+                      )}
                     </div>
                     {/* Mentee */}
                     <div>
-                      <p className="font-medium text-sm">{pair.menteeName ?? "Unknown"}</p>
-                      <p className="text-xs text-muted-foreground">{pair.menteeEmail ?? ""}</p>
-                      {pair.menteeRank && <p className="text-xs text-muted-foreground">{pair.menteeRank}</p>}
+                      <p className="font-medium text-sm">
+                        {pair.menteeName ?? "Unknown"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {pair.menteeEmail ?? ""}
+                      </p>
+                      {pair.menteeRank && (
+                        <p className="text-xs text-muted-foreground">
+                          {pair.menteeRank}
+                        </p>
+                      )}
                     </div>
                     {/* Matched At */}
                     <div>
@@ -87,7 +125,6 @@ export default function MentorshipPairsPage() {
                 ))}
               </div>
             )}
-
           </div>
         </TitleShell>
       </NavigationShell>

@@ -108,11 +108,10 @@ export const updateOptInInputSchema = z.object({
 
 export type UpdateOptInInput = z.infer<typeof updateOptInInputSchema>;
 
-
 export const enrollmentDaySchema = z.object({
-  date: z.string(),       // this shows the date as YY/MM/DD
-  mentors: z.number(),    // cumulative mentor count on that day
-  mentees: z.number(),    // cumulative mentee count on that day
+  date: z.string(), // this shows the date as YY/MM/DD
+  mentors: z.number(), // cumulative mentor count on that day
+  mentees: z.number(), // cumulative mentee count on that day
 });
 
 export const mentorshipAdminStatsOutputSchema = z.object({
@@ -139,8 +138,8 @@ export const mentorshipAdminStatsOutputSchema = z.object({
   growth: z.object({
     newMentorsLast30Days: z.number(),
     newMenteesLast30Days: z.number(),
-    mentorChangePercent: z.number(),  // compared to previous 30 days
-    menteeChangePercent: z.number(),  // compared to previous 30 days
+    mentorChangePercent: z.number(), // compared to previous 30 days
+    menteeChangePercent: z.number(), // compared to previous 30 days
     dailyEnrollment: z.array(enrollmentDaySchema),
   }),
 });

@@ -1,10 +1,26 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Loader2, PenLine, TrendingDown, TrendingUp, Users } from "lucide-react";
-import Link from "next/link";
+import {
+  FileText,
+  Loader2,
+  PenLine,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import type { Route } from "next";
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import Link from "next/link";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import NavigationShell from "@/components/layouts/navigation-shell";
 import { TitleShell } from "@/components/layouts/title-shell";
@@ -13,18 +29,36 @@ import { authClient } from "@/lib/auth-client";
 import { useTRPC, useTRPCClient } from "@/lib/trpc";
 
 // action buttons
-const actions: { label: string; href: Route; icon: React.ComponentType<{ className?: string }> }[] = [
-  { label: "View Pairs",                  href: "/mentorship/admin/pairs" as Route,        icon: FileText },
-  { label: "Mentorship Member List",      href: "/mentorship/admin/members" as Route,      icon: Users },
-  { label: "Manage Mentor Applications",  href: "/mentorship/admin/applications" as Route, icon: PenLine },
+const actions: {
+  label: string;
+  href: Route;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  {
+    label: "View Pairs",
+    href: "/mentorship/admin/pairs" as Route,
+    icon: FileText,
+  },
+  {
+    label: "Mentorship Member List",
+    href: "/mentorship/admin/members" as Route,
+    icon: Users,
+  },
+  {
+    label: "Manage Mentor Applications",
+    href: "/mentorship/admin/applications" as Route,
+    icon: PenLine,
+  },
 ];
 
 // statistics card
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col gap-3 shadow-sm">
-    <p className="text-base font-semibold text-center">{label}</p>      
-    <p className="text-4xl font-bold italic text-accent text-center">{value}</p>
+      <p className="text-base font-semibold text-center">{label}</p>
+      <p className="text-4xl font-bold italic text-accent text-center">
+        {value}
+      </p>
     </div>
   );
 }
@@ -45,9 +79,13 @@ function GrowthCard({
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col gap-3 shadow-sm">
-    <p className="text-base font-semibold text-center">{label}</p>     
-    <p className="text-4xl font-bold italic text-accent text-center">{newCount}</p>
-      <div className={`flex items-center justify-center gap-1 text-base font-bold ${trendColor}`}>
+      <p className="text-base font-semibold text-center">{label}</p>
+      <p className="text-4xl font-bold italic text-accent text-center">
+        {newCount}
+      </p>
+      <div
+        className={`flex items-center justify-center gap-1 text-base font-bold ${trendColor}`}
+      >
         <TrendIcon className="h-4 w-4" />
         <span>{Math.abs(changePercent)}% over the last 30 days</span>
       </div>
@@ -86,7 +124,11 @@ export default function MentorshipAdminPage() {
     return (
       <AuthGuard>
         <NavigationShell showCommsNav={false}>
-          <TitleShell title="Access Denied" backHref="/admin" backAriaLabel="Back to admin">
+          <TitleShell
+            title="Access Denied"
+            backHref="/admin"
+            backAriaLabel="Back to admin"
+          >
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
               <p className="text-sm text-red-800">
                 You do not have permission to view mentorship admin stats.
@@ -101,9 +143,12 @@ export default function MentorshipAdminPage() {
   return (
     <AuthGuard>
       <NavigationShell showCommsNav={false}>
-        <TitleShell title="Admin Page" backHref="/admin" backAriaLabel="Back to admin">
+        <TitleShell
+          title="Admin Page"
+          backHref="/admin"
+          backAriaLabel="Back to admin"
+        >
           <div className="w-full max-w-5xl mx-auto space-y-8">
-
             {/* Welcome Header */}
             <h1 className="text-3xl font-bold">
               <span className="italic text-accent">Welcome Back,</span>{" "}
@@ -129,7 +174,9 @@ export default function MentorshipAdminPage() {
 
             {/* GuardConnect Statistics */}
             <section>
-              <h2 className="text-xl font-bold mb-4">GuardConnect Statistics</h2>
+              <h2 className="text-xl font-bold mb-4">
+                GuardConnect Statistics
+              </h2>
 
               {isLoading && (
                 <div className="flex items-center justify-center py-12">
@@ -183,9 +230,14 @@ export default function MentorshipAdminPage() {
 
                   {/* Enrollment chart */}
                   <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-base font-semibold mb-4">Program Enrollment (Last 30 Days)</h3>
+                    <h3 className="text-base font-semibold mb-4">
+                      Program Enrollment (Last 30 Days)
+                    </h3>
                     <ResponsiveContainer width="100%" height={280}>
-                      <LineChart data={data.growth.dailyEnrollment} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+                      <LineChart
+                        data={data.growth.dailyEnrollment}
+                        margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis
                           dataKey="date"
@@ -198,10 +250,19 @@ export default function MentorshipAdminPage() {
                         />
                         <YAxis tick={{ fontSize: 11 }} />
                         <Tooltip
-                          labelFormatter={(val) => new Date(val).toLocaleDateString()}
-                          formatter={(value, name) => [value, name === "mentors" ? "Mentors" : "Mentees"]}
+                          labelFormatter={(val) =>
+                            new Date(val).toLocaleDateString()
+                          }
+                          formatter={(value, name) => [
+                            value,
+                            name === "mentors" ? "Mentors" : "Mentees",
+                          ]}
                         />
-                        <Legend formatter={(value) => value === "mentors" ? "Mentors" : "Mentees"} />
+                        <Legend
+                          formatter={(value) =>
+                            value === "mentors" ? "Mentors" : "Mentees"
+                          }
+                        />
                         <Line
                           type="monotone"
                           dataKey="mentors"
@@ -222,7 +283,6 @@ export default function MentorshipAdminPage() {
                 </div>
               )}
             </section>
-
           </div>
         </TitleShell>
       </NavigationShell>

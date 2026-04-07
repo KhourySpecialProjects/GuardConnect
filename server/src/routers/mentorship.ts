@@ -13,13 +13,13 @@ import {
   createMentorOutputSchema,
 } from "../types/mentor-types.js";
 import {
+  getAdminMembersOutputSchema,
+  getAdminPairsOutputSchema,
   getPendingMentorsInputSchema,
   mentorshipAdminStatsOutputSchema,
   mentorshipDataOutputSchema,
   updateMentorStatusInputSchema,
   updateOptInInputSchema,
-  getAdminPairsOutputSchema,
-  getAdminMembersOutputSchema,
 } from "../types/mentorship-types.js";
 import log from "../utils/logger.js";
 
@@ -216,7 +216,7 @@ const getAdminStats = roleProcedure([GLOBAL_ADMIN_KEY])
     }),
   );
 
-  const getAdminPairs = roleProcedure([GLOBAL_ADMIN_KEY])
+const getAdminPairs = roleProcedure([GLOBAL_ADMIN_KEY])
   .output(getAdminPairsOutputSchema)
   .meta({
     openapi: {
