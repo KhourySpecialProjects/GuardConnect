@@ -457,8 +457,8 @@ export class MenteeRepository {
   }
 
   /**
-   * Get user IDs of all active mentees who have no accepted mentorship match
-   * Used to trigger recommendation generation when a new mentor becomes active
+   * Get user IDs of all active mentees who have no accepted mentorship match.
+   * Used to trigger recommendation generation when a new mentor becomes active.
    */
   async getUnmatchedMenteeUserIds(): Promise<string[]> {
     const matched = db

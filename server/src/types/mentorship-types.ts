@@ -110,7 +110,7 @@ export type UpdateOptInInput = z.infer<typeof updateOptInInputSchema>;
 
 
 export const enrollmentDaySchema = z.object({
-  date: z.string(),       // e.g. "2026-03-08"
+  date: z.string(),       // this shows the date as YY/MM/DD
   mentors: z.number(),    // cumulative mentor count on that day
   mentees: z.number(),    // cumulative mentee count on that day
 });
