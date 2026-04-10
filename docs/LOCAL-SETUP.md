@@ -2,7 +2,7 @@
   <table role="presentation" style="border:none;border-radius:18px;background:#0f172a;padding:1.5rem 2rem;box-shadow:0 10px 30px rgba(15,23,42,0.35);color:#f8fafc;width:100%;max-width:1200px;">
     <tr>
       <td style="vertical-align:middle;padding-right:1.5rem;">
-        <img src="../web/public/icons/favicon_yellow.svg" alt="CommNG Favicon" width="72">
+        <img src="../web/public/icons/favicon_yellow.svg" alt="GuardConnect Favicon" width="72">
       </td>
       <td style="vertical-align:middle;">
         <h1 style="margin:0;font-size:2rem;color:#f8fafc;">🛠️ Local Setup</h1>
@@ -24,7 +24,7 @@
 
 # Local Development Setup
 
-Follow this guide to run the CommNG applications locally for development and testing.
+Follow this guide to run the GuardConnect applications locally for development and testing.
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ Follow this guide to run the CommNG applications locally for development and tes
 
 ```bash
 git clone <repository-url>
-cd CommNG
+cd GuardConnect # Root Repository
 
 # Backend dependencies
 cd server
@@ -55,10 +55,10 @@ npm install
 1. Copy the example environment files (update values as needed):
 
    ```bash
-   # In server
+   # In /server
    cp .env.example .env
 
-   # In web
+   # In /web
    cp .env.example .env
    ```
 
