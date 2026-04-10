@@ -41,10 +41,13 @@ git clone <repository-url>
 cd CommNG
 
 # Backend dependencies
-cd server && npm install
+cd server
+npm install
 
+# In another terminal - keep both open
 # Frontend dependencies
-cd ../web && npm install
+cd web
+npm install
 ```
 
 ## 2. Configure Environment Variables
@@ -52,34 +55,34 @@ cd ../web && npm install
 1. Copy the example environment files (update values as needed):
 
    ```bash
-   cd server
-   cp .env.example .env.local
+   # In server
+   cp .env.example .env
 
-   cd ../web
-   cp .env.example .env.local
+   # In web
+   cp .env.example .env
    ```
 
 2. Populate the environment files with credentials:
-   - PostgreSQL connection string (`DATABASE_URL`)
-   - Redis details (`REDIS_HOST`, `REDIS_AUTH`)
-   - VAPID keys for push notifications (or temporary placeholders for local tests)
+   - BETTER_AUTH_SECRET
+   - VAPID keys for push notifications (front end too)
+   - TWILIO values for SMS
 
-3. Start Redis (and any other required services) via Docker Compose:
+   _Locations of all values explained in files._
+
+3. Start Docker:
 
    ```bash
-   cd ../
+   # In new terminal in root directory
    docker compose up -d
    ```
 
 ## 3. Start Development Servers
 
 ```bash
-# Terminal 1 - API server
-cd server
+# Terminal 1 - API server in /server
 npm run dev
 
-# Terminal 2 - Next.js web app
-cd web
+# Terminal 2 - Next.js web app in /web
 npm run dev
 ```
 
@@ -103,7 +106,7 @@ Use Drizzle Studio or your preferred SQL client to inspect data.
 ## 5. Development Scripts
 
 ```bash
-npm run dev       # start dev server
+# Frontend and backend
 npm run test      # run unit tests
 npm run lint      # lint codebase
 npm run format    # format code
@@ -111,7 +114,6 @@ npm run lintfix   # lint + auto-fix issues
 ```
 
 ### Backend-specific Scripts
-
 ```bash
 npx drizzle-kit push      # apply latest migrations
 npm run db:studio         # open Drizzle Studio UI
@@ -121,20 +123,19 @@ npm run db:studio         # open Drizzle Studio UI
 
 ```bash
 # Reset Docker services
-cd CommNG
+# In root directory
 docker compose down -v
-
 docker compose up -d
 ```
 
 Common issues:
-- **Ports already in use**: stop conflicting processes or change ports in `.env.local`.
+- **Ports already in use**: stop conflicting processes or change ports in `.env`.
 - **Missing VAPID keys**: generate temporary keys with `npx web-push generate-vapid-keys --json`.
-- **Database connectivity**: ensure PostgreSQL is running and credentials match `.env.local`.
+- **Database connectivity**: ensure PostgreSQL is running and credentials match `.env`.
 
 ## 7. Next Steps
 
-After local setup, proceed with:
+After local setup, proceed with (if not done already):
 1. [Secrets configuration](./SECRETS-SETUP.md)
 2. [Infrastructure provisioning](./INFRA.md)
 3. [Deployment workflows](./QUICK-REFERENCE.md)
