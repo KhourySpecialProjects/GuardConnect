@@ -72,14 +72,18 @@ npm install
 3. Start Docker:
 
    ```bash
-   # In new terminal in root directory
+   # In /server directory
    docker compose up -d
+   
+   # Add PGVector - insert values in [] from server/.env
+   docker exec -it commng-postgres psql -U [POSTGRES_USER] -d [POSTGRES_DB] -c "CREATE EXTENSION IF NOT EXISTS vector;"
    ```
 
 ## 3. Start Development Servers
 
 ```bash
-# Terminal 1 - API server in /server
+# Terminal 1 - DB and API server in /server
+npx drizzle-kit push # Apply latest migrations
 npm run dev
 
 # Terminal 2 - Next.js web app in /web
@@ -89,19 +93,24 @@ npm run dev
 - API available at `http://localhost:3000`
 - Web UI available at `http://localhost:3001`
 
-## 4. Database Management
+Use Drizzle Studio (shown below) or your preferred SQL client to inspect data.
 
-Run these commands from the `server` directory:
-
+## 4. Add roles and users
 ```bash
-# Apply latest migrations
-npx drizzle-kit push
+# In a new terminal tab
+cd server
 
-# Open Drizzle Studio
-npx drizzle-kit studio
+# Create roles
+npx tsx --env-file=.env scripts/create-roles.ts
+
+# Create your user
+# Go to server/scripts/create-user.ts and edit the user info (lines 20-35)
+# Then run:
+npx tsx --env-file=.env scripts/create-user.ts
 ```
+_NOTE: You may need to go back to the other /server terminal and rerun_ ```npm run dev```
 
-Use Drizzle Studio or your preferred SQL client to inspect data.
+### > You should now be able to go to http://localhost:3001/ and sign in with the user you just created.
 
 ## 5. Development Scripts
 
