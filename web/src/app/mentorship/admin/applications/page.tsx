@@ -58,7 +58,7 @@ export default function MentorApplicationsPage() {
           trpc.mentorship.getPendingMentors.queryOptions({ status: "active" }),
         );
         queryClient.invalidateQueries(
-          trpc.mentorship.getAdminStats.queryOptions(),
+          trpc.mentorship.getAdminStats.queryOptions({ days: 30 }),
         );
       },
       onError: () => setPendingId(null),
