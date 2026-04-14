@@ -70,7 +70,7 @@ type DayOption = (typeof DAY_OPTIONS)[number];
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between h-36 shadow-sm">
-      <p className="text-base font-semibold text-center leading-tight">
+      <p className="text-base font-semibold text-center leading-tight whitespace-pre-line">
         {label}
       </p>
       <p className="text-4xl font-bold italic text-accent text-center">
@@ -98,7 +98,7 @@ function GrowthCard({
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between h-36 shadow-sm">
-      <p className="text-base font-semibold text-center leading-tight">
+      <p className="text-base font-semibold text-center leading-tight whitespace-pre-line">
         {label}
       </p>
       <p className="text-4xl font-bold italic text-accent text-center">
@@ -329,19 +329,19 @@ export default function MentorshipAdminPage() {
                     {/* Growth cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <GrowthCard
-                        label={`New Mentors (Last ${selectedDays} Days)`}
+                        label={`New Mentors\n (Last ${selectedDays} Days)`}
                         newCount={data.growth.newMentors}
                         changePercent={data.growth.mentorChangePercent}
                         days={selectedDays}
                       />
                       <GrowthCard
-                        label={`New Mentees (Last ${selectedDays} Days)`}
+                        label={`New Mentees\n (Last ${selectedDays} Days)`}
                         newCount={data.growth.newMentees}
                         changePercent={data.growth.menteeChangePercent}
                         days={selectedDays}
                       />
                       <StatCard
-                        label={`Active Mentorship Pairs (Last ${selectedDays} Days)`}
+                        label={`Active Mentorship Pairs\n (Last ${selectedDays} Days)`}
                         value={data.matches.acceptedThisPeriod}
                       />
                     </div>
