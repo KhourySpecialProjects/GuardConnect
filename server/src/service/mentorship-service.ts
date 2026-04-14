@@ -509,39 +509,62 @@ export class MentorshipService {
           ),
         ),
       // new mentors this period
-      db.select({ value: count() }).from(mentors)
+      db
+        .select({ value: count() })
+        .from(mentors)
         .where(gte(mentors.createdAt, periodStart)),
       // new mentees this period
-      db.select({ value: count() }).from(mentees)
+      db
+        .select({ value: count() })
+        .from(mentees)
         .where(gte(mentees.createdAt, periodStart)),
       // new mentors previous period
-      db.select({ value: count() }).from(mentors)
-        .where(and(
-          gte(mentors.createdAt, prevPeriodStart),
-          lt(mentors.createdAt, periodStart),
-        )),
+      db
+        .select({ value: count() })
+        .from(mentors)
+        .where(
+          and(
+            gte(mentors.createdAt, prevPeriodStart),
+            lt(mentors.createdAt, periodStart),
+          ),
+        ),
       // new mentees previous period
-      db.select({ value: count() }).from(mentees)
-        .where(and(
-          gte(mentees.createdAt, prevPeriodStart),
-          lt(mentees.createdAt, periodStart),
-        )),
+      db
+        .select({ value: count() })
+        .from(mentees)
+        .where(
+          and(
+            gte(mentees.createdAt, prevPeriodStart),
+            lt(mentees.createdAt, periodStart),
+          ),
+        ),
       // daily mentor signups this period
-      db.select({ date: sql<string>`DATE(${mentors.createdAt})`, value: count() })
+      db
+        .select({
+          date: sql<string>`DATE(${mentors.createdAt})`,
+          value: count(),
+        })
         .from(mentors)
         .where(gte(mentors.createdAt, periodStart))
         .groupBy(sql`DATE(${mentors.createdAt})`),
       // daily mentee signups this period
-      db.select({ date: sql<string>`DATE(${mentees.createdAt})`, value: count() })
+      db
+        .select({
+          date: sql<string>`DATE(${mentees.createdAt})`,
+          value: count(),
+        })
         .from(mentees)
         .where(gte(mentees.createdAt, periodStart))
         .groupBy(sql`DATE(${mentees.createdAt})`),
-      db.select({ value: count() })
+      db
+        .select({ value: count() })
         .from(mentorshipMatches)
-        .where(and(
-          eq(mentorshipMatches.status, "accepted"),
-          gte(mentorshipMatches.matchedAt, periodStart),
-      )),
+        .where(
+          and(
+            eq(mentorshipMatches.status, "accepted"),
+            gte(mentorshipMatches.matchedAt, periodStart),
+          ),
+        ),
     ]);
 
     const matchCounts = { pending: 0, accepted: 0, declined: 0 };
@@ -573,10 +596,8 @@ export class MentorshipService {
 
     // generate last 30 days as array of dates
     const dailyEnrollment = [];
-    let cumulativeMentors =
-      totalMentors - newMentors;
-    let cumulativeMentees =
-      totalMentees - newMentees;
+    let cumulativeMentors = totalMentors - newMentors;
+    let cumulativeMentees = totalMentees - newMentees;
 
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(now);

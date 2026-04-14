@@ -34,7 +34,9 @@ import { useTRPC, useTRPCClient } from "@/lib/trpc";
 function parseRank(rank: string): string {
   const parts = rank.split("-");
   if (parts.length < 2) return rank;
-  const words = parts.slice(1).map((w) => w.charAt(0).toUpperCase() + w.slice(1));
+  const words = parts
+    .slice(1)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1));
   return words.join(" ");
 }
 
@@ -62,14 +64,18 @@ const actions: {
 ];
 
 const DAY_OPTIONS = [30, 90, 180] as const;
-type DayOption = typeof DAY_OPTIONS[number];
+type DayOption = (typeof DAY_OPTIONS)[number];
 
 // statistics card
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between h-36 shadow-sm">
-      <p className="text-base font-semibold text-center leading-tight">{label}</p>
-      <p className="text-4xl font-bold italic text-accent text-center">{value}</p>
+      <p className="text-base font-semibold text-center leading-tight">
+        {label}
+      </p>
+      <p className="text-4xl font-bold italic text-accent text-center">
+        {value}
+      </p>
     </div>
   );
 }
@@ -92,11 +98,19 @@ function GrowthCard({
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between h-36 shadow-sm">
-      <p className="text-base font-semibold text-center leading-tight">{label}</p>
-      <p className="text-4xl font-bold italic text-accent text-center">{newCount}</p>
-      <div className={`flex items-center justify-center gap-1 text-sm font-medium ${trendColor}`}>
+      <p className="text-base font-semibold text-center leading-tight">
+        {label}
+      </p>
+      <p className="text-4xl font-bold italic text-accent text-center">
+        {newCount}
+      </p>
+      <div
+        className={`flex items-center justify-center gap-1 text-sm font-medium ${trendColor}`}
+      >
         <TrendIcon className="h-4 w-4" />
-        <span>{Math.abs(changePercent)}% vs previous {days} days</span>
+        <span>
+          {Math.abs(changePercent)}% vs previous {days} days
+        </span>
       </div>
     </div>
   );
@@ -142,7 +156,9 @@ export default function MentorshipAdminPage() {
     const printWindow = window.open("", "_blank");
     if (!printWindow || !data || !statsRef.current) return;
 
-    const chartHTML = statsRef.current.querySelector(".recharts-responsive-container")?.outerHTML ?? "";
+    const chartHTML =
+      statsRef.current.querySelector(".recharts-responsive-container")
+        ?.outerHTML ?? "";
 
     const content = `
       <html>
@@ -277,10 +293,11 @@ export default function MentorshipAdminPage() {
 
                   {/* Growth */}
                   <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-5">
-
                     {/* Day filter and pdf download */}
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-bold">GuardConnect Mentorship Growth Statistics</h3>
+                      <h3 className="text-base font-bold">
+                        GuardConnect Mentorship Growth Statistics
+                      </h3>
                       <div className="flex items-center gap-3">
                         <div className="flex gap-1 rounded-lg border border-gray-200 p-1">
                           {DAY_OPTIONS.map((d) => (
@@ -329,8 +346,8 @@ export default function MentorshipAdminPage() {
                       />
                     </div>
 
-                  {/* Enrollment chart */}
-                  <div>
+                    {/* Enrollment chart */}
+                    <div>
                       <p className="text-sm font-semibold mb-3">
                         Program Enrollment (Last {selectedDays} Days)
                       </p>
@@ -339,7 +356,10 @@ export default function MentorshipAdminPage() {
                           data={data.growth.dailyEnrollment}
                           margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
                         >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#e5e7eb"
+                          />
                           <XAxis
                             dataKey="date"
                             tick={{ fontSize: 11 }}
@@ -355,11 +375,34 @@ export default function MentorshipAdminPage() {
                             content={({ active, payload, label }) => {
                               if (!active || !payload?.length) return null;
                               return (
-                                <div style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: "8px 12px" }}>
-                                  <p style={{ fontSize: 12, marginBottom: 4 }}>{label ? new Date(String(label)).toLocaleDateString() : ""}</p>
+                                <div
+                                  style={{
+                                    background: "white",
+                                    border: "1px solid #e5e7eb",
+                                    borderRadius: 8,
+                                    padding: "8px 12px",
+                                  }}
+                                >
+                                  <p style={{ fontSize: 12, marginBottom: 4 }}>
+                                    {label
+                                      ? new Date(
+                                          String(label),
+                                        ).toLocaleDateString()
+                                      : ""}
+                                  </p>
                                   {payload.map((entry) => (
-                                    <p key={String(entry.dataKey)} style={{ fontSize: 12, color: entry.color, margin: "2px 0" }}>
-                                      {entry.dataKey === "mentors" ? "Mentors" : "Mentees"}: {entry.value}
+                                    <p
+                                      key={String(entry.dataKey)}
+                                      style={{
+                                        fontSize: 12,
+                                        color: entry.color,
+                                        margin: "2px 0",
+                                      }}
+                                    >
+                                      {entry.dataKey === "mentors"
+                                        ? "Mentors"
+                                        : "Mentees"}
+                                      : {entry.value}
                                     </p>
                                   ))}
                                 </div>
@@ -389,7 +432,7 @@ export default function MentorshipAdminPage() {
                       </ResponsiveContainer>
                     </div>
                   </div>
-              </div>
+                </div>
               )}
             </section>
           </div>
