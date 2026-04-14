@@ -1,15 +1,14 @@
 "use client";
+import { LogOut } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { icons } from "@/components/icons";
 import { Protected } from "@/components/rbac/Protected";
-import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type NavItem = {
   id: number;
@@ -95,7 +94,7 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
-  const res = await authClient.signOut();
+    const res = await authClient.signOut();
     if (res.error) {
       setIsSigningOut(false);
       return;
@@ -144,7 +143,9 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
       </div>
 
       <div className="mt-2 flex w-full flex-1 min-h-0 flex-col items-center overflow-hidden">
-          <div className="mt-4 flex w-full shrink min-h-0 flex-col items-center gap-2 pb-4">          <Protected requiredRole="broadcast:create">
+        <div className="mt-4 flex w-full shrink min-h-0 flex-col items-center gap-2 pb-4">
+          {" "}
+          <Protected requiredRole="broadcast:create">
             <Link
               href="/broadcasts/new"
               aria-label="Create broadcast"
@@ -163,7 +164,6 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
               </span>
             </Link>
           </Protected>
-
           <Link
             href="/broadcasts"
             aria-label="Active broadcasts"
@@ -181,7 +181,6 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
               Active Broadcasts
             </span>
           </Link>
-
           <Link
             href="/help-page"
             aria-label="Help"
@@ -198,7 +197,6 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
               Help
             </span>
           </Link>
-
           <Protected requiredRole="global:create-invite">
             <Link
               href="/admin"
@@ -218,7 +216,6 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
               </span>
             </Link>
           </Protected>
-
           <Link
             href="/profile"
             aria-label="Profile"
@@ -249,8 +246,8 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
             <LogOut className="h-5 w-5" aria-hidden="true" />
             <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50">
               Log out
-          </span>
-        </button>
+            </span>
+          </button>
         </div>
       </div>
     </nav>
