@@ -76,6 +76,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
       <p className="text-4xl font-bold italic text-accent text-center">
         {value}
       </p>
+      <div className="h-5" />
     </div>
   );
 }
