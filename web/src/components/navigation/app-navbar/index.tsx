@@ -1,10 +1,13 @@
 "use client";
+import { LogOut } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { icons } from "@/components/icons";
 import { Protected } from "@/components/rbac/Protected";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -56,7 +59,7 @@ const AppNavBarItem = ({
               : "bg-primary-dark hover:bg-accent"
           } group-hover:-translate-y-2`}
       >
-        <Icon className="h-6 w-6 text-background" />
+        <Icon className="h-5 w-5 text-background" />
         <span
           className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50"
           role="presentation"
@@ -86,8 +89,21 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
   const isBroadcastsActive = pathname.startsWith("/broadcasts");
   const isCreateBroadcastActive = pathname.startsWith("/broadcasts/new");
 
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    const res = await authClient.signOut();
+    if (res.error) {
+      setIsSigningOut(false);
+      return;
+    }
+    router.replace("/login");
+  };
+
   const circleButtonClasses =
-    "group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 overflow-visible";
+    "group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 overflow-visible";
 
   return (
     <nav
@@ -114,7 +130,7 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
           />
         </Link>
 
-        <ul className="mt-6 flex flex-col items-center gap-5">
+        <ul className="mt-4 flex flex-col items-center gap-5">
           {navItems.map((item) => (
             <AppNavBarItem
               key={item.id}
@@ -126,8 +142,9 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
         </ul>
       </div>
 
-      <div className="mt-8 flex w-full flex-1 min-h-0 flex-col items-center overflow-hidden">
-        <div className="mt-auto flex w-full shrink min-h-0 flex-col items-center gap-4 pb-20">
+      <div className="mt-2 flex w-full flex-1 min-h-0 flex-col items-center overflow-hidden">
+        <div className="mt-4 flex w-full shrink min-h-0 flex-col items-center gap-2 pb-4">
+          {" "}
           <Protected requiredRole="broadcast:create">
             <Link
               href="/broadcasts/new"
@@ -141,13 +158,12 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
               )}
               onClick={onNavigate}
             >
-              <MegaphoneIcon className="h-6 w-6" aria-hidden="true" />
+              <MegaphoneIcon className="h-5 w-5" aria-hidden="true" />
               <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50">
                 Broadcast
               </span>
             </Link>
           </Protected>
-
           <Link
             href="/broadcasts"
             aria-label="Active broadcasts"
@@ -160,12 +176,11 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
             )}
             onClick={onNavigate}
           >
-            <BellIcon className="h-6 w-6" aria-hidden="true" />
+            <BellIcon className="h-5 w-5" aria-hidden="true" />
             <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50">
               Active Broadcasts
             </span>
           </Link>
-
           <Link
             href="/help-page"
             aria-label="Help"
@@ -177,12 +192,11 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
             )}
             onClick={onNavigate}
           >
-            <HelpIcon className="h-6 w-6" />
+            <HelpIcon className="h-5 w-5" />
             <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50">
               Help
             </span>
           </Link>
-
           <Protected requiredRole="global:create-invite">
             <Link
               href="/admin"
@@ -196,13 +210,12 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
               )}
               onClick={onNavigate}
             >
-              <AdminIcon className="h-6 w-6" />
+              <AdminIcon className="h-5 w-5" />
               <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50">
                 Admin
               </span>
             </Link>
           </Protected>
-
           <Link
             href="/profile"
             aria-label="Profile"
@@ -215,11 +228,26 @@ export const AppNavBar = ({ className, onNavigate }: AppNavBarProps = {}) => {
             )}
             onClick={onNavigate}
           >
-            <ProfileIcon className="h-6 w-6" strokeWidth={2} />
+            <ProfileIcon className="h-5 w-5" strokeWidth={2} />
             <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50">
               Profile
             </span>
           </Link>
+          <button
+            type="button"
+            aria-label="Log out"
+            disabled={isSigningOut}
+            onClick={() => void handleSignOut()}
+            className={cn(
+              circleButtonClasses,
+              "border-primary bg-accent text-primary hover:bg-error hover:border-error hover:text-background",
+            )}
+          >
+            <LogOut className="h-5 w-5" aria-hidden="true" />
+            <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary opacity-0 shadow-lg shadow-black/20 ring-1 ring-border transition-all duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-hover:translate-x-1 z-50">
+              Log out
+            </span>
+          </button>
         </div>
       </div>
     </nav>
