@@ -111,7 +111,11 @@ export default function InviteCodesListPage() {
                 />
               </div>
               <Link href="/admin/invites/send" className="shrink-0">
-                <Button size="sm" variant="outline" className="gap-2 hidden sm:flex">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2 hidden sm:flex"
+                >
                   <Mail className="h-4 w-4" />
                   Send Invites
                 </Button>

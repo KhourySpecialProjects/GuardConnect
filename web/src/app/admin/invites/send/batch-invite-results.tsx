@@ -138,7 +138,11 @@ export function BatchInviteResults({
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-end">
-        <Button variant="outline" onClick={onSendAnother} className="w-full sm:w-auto">
+        <Button
+          variant="outline"
+          onClick={onSendAnother}
+          className="w-full sm:w-auto"
+        >
           Send Another Batch
         </Button>
         <Link href="/admin/invites">

@@ -11,9 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PermissionTree } from "../components/permission-tree";
 import { EXPIRY_OPTIONS, INVITE_PRESETS, type InvitePreset } from "../types";
 import { getMinimalRoleSet } from "../utils/permission-helpers";
-import { PermissionTree } from "../components/permission-tree";
 
 export type SendInvitesFormValues = {
   emails: string[];
@@ -28,12 +28,14 @@ type SendInvitesFormProps = {
 };
 
 function parseEmails(raw: string): string[] {
-  return [...new Set(
-    raw
-      .split(/[\n,]+/)
-      .map((e) => e.trim().toLowerCase())
-      .filter((e) => e.length > 0),
-  )];
+  return [
+    ...new Set(
+      raw
+        .split(/[\n,]+/)
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => e.length > 0),
+    ),
+  ];
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -100,7 +102,8 @@ export function SendInvitesForm({
         />
         <div className="flex items-center justify-between">
           <p className="text-xs text-secondary/70">
-            Separate addresses with newlines or commas. Duplicates are removed automatically.
+            Separate addresses with newlines or commas. Duplicates are removed
+            automatically.
           </p>
           {parsedEmails.length > 0 && (
             <p className="text-xs shrink-0 ml-2">
@@ -110,7 +113,8 @@ export function SendInvitesForm({
                 </span>
               ) : (
                 <span className="text-green-700">
-                  {validEmails.length} email{validEmails.length !== 1 ? "s" : ""}
+                  {validEmails.length} email
+                  {validEmails.length !== 1 ? "s" : ""}
                 </span>
               )}
             </p>

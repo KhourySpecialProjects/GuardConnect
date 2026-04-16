@@ -1,6 +1,5 @@
 "use client";
 
-import type { InferTRPCOutput, TRPCProcedures } from "@/lib/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { Mail } from "lucide-react";
@@ -8,9 +7,13 @@ import { useState } from "react";
 import NavigationShell from "@/components/layouts/navigation-shell";
 import { TitleShell } from "@/components/layouts/title-shell";
 import { useHasRole } from "@/hooks/useHasRole";
+import type { InferTRPCOutput, TRPCProcedures } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc";
 import { BatchInviteResults } from "./batch-invite-results";
-import { SendInvitesForm, type SendInvitesFormValues } from "./send-invites-form";
+import {
+  SendInvitesForm,
+  type SendInvitesFormValues,
+} from "./send-invites-form";
 
 type BatchResult = InferTRPCOutput<
   TRPCProcedures["inviteCodes"]["sendBatchInvites"]
@@ -53,7 +56,7 @@ export default function SendInvitesPage() {
         roleKeys: values.roleKeys,
         expiresInHours: values.expiresInHours,
       });
-      setResult(data);
+      setResult(data as BatchResult);
     } catch (err) {
       if (err instanceof TRPCClientError) {
         const zodMessage = err.data?.zodError?.fieldErrors?.emails?.[0];
@@ -101,7 +104,10 @@ export default function SendInvitesPage() {
           )}
 
           {result ? (
-            <BatchInviteResults result={result} onSendAnother={handleSendAnother} />
+            <BatchInviteResults
+              result={result}
+              onSendAnother={handleSendAnother}
+            />
           ) : (
             <SendInvitesForm
               onSubmit={handleSubmit}
