@@ -72,3 +72,29 @@ export type InviteCodeStatus = z.infer<typeof inviteCodeStatusEnum>;
 export const revokeInviteCodeInputSchema = z.object({
   codeId: z.number().int().positive(),
 });
+
+// Input/output schemas for batch invite sending
+export const sendBatchInvitesInputSchema = z.object({
+  emails: z
+    .array(z.string().email("Invalid email address"))
+    .min(1, "At least one email is required")
+    .max(50, "Cannot send more than 50 invites at once"),
+  roleKeys: roleKeysArraySchema,
+  expiresInHours: z.number().positive().optional(),
+});
+
+const batchInviteResultItemSchema = z.object({
+  email: z.string(),
+  success: z.boolean(),
+  code: z.string().optional(),
+  error: z.string().optional(),
+});
+
+export const sendBatchInvitesOutputSchema = z.object({
+  total: z.number(),
+  sent: z.number(),
+  failed: z.number(),
+  results: z.array(batchInviteResultItemSchema),
+});
+
+export type BatchInviteResult = z.infer<typeof sendBatchInvitesOutputSchema>;

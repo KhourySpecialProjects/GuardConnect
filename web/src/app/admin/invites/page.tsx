@@ -2,7 +2,7 @@
 
 import type { InviteCodeStatus } from "@server/types/invite-code-types";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Mail, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -110,6 +110,20 @@ export default function InviteCodesListPage() {
                   onValueChange={handleStatusChange}
                 />
               </div>
+              <Link href="/admin/invites/send" className="shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2 hidden sm:flex"
+                >
+                  <Mail className="h-4 w-4" />
+                  Send Invites
+                </Button>
+                <Button size="sm" variant="outline" className="gap-2 sm:hidden">
+                  <Mail className="h-4 w-4" />
+                  Invite
+                </Button>
+              </Link>
               <Link href="/admin/invites/create" className="shrink-0">
                 <Button size="sm" className="gap-2 hidden sm:flex">
                   <Plus className="h-5 w-5" />
@@ -117,7 +131,7 @@ export default function InviteCodesListPage() {
                 </Button>
                 <Button size="sm" className="gap-2 sm:hidden">
                   <Plus className="h-5 w-5" />
-                  New Invite
+                  New
                 </Button>
               </Link>
             </div>
