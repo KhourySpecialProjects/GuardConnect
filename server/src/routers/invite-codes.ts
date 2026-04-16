@@ -3,6 +3,7 @@ import { AuthRepository } from "../data/repository/auth-repo.js";
 import { InviteCodeRepository } from "../data/repository/invite-code-repo.js";
 import { GLOBAL_CREATE_INVITE_KEY } from "../data/roles.js";
 import { InviteCodeService } from "../service/invite-code-service.js";
+import { sesService } from "../service/ses-service.js";
 import { withErrorHandling } from "../trpc/error_handler.js";
 import { procedure, roleProcedure, router } from "../trpc/trpc.js";
 import {
@@ -11,6 +12,8 @@ import {
   listInviteCodesInputSchema,
   listInviteCodesOutputSchema,
   revokeInviteCodeInputSchema,
+  sendBatchInvitesInputSchema,
+  sendBatchInvitesOutputSchema,
   validateInviteCodeInputSchema,
   validateInviteCodeOutputSchema,
 } from "../types/invite-code-types.js";
@@ -117,9 +120,37 @@ const revokeInviteCode = inviteProcedure
     });
   });
 
+/**
+ * Send batch invite emails (requires global:create-invite permission)
+ */
+const sendBatchInvites = inviteProcedure
+  .input(sendBatchInvitesInputSchema)
+  .output(sendBatchInvitesOutputSchema)
+  .meta({
+    openapi: {
+      method: "POST",
+      path: "/inviteCodes.sendBatchInvites",
+      summary:
+        "Create invite codes and send email invitations in bulk. Requires global:create-invite permission.",
+      tags: ["Invite Codes"],
+    },
+  })
+  .mutation(async ({ ctx, input }) => {
+    return withErrorHandling("sendBatchInvites", async () => {
+      return await inviteCodeService.sendBatchInvites(
+        ctx.auth.user.id,
+        input.emails,
+        input.roleKeys,
+        input.expiresInHours,
+        sesService,
+      );
+    });
+  });
+
 export const inviteCodeRouter = router({
   createInviteCode,
   validateInviteCode,
   listInviteCodes,
   revokeInviteCode,
+  sendBatchInvites,
 });
