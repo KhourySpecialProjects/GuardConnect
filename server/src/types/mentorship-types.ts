@@ -66,6 +66,11 @@ export type MatchedMentee = {
   matchedAt: string | Date;
 };
 
+export const getAdminStatsInputSchema = z.object({
+  days: z.number().int().positive().default(30),
+});
+export type GetAdminStatsInput = z.infer<typeof getAdminStatsInputSchema>;
+
 /**
  * Aggregated mentorship data returned to the frontend.
  *
@@ -134,13 +139,15 @@ export const mentorshipAdminStatsOutputSchema = z.object({
     declined: z.number(),
     total: z.number(),
     declineRate: z.number(),
+    acceptedThisPeriod: z.number(),
   }),
   growth: z.object({
-    newMentorsLast30Days: z.number(),
-    newMenteesLast30Days: z.number(),
-    mentorChangePercent: z.number(), // compared to previous 30 days
-    menteeChangePercent: z.number(), // compared to previous 30 days
+    newMentors: z.number(),
+    newMentees: z.number(),
+    mentorChangePercent: z.number(),
+    menteeChangePercent: z.number(),
     dailyEnrollment: z.array(enrollmentDaySchema),
+    days: z.number(),
   }),
 });
 

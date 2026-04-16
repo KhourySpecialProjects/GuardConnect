@@ -89,7 +89,7 @@ export default function AdminPage() {
         >
           <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
             {/* Header Section */}
-            <div className="flex items-start gap-4 rounded-lg border border-primary bg-white p-4">
+            <div className="flex items-start gap-4 rounded-lg border border-primary bg-card p-4">
               <ShieldCheck className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary" />
               <div className="flex-1">
                 <h2 className="text-lg font-semibold text-primary">
@@ -137,8 +137,8 @@ export default function AdminPage() {
             {/* Empty State */}
             {adminFeatures.filter((f) => hasRole(roles, f.requiredRole))
               .length === 0 && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="text-sm text-gray-600">
+              <div className="rounded-lg border border-border bg-gray-50 p-8 text-center">
+                <p className="text-sm text-muted-foreground">
                   No admin features available for your permission level.
                 </p>
               </div>
