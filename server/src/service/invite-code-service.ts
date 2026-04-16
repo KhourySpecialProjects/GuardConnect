@@ -10,7 +10,10 @@ import {
   NotFoundError,
   ValidationError,
 } from "../types/errors.js";
-import type { BatchInviteResult, InviteCodeStatus } from "../types/invite-code-types.js";
+import type {
+  BatchInviteResult,
+  InviteCodeStatus,
+} from "../types/invite-code-types.js";
 import log from "../utils/logger.js";
 
 // Configuration: Default expiration time in hours
@@ -251,7 +254,11 @@ export class InviteCodeService {
 
     for (const email of emails) {
       try {
-        const invite = await this.createInvite(adminUserId, roleKeys, expiresInHours);
+        const invite = await this.createInvite(
+          adminUserId,
+          roleKeys,
+          expiresInHours,
+        );
         const inviteLink = `${frontendUrl}/login/create-account?inviteCode=${invite.code}`;
         const emailResult = await sesService.sendInviteEmail(email, inviteLink);
 
@@ -263,7 +270,10 @@ export class InviteCodeService {
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        log.warn({ email, err: message }, "Failed to create or send invite for email");
+        log.warn(
+          { email, err: message },
+          "Failed to create or send invite for email",
+        );
         results.push({ email, success: false, error: message });
       }
     }
@@ -274,7 +284,12 @@ export class InviteCodeService {
       "Batch invite send complete",
     );
 
-    return { total: emails.length, sent, failed: emails.length - sent, results };
+    return {
+      total: emails.length,
+      sent,
+      failed: emails.length - sent,
+      results,
+    };
   }
 
   /**

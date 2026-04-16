@@ -38,7 +38,9 @@ export class SesService {
       return;
     }
     this.fromEmail = fromEmail;
-    this.client = new SESClient({ region: process.env.AWS_REGION ?? "us-east-1" });
+    this.client = new SESClient({
+      region: process.env.AWS_REGION ?? "us-east-1",
+    });
   }
 
   async sendInviteEmail(
