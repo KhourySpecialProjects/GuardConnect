@@ -15,6 +15,7 @@ import {
 import {
   getAdminMembersOutputSchema,
   getAdminPairsOutputSchema,
+  getAdminStatsInputSchema,
   getPendingMentorsInputSchema,
   mentorshipAdminStatsOutputSchema,
   mentorshipDataOutputSchema,
@@ -201,6 +202,7 @@ const updateMentorStatus = roleProcedure([GLOBAL_ADMIN_KEY])
   );
 
 const getAdminStats = roleProcedure([GLOBAL_ADMIN_KEY])
+  .input(getAdminStatsInputSchema)
   .output(mentorshipAdminStatsOutputSchema)
   .meta({
     openapi: {
@@ -210,9 +212,9 @@ const getAdminStats = roleProcedure([GLOBAL_ADMIN_KEY])
       tags: ["Mentorship"],
     },
   })
-  .query(() =>
+  .query(({ input }) =>
     withErrorHandling("getAdminStats", async () => {
-      return await mentorshipService.getAdminStats();
+      return await mentorshipService.getAdminStats(input.days);
     }),
   );
 
