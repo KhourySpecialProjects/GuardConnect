@@ -21,10 +21,18 @@ interface BroadcastResult {
 const client = new SecretsManagerClient({ region: "us-east-1" });
 
 async function getTwilioSecrets() {
-  const response = await client.send(
-    new GetSecretValueCommand({ SecretId: "prod/guardconnect/twilio" }),
-  );
-  return JSON.parse(response.SecretString!);
+  if (process.env.DEV_ENV === "true") {
+    return {
+      TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+      TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+      TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
+    };
+  } else {
+    const response = await client.send(
+      new GetSecretValueCommand({ SecretId: "prod/guardconnect/twilio" }),
+    );
+    return JSON.parse(response.SecretString!);
+  }
 }
 
 export class TwilioSMSService {
