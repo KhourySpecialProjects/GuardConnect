@@ -4,12 +4,16 @@ import type { InviteCodeRepository } from "../data/repository/invite-code-repo.j
 import { hasPermission } from "../data/role-hierarchy.js";
 import type { RoleKey } from "../data/roles.js";
 import { GLOBAL_CREATE_INVITE_KEY } from "../data/roles.js";
+import type { SesService } from "../service/ses-service.js";
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
 } from "../types/errors.js";
-import type { InviteCodeStatus } from "../types/invite-code-types.js";
+import type {
+  BatchInviteResult,
+  InviteCodeStatus,
+} from "../types/invite-code-types.js";
 import log from "../utils/logger.js";
 
 // Configuration: Default expiration time in hours
@@ -226,6 +230,66 @@ export class InviteCodeService {
     await this.verifyInviteManagementPermission(adminUserId);
 
     return this.inviteCodeRepo.listInviteCodes(status, limit, offset);
+  }
+
+  /**
+   * Create invite codes and send emails in batch
+   * @param adminUserId Admin user sending the invites
+   * @param emails Array of email addresses to invite
+   * @param roleKeys Role keys to assign via invite
+   * @param expiresInHours Hours until codes expire
+   * @param sesService SES service for sending emails
+   */
+  async sendBatchInvites(
+    adminUserId: string,
+    emails: string[],
+    roleKeys: RoleKey[],
+    expiresInHours: number | undefined,
+    sesService: SesService,
+  ): Promise<BatchInviteResult> {
+    await this.verifyInviteManagementPermission(adminUserId);
+
+    const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:3001";
+    const results: BatchInviteResult["results"] = [];
+
+    for (const email of emails) {
+      try {
+        const invite = await this.createInvite(
+          adminUserId,
+          roleKeys,
+          expiresInHours,
+        );
+        const inviteLink = `${frontendUrl}/login/create-account?inviteCode=${invite.code}`;
+        const emailResult = await sesService.sendInviteEmail(email, inviteLink);
+
+        results.push({
+          email,
+          success: emailResult.success,
+          code: invite.code,
+          error: emailResult.error,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        log.warn(
+          { email, err: message },
+          "Failed to create or send invite for email",
+        );
+        results.push({ email, success: false, error: message });
+      }
+    }
+
+    const sent = results.filter((r) => r.success).length;
+    log.info(
+      { adminUserId, total: emails.length, sent },
+      "Batch invite send complete",
+    );
+
+    return {
+      total: emails.length,
+      sent,
+      failed: emails.length - sent,
+      results,
+    };
   }
 
   /**
