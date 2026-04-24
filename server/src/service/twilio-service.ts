@@ -35,8 +35,6 @@ async function getTwilioSecrets() {
   }
 }
 
-
-
 export class TwilioSMSService {
   private client: ReturnType<typeof twilio>;
   private fromNumber: string;
