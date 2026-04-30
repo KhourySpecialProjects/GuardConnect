@@ -182,7 +182,7 @@ export function CreateChannelForm({ onSubmit, submitting, error }: Props) {
 
   return (
     <form
-      className="flex flex-col gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm"
+      className="flex flex-col gap-6 py-6 sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-6 sm:shadow-sm"
       onSubmit={handleSubmit}
     >
       <div className="space-y-6">

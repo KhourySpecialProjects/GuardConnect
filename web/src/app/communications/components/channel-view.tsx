@@ -13,12 +13,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { icons } from "@/components/icons";
 import { TitleShell } from "@/components/layouts/title-shell";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useTRPC } from "@/lib/trpc";
 import { type ChannelMessage, MessageList } from "./index";
 
@@ -342,7 +336,6 @@ export function ChannelView({ channelId }: ChannelViewProps) {
 
   const AddIcon = icons.add;
   const SettingsIcon = icons.settings;
-  const EllipsisIcon = icons.ellipsis;
 
   const handleReactionToggle = useCallback(
     ({
@@ -523,6 +516,18 @@ export function ChannelView({ channelId }: ChannelViewProps) {
       backAriaLabel={backAriaLabel}
       actions={
         <>
+          {/* Mobile: settings icon only */}
+          <div className="flex items-center sm:hidden">
+            <Link
+              href={`/communications/${channelId}/settings`}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              aria-label="Channel settings"
+            >
+              <SettingsIcon className="h-5 w-5" />
+            </Link>
+          </div>
+
+          {/* Desktop: New Post + Settings */}
           <div className="hidden items-center gap-3 sm:flex">
             {canCreatePost ? (
               <Button
@@ -538,49 +543,25 @@ export function ChannelView({ channelId }: ChannelViewProps) {
             ) : null}
             <Link
               href={`/communications/${channelId}/settings`}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:h-10 sm:w-10"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-primary transition hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               aria-label="Channel settings"
             >
               <SettingsIcon className="h-5 w-5 sm:h-8 sm:w-8" />
             </Link>
           </div>
-
-          <div className="flex items-center sm:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Channel actions"
-                >
-                  <EllipsisIcon className="h-5 w-5 text-primary" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                {canCreatePost ? (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href={`/communications/${channelId}/new`}
-                      className="flex items-center gap-2 text-secondary"
-                    >
-                      <AddIcon className="h-4 w-4 text-primary" />
-                      New Post
-                    </Link>
-                  </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/communications/${channelId}/settings`}
-                    className="flex items-center gap-2 text-secondary"
-                  >
-                    <SettingsIcon className="h-4 w-4 text-primary" />
-                    Channel Settings
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </>
+      }
+      pinnedContent={
+        canCreatePost ? (
+          <div className="-my-3 sm:hidden">
+            <Button variant="outline" className="w-full" asChild>
+              <Link href={`/communications/${channelId}/new`}>
+                <AddIcon className="h-4 w-4" />
+                New Post
+              </Link>
+            </Button>
+          </div>
+        ) : null
       }
     >
       {readOnlyChannel && !hasPostPermission ? (

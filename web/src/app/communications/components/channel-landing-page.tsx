@@ -232,7 +232,7 @@ export function ChannelLandingPage({ variant }: ChannelLandingPageProps) {
       scrollableContent={false}
       contentClassName="md:pr-0"
     >
-      <div className="mx-auto flex w-full app-content-width flex-col gap-6 px-4 sm:px-12">
+      <div className="mx-auto flex w-full app-content-width flex-col gap-6 sm:px-12">
         {isLoading ? (
           <section className="grid h-64 place-items-center rounded-2xl border border-primary/20 bg-card text-secondary/70">
             Loading channels…

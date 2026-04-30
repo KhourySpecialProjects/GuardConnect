@@ -337,7 +337,7 @@ export default function ChannelSettingsPage({
     >
       <div className="flex flex-col divide-y divide-border">
         {/* Channel Name */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8 px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8 sm:px-4">
           <label
             htmlFor={nameFieldId}
             className="text-sm font-medium text-secondary sm:w-48 shrink-0"
@@ -370,7 +370,7 @@ export default function ChannelSettingsPage({
         </div>
 
         {/* Channel Description */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-4 py-8 px-4">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4 py-8 sm:px-4">
           <label
             htmlFor={descFieldId}
             className="text-sm font-medium text-secondary sm:w-48 shrink-0 sm:pt-3"
@@ -389,7 +389,7 @@ export default function ChannelSettingsPage({
                 id={descFieldId}
                 value={channelDescription}
                 onChange={setChannelDescription}
-                className="bg-transparent border-0 shadow-none p-0 w-144 text-base font-medium text-secondary focus-visible:ring-0 focus-visible:border-0 disabled:cursor-not-allowed"
+                className="bg-transparent border-0 shadow-none p-0 w-full text-base font-medium text-secondary focus-visible:ring-0 focus-visible:border-0 disabled:cursor-not-allowed"
                 multiline
                 rows={4}
                 disabled={!isAdmin}
@@ -405,7 +405,7 @@ export default function ChannelSettingsPage({
 
         {/* Channel Banner (admin only) */}
         {isAdmin && (
-          <div className="flex flex-col sm:flex-row sm:items-start gap-4 py-8 px-4">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4 py-8 sm:px-4">
             <label
               htmlFor={bannerFieldId}
               className="text-sm font-medium text-secondary sm:w-48 shrink-0 sm:pt-2"
@@ -442,7 +442,7 @@ export default function ChannelSettingsPage({
         )}
 
         {/* Channel Members */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8 px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8 sm:px-4">
           <label
             htmlFor={"channel-members"}
             className="text-sm font-medium text-secondary sm:w-48 shrink-0"
@@ -464,7 +464,7 @@ export default function ChannelSettingsPage({
         </div>
 
         {/* Notification Settings */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8 px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-8 sm:px-4">
           <label
             htmlFor={notifFieldId}
             className="text-sm font-medium text-secondary sm:w-48 shrink-0"
@@ -489,7 +489,7 @@ export default function ChannelSettingsPage({
       </div>
 
       {/* Danger Zone + Save Changes */}
-      <div className="border-t border-border px-4 py-8">
+      <div className="border-t border-border sm:px-4 py-8">
         <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-5 sm:px-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
