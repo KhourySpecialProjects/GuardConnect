@@ -34,8 +34,18 @@ export class S3StorageAdapter extends StorageAdapter {
     super();
     this.bucket = opts.bucket;
     this.publicBaseUrl = opts.publicBaseUrl;
-    this.s3 = new S3Client({
+        this.s3 = new S3Client({
       region: opts.region ?? process.env.AWS_REGION ?? "us-east-1",
+      ...(process.env.S3_ENDPOINT
+        ? {
+            endpoint: process.env.S3_ENDPOINT,
+            forcePathStyle: true,
+            credentials: {
+              accessKeyId: process.env.S3_ACCESS_KEY_ID ?? "",
+              secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? "",
+            },
+          }
+        : {}),
     });
     log.info(
       { bucketName: this.bucket, base_url: this.publicBaseUrl },
